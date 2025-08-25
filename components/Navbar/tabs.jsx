@@ -18,7 +18,7 @@ export const SlideTabsExample = () => {
   const { userInfo, logout } = useUser();
 
   const navLinks = [
-    { label: "品牌門店", href: "/category/japan/" },
+    { label: "品牌門店", href: "/brand" },
     { label: "品牌菜單", href: "/category/korea/" },
     { label: "品牌動態", href: "/category/china/" },
     { label: "加盟合作", href: "/category/malaysia/" },
