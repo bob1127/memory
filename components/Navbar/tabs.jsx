@@ -19,7 +19,7 @@ export const SlideTabsExample = () => {
 
   const navLinks = [
     { label: "品牌門店", href: "/brand" },
-    { label: "品牌菜單", href: "/category/korea/" },
+    { label: "品牌菜單", href: "/menu" },
     { label: "品牌動態", href: "/category/china/" },
     { label: "加盟合作", href: "/category/malaysia/" },
   ];
@@ -111,6 +111,12 @@ export const SlideTabsExample = () => {
               {/* Right Side Icons */}
               <div className=" w-[80%]  md:w-[20%]">
                 <div className="flex justify-center items-center">
+                  <Link
+                    href="/beer"
+                    className="bg-[#9c2121] text-white border border-gray-300  rounded-[30px] px-3 py-1 text-[14px]"
+                  >
+                    ORDER｜線上訂購
+                  </Link>
                   <div className="mx-2">加盟諮詢</div>
                   <div className="mx-2">線上預約/點餐</div>
                 </div>
