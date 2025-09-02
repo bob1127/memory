@@ -20,8 +20,8 @@ export const SlideTabsExample = () => {
   const navLinks = [
     { label: "品牌門店", href: "/brand" },
     { label: "品牌菜單", href: "/menu" },
-    { label: "品牌動態", href: "/category/china/" },
-    { label: "加盟合作", href: "/category/malaysia/" },
+    { label: "品牌動態", href: "/main01" },
+    { label: "加盟合作", href: "/participation" },
   ];
 
   // 監聽滾動方向
@@ -42,12 +42,12 @@ export const SlideTabsExample = () => {
   }, []);
 
   return (
-    <>
+    <div className="">
       {/* ✅ 手機選單背景遮罩 */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            className="fixed inset-0 z-[900] pointer-events-none"
+            className="fixed inset-0 z-[900]  pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -70,13 +70,13 @@ export const SlideTabsExample = () => {
             }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4 }}
-            className="fixed left-0 w-full top-6 z-[1000]"
+            className="fixed left-0 w-full top-0 z-[1000] !bg-[#212121]"
           >
-            <div className="flex justify-between items-start px-5 !rounded-[8px] text-white  mx-auto w-[96.5%] ">
+            <div className="flex justify-between items-center px-5 !rounded-[8px] text-white  mx-auto w-[96.5%] ">
               {/* Logo */}
               <div className="w-[20%]  pl-5">
                 <Link href="/">
-                  <div className="w-[80px]">
+                  <div className="w-[80px] p-2">
                     <Image
                       src="/images/logo05.png"
                       alt="ESIM Logo"
@@ -175,6 +175,6 @@ export const SlideTabsExample = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 };
