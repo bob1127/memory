@@ -7,7 +7,7 @@ export default function Footer() {
 
       {/* Footer內容 */}
       <section>
-        <div className="top flex justify-center items-center">
+        <div className="top flex mb-4 justify-center items-center">
           <Image
             src="/images/logo05.png"
             alt="company-logo-footer"
@@ -15,7 +15,7 @@ export default function Footer() {
             height={140}
             placeholder="empty"
             loading="lazy"
-            className="w-[200px]"
+            className="w-[120px]"
           ></Image>
         </div>
         <div className="middle flex justify-center items-center flex-col">

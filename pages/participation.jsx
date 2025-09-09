@@ -44,7 +44,7 @@ export default function Participation() {
 
   return (
     <Layout>
-      <section className="section-hero relative flex h-[75vh] min-h-[560px] w-full items-center justify-center bg-[#ee1d1d] overflow-hidden">
+      <section className="section-hero relative flex h-[75vh] w-full items-center justify-center bg-[#ee1d1d] overflow-hidden">
         {/* 你的主視覺圖片 */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30">
           <Image
@@ -76,7 +76,7 @@ export default function Participation() {
       <section className="mx-auto w-[85%] max-w-[1920px] py-20">
         <div className="flex flex-col gap-10 px-0 md:flex-row md:gap-6 md:px-20">
           <div className="md:w-1/2">
-            <h2 className="text-[28px] text-stone-800">
+            <h2 className="  text-[24px] md:text-[28px] text-stone-800">
               品牌故事：傳承溫度 × 家鄉味
             </h2>
             <p className="mt-4 max-w-[600px] leading-8 tracking-widest text-stone-700">
@@ -130,14 +130,13 @@ export default function Participation() {
           </div>
         </div>
       </section>
-      <section className="mx-auto w-[85%] max-w-[1920px] py-20">
+      <section className="mx-auto w-[85%] max-w-[1920px] ">
         <div className="flex justify-center flex-col py-20">
-          <div className="relative mx-auto aspect-[13/3] w-[400px] overflow-hidden">
+          <div className="relative mx-auto aspect-[13/3] w-[300px] overflow-hidden">
             <Image
               src="/images/燈籠.png"
               alt="復古燈籠"
               fill
-              sizes="(max-width: 400px) 400px, 400px"
               className="object-cover"
             />
           </div>
@@ -146,48 +145,63 @@ export default function Participation() {
           </div>
         </div>
       </section>
-      <section className="mx-auto w-[85%] max-w-[1920px] py-20">
-        <div className="flex justify-center items-center mb-20">
-          <div className="left w-1/2 bg-[#df4a29] p-10">
-            <h2 className="text-[28px] text-stone-50">我們的理念:</h2>
-            <h2 className="text-[28px] text-stone-50 w-2/3">
-              有香40年傳承的過程中，經歷不同階段的挑戰，並且持續的成長和茁壯。
+      <section className="mx-auto w-[92%] max-w-[1920px] py-14 sm:py-16 lg:py-20">
+        {/* 區塊一：左文右圖（手機直排） */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 items-center mb-12 lg:mb-16">
+          {/* Text */}
+          <div className="bg-[#ee1d1d] p-6 sm:p-8 lg:p-10 text-stone-50">
+            <h2 className="text-2xl sm:text-[28px] font-semibold">
+              我們的理念：
             </h2>
-            <div className="info max-w-[600px] leading-loose text-stone-50 tracking-widest mt-8 ">
-              目前有香三家店面，承載著老闆對於有香不同面向的期許：總店－以傳承台灣正港美味料理，輕食店－復刻台式經典甜品和小吃，中央廚房－嚴格控管食材品質與掌握口味。我們也深切期望有香餐飲集團永續經營且穩健成長。
-            </div>
+            <p className="mt-3 text-xl sm:text-[28px] font-medium leading-snug max-w-[40ch]">
+              有香40年傳承的過程中，經歷不同階段的挑戰，並且持續的成長和茁壯。
+            </p>
+            <p className="mt-6 max-w-[70ch] leading-8 tracking-wide">
+              目前有香三家店面，承載著老闆對於有香不同面向的期許：總店－以傳承台灣正港美味料理，
+              輕食店－復刻台式經典甜品和小吃，中央廚房－嚴格控管食材品質與掌握口味。我們也深切期望有香餐飲集團永續經營且穩健成長。
+            </p>
           </div>
-          <div className="right w-1/2">
-            {" "}
-            <div className="relative mx-auto aspect-[5/3] w-[500px] max-w-[550px] overflow-hidden">
+
+          {/* Image */}
+          <div className="md:pl-2">
+            <div className="relative mx-auto aspect-[5/3] w-full max-w-[620px] overflow-hidden rounded-xl">
               <Image
-                src="/images/section3Image1.png"
+                src="/images/冰品.png"
                 alt="有香餐飲"
                 fill
-                sizes="(max-width: 400px) 400px, 400px"
+                sizes="(min-width: 1024px) 620px, (min-width: 768px) 50vw, 100vw"
                 className="object-cover"
+                priority={false}
               />
             </div>
           </div>
         </div>
-        <div className="flex justify-center items-center">
-          <div className="right w-1/2">
-            {" "}
-            <div className="relative mx-auto aspect-[5/3] w-[500px] max-w-[550px] overflow-hidden">
+
+        {/* 區塊二：右圖左文（md 以上交錯；手機仍直排） */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 items-center">
+          {/* Image（md 以上放左邊，手機排第一） */}
+          <div className="order-1 md:order-none md:pr-2">
+            <div className="relative mx-auto aspect-[5/3] w-full max-w-[620px] overflow-hidden rounded-xl">
               <Image
                 src="/images/section3Image1.png"
                 alt="有香餐飲"
                 fill
-                sizes="(max-width: 400px) 400px, 400px"
+                sizes="(min-width: 1024px) 620px, (min-width: 768px) 50vw, 100vw"
                 className="object-cover"
               />
             </div>
           </div>
-          <div className="left w-1/2">
-            <h2 className="text-[28px] text-stone-800">我們的理念</h2>
-            <div className="info max-w-[600px] leading-loose tracking-widest mt-8 ">
-              有香40年傳承的過程中，經歷不同階段的挑戰，並且持續的成長和茁壯。目前有香三家店面，承載著老闆對於有香不同面向的期許：總店－以傳承台灣正港美味料理，輕食店－復刻台式經典甜品和小吃，中央廚房－嚴格控管食材品質與掌握口味。我們也深切期望有香餐飲集團永續經營且穩健成長。
-            </div>
+
+          {/* Text（md 以上在右邊） */}
+          <div>
+            <h3 className="text-2xl sm:text-[28px] font-semibold text-stone-800">
+              我們的理念
+            </h3>
+            <p className="mt-6 max-w-[70ch] leading-8 tracking-wide text-stone-800/90">
+              有香40年傳承的過程中，經歷不同階段的挑戰，並且持續的成長和茁壯。
+              目前有香三家店面，承載著老闆對於有香不同面向的期許：總店－以傳承台灣正港美味料理，
+              輕食店－復刻台式經典甜品和小吃，中央廚房－嚴格控管食材品質與掌握口味。我們也深切期望有香餐飲集團永續經營且穩健成長。
+            </p>
           </div>
         </div>
       </section>
@@ -213,7 +227,7 @@ export default function Participation() {
             立即了解
           </Link>
         </div>
-        <div className="grid grid-cols-2 mt-8 gap-5">
+        <div className="grid  grid-col-1 lg:grid-cols-2 mt-8 gap-5">
           <div className="bg-slate-100 border border-gray-300 p-20 rounded-md">
             <h3 className="text-3xl font-bold mb-4">STEP1 - 洽談諮詢</h3>
             <p>

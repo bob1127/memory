@@ -52,6 +52,7 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.2.4",
     "ecpay_aio_nodejs": "^1.2.2",
+    "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.2.1",
     "framer": "^2.4.1",
     "framer-motion": "^10.18.0",

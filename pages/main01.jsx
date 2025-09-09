@@ -44,7 +44,7 @@ export default function Participation() {
   return (
     <Layout>
       <div className="bg-[#f5f4f0] pt-[150px]">
-        <section className="section-hero  max-w-[1920px] w-[85%]  relative flex  mx-auto items-center justify-center overflow-hidden">
+        <section className="section-hero  max-w-[1920px]  w-full md:w-[85%]  relative flex  mx-auto items-center justify-center overflow-hidden">
           <div className="beer absolute top-1/2 left-[50px]">
             <Image
               src="/images/beer04.png"
@@ -105,9 +105,9 @@ export default function Participation() {
         </div> */}
         </section>
 
-        <section className="section-info h-[80vh] max-w-[1920px] w-[85%]  relative flex   mx-auto items-center justify-center ">
-          <div className="w-[15%] border-t-3 border-black h-full"></div>
-          <div className="w-[70%] relative  border-3 border-black flex justify-center items-center   h-full">
+        <section className="section-info h-[80vh] max-w-[1920px] w-full md:w-[85%]  relative flex   mx-auto items-center justify-center ">
+          <div className=" w-0 md:w-[15%] border-t-3 border-black h-full"></div>
+          <div className=" w-full px-6 md:w-[70%] relative  border-3 border-black flex justify-center items-center   h-full">
             <div className="beer absolute top-[-50%] z-50 left-[25%]">
               <Image
                 src="/images/hotpot-shadow.png"
@@ -127,7 +127,7 @@ export default function Participation() {
               </p>
             </div>
           </div>
-          <div className="w-[15%] border-t-3 border-black h-full"></div>
+          <div className=" w-0 md:w-[15%] border-t-3 border-black h-full"></div>
         </section>
         <section className="bg-[#bb1c21]">
           <div className="title-marquee">
@@ -145,7 +145,7 @@ export default function Participation() {
               </Marquee>
             </div>
           </div>
-          <div className="food  grid grid-cols-3">
+          <div className="food  grid  grid-cols-1 md:grid-cols-3">
             <div className="border-t-2 border-b-2 border-white pb-8 flex justify-center relative items-center ">
               <div className="absolute z-40 right-[7%] top-[20%]">
                 {" "}
@@ -172,7 +172,7 @@ export default function Participation() {
                 <div className="max-w-[530px]">
                   {" "}
                   <Image
-                    src="/images/hotpot.png"
+                    src="/images/羊肉爐.png"
                     alt="main-img"
                     width={1200}
                     height={1200}
@@ -180,7 +180,7 @@ export default function Participation() {
                     priority
                   />
                 </div>
-                <div className="info text-center max-w-[500px] leading-loose tracking-wider text-slate-50  text-[16px]">
+                <div className="info text-center max-w-[500px] leading-loose  w-[80%] mx-auto tracking-wider text-slate-50  text-[16px]">
                   以傳承四十年歷經三代的中藥材配方精心熬煮，嚐得到嚴選帶骨羊肉塊的鮮嫩，搭配當歸中藥秘方湯底，溫陽
                   補血且濃郁順口。
                 </div>
@@ -220,7 +220,7 @@ export default function Participation() {
                     priority
                   />
                 </div>
-                <div className="info text-center max-w-[500px] leading-loose tracking-wider text-slate-50  text-[16px]">
+                <div className="info text-center max-w-[500px] w-[80%] mx-auto leading-loose tracking-wider text-slate-50  text-[16px]">
                   以傳承四十年歷經三代的中藥材配方精心熬煮，嚐得到嚴選帶骨羊肉塊的鮮嫩，搭配當歸中藥秘方湯底，溫陽
                   補血且濃郁順口。
                 </div>
@@ -260,7 +260,7 @@ export default function Participation() {
                     priority
                   />
                 </div>
-                <div className="info text-center max-w-[500px] leading-loose tracking-wider text-slate-50  text-[16px]">
+                <div className="info text-center max-w-[500px] w-[80%] mx-auto leading-loose tracking-wider text-slate-50  text-[16px]">
                   以傳承四十年歷經三代的中藥材配方精心熬煮，嚐得到嚴選帶骨羊肉塊的鮮嫩，搭配當歸中藥秘方湯底，溫陽
                   補血且濃郁順口。
                 </div>

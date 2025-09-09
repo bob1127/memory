@@ -523,31 +523,39 @@ export default function Home() {
       <section className="flex flex-row bg-[#092538] h-screen">
         <div className="left w-[25%] flex flex-col justify-center items-center border">
           <h2 className="text-5xl text-center mb-8 font-extrabold text-white">
-            Discover<br></br> Our <br></br>Barnd
+            Discover
+            <br /> Our <br />
+            Barnd
           </h2>
           <button className="bg-rose-500 text-white text-xl px-4 py-1 flex justify-center items-center">
             More
           </button>
         </div>
-        <div className="right w-[75%]  flex justify-center items-center border">
+
+        <div className="right w-[75%] flex justify-center items-center border">
           <div className="grid grid-cols-3 relative w-full h-full gap-8">
+            {/* === 左一：由下往上長 === */}
             <div className="relative">
               <motion.div
-                initial="rest"
-                whileHover="hover"
-                animate="rest"
-                className="brand rounded-tr-full rounded-tl-full absolute max-w-[380px] w-full bottom-0 bg-[#bd162f] h-[80%] overflow-visible"
+                initial={{ height: "0%" }}
+                whileInView={{ height: "80%" }}
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{ duration: 1, ease: [0.22, 0.8, 0.2, 1] }}
+                className="brand rounded-tr-full rounded-tl-full absolute max-w-[380px] w-full bottom-0 bg-[#bd162f] origin-bottom overflow-visible"
               >
-                <div className="w-full h-full relative">
+                <motion.div
+                  initial="rest"
+                  whileHover="hover"
+                  animate="rest"
+                  className="w-full h-full relative"
+                >
                   <div className="little-img w-[80%] z-10 absolute top-5 left-1/2 -translate-x-1/2">
                     <div className="relative w-full h-[320px]">
-                      {/* 父層保持：initial="rest" whileHover="hover" animate="rest" */}
                       {(() => {
-                        // 每個物件自己的「最終位移／旋轉／延遲／彈簧」設定 + 各自圖片
                         const items = [
                           {
                             key: "a",
-                            src: "/images/vg01.png", // ✅ 第一張圖片
+                            src: "/images/vg01.png",
                             base: "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
                             x: -20,
                             y: -200,
@@ -559,7 +567,7 @@ export default function Home() {
                           },
                           {
                             key: "b",
-                            src: "/images/vg08.png", // ✅ 第二張圖片
+                            src: "/images/vg08.png",
                             base: "absolute left-[30%] top-1/2 -translate-y-1/2",
                             x: 150,
                             y: 150,
@@ -571,7 +579,7 @@ export default function Home() {
                           },
                           {
                             key: "c",
-                            src: "/images/vg05.png", // ✅ 第三張圖片
+                            src: "/images/vg05.png",
                             base: "absolute left-[20%] top-[40%]",
                             x: -120,
                             y: -180,
@@ -582,7 +590,6 @@ export default function Home() {
                             mass: 0.65,
                           },
                         ];
-
                         const itemVariants = {
                           rest: { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 },
                           hover: (c) => ({
@@ -600,7 +607,6 @@ export default function Home() {
                             },
                           }),
                         };
-
                         return items.map((cfg) => (
                           <motion.div
                             key={cfg.key}
@@ -609,7 +615,7 @@ export default function Home() {
                             custom={cfg}
                           >
                             <Image
-                              src={cfg.src} // ✅ 每個物件用自己的圖片
+                              src={cfg.src}
                               alt={cfg.key}
                               width={90}
                               height={90}
@@ -643,13 +649,59 @@ export default function Home() {
                     height={900}
                     className="w-[100px] h-auto absolute bottom-[50%] z-30 left-1/2 -translate-x-1/2"
                   />
+                </motion.div>
+              </motion.div>
+            </div>
+
+            {/* === 中間：由上往下長 === */}
+            <div className="relative">
+              <motion.div
+                initial={{ height: "0%" }}
+                whileInView={{ height: "80%" }}
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{
+                  duration: 1,
+                  ease: [0.22, 0.8, 0.2, 1],
+                  delay: 0.1,
+                }}
+                className="brand rounded-br-full rounded-bl-full absolute max-w-[380px] w-full top-0 bg-[#bd162f] origin-top overflow-hidden"
+              >
+                <div className="w-full h-full relative">
+                  <Image
+                    src="/images/hotpot.png"
+                    alt="hotpot"
+                    placeholder="empty"
+                    loading="lazy"
+                    width={900}
+                    height={900}
+                    className="w-[320px] h-[320px] absolute bottom-5 left-1/2 -translate-x-1/2"
+                  />
+                  <Image
+                    src="/images/花紋01.png"
+                    alt="hotpot"
+                    placeholder="empty"
+                    loading="lazy"
+                    width={900}
+                    height={900}
+                    className="w-full h-auto absolute top-0 rotate-180 left-1/2 -translate-x-1/2"
+                  />
                 </div>
               </motion.div>
             </div>
+
+            {/* === 右一：由下往上長 === */}
             <div className="relative">
-              {" "}
-              <div className="brand rounded-br-full rounded-bl-full absolute max-w-[380px] w-full top-0 bg-[#bd162f]  h-[80%]">
-                {" "}
+              <motion.div
+                initial={{ height: "0%" }}
+                whileInView={{ height: "80%" }}
+                viewport={{ once: true, amount: 0.35 }}
+                transition={{
+                  duration: 1,
+                  ease: [0.22, 0.8, 0.2, 1],
+                  delay: 0.2,
+                }}
+                className="brand rounded-tr-full rounded-tl-full absolute max-w-[380px] w-full bottom-0 bg-[#bd162f] origin-bottom overflow-hidden"
+              >
                 <div className="w-full h-full relative">
                   <Image
                     src="/images/hotpot.png"
@@ -658,7 +710,7 @@ export default function Home() {
                     loading="lazy"
                     width={900}
                     height={900}
-                    className="w-[320px]  h-[320px] absolute bottom-5 left-1/2 -translate-x-1/2"
+                    className="w-[320px] h-[320px] absolute top-5 left-1/2 -translate-x-1/2"
                   />
                   <Image
                     src="/images/花紋01.png"
@@ -667,35 +719,10 @@ export default function Home() {
                     loading="lazy"
                     width={900}
                     height={900}
-                    className="w-full  h-auto absolute top-0 rotate-180 left-1/2 -translate-x-1/2"
+                    className="w-full h-auto absolute bottom-0 left-1/2 -translate-x-1/2"
                   />
                 </div>
-              </div>
-            </div>
-            <div className="relative">
-              {" "}
-              <div className="brand rounded-tr-full rounded-tl-full absolute max-w-[380px] w-full bottom-0 bg-[#bd162f]  h-[80%]">
-                <div className="w-full h-full relative">
-                  <Image
-                    src="/images/hotpot.png"
-                    alt="hotpot"
-                    placeholder="empty"
-                    loading="lazy"
-                    width={900}
-                    height={900}
-                    className="w-[320px]  h-[320px] absolute top-5 left-1/2 -translate-x-1/2"
-                  />
-                  <Image
-                    src="/images/花紋01.png"
-                    alt="hotpot"
-                    placeholder="empty"
-                    loading="lazy"
-                    width={900}
-                    height={900}
-                    className="w-full  h-auto absolute bottom-0 left-1/2 -translate-x-1/2"
-                  />
-                </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
