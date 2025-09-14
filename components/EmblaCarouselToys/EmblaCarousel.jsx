@@ -158,8 +158,8 @@ const EmblaCarousel = (props) => {
         }}
       >
         <div className="flex flex-col justify-center items-center">
-          <p className="text-white text-center text-[14px]">100%</p>{" "}
-          <p className="text-center text-white text-[10px]">Made In Taiwan</p>
+          <p className="text-white text-center text-[14px]">The Taiwan</p>{" "}
+          <p className="text-center text-white text-[10px]">Flaver</p>
         </div>
       </div>
     </div>

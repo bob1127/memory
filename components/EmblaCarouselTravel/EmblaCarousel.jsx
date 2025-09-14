@@ -83,9 +83,9 @@ const EmblaCarousel = (props) => {
     >
       {/* RWD：在不同寬度時調整每張卡片的寬度比例 */}
       <style>{`
-        .embla__viewport { --slide-size: 26%; }
-        @media (max-width: 1700px) { .embla__viewport { --slide-size: 32%; } }
-        @media (max-width: 1200px) { .embla__viewport { --slide-size: 38%; } }
+        .embla__viewport { --slide-size: 37%; }
+        @media (max-width: 1700px) { .embla__viewport { --slide-size: 60%; } }
+        @media (max-width: 1200px) { .embla__viewport { --slide-size: 60%; } }
         @media (max-width: 768px)  { .embla__viewport { --slide-size: 58%; } }
         @media (max-width: 550px)  { .embla__viewport { --slide-size: 84%; } }
       `}</style>
@@ -183,8 +183,8 @@ const EmblaCarousel = (props) => {
         }}
       >
         <div className="flex flex-col justify-center items-center">
-          <p className="text-white text-center text-[14px]">100%</p>
-          <p className="text-center text-white text-[10px]">Made In Taiwan</p>
+          <p className="text-white text-center text-[14px]">The Taiwan</p>{" "}
+          <p className="text-center text-white text-[10px]">Flaver</p>
         </div>
       </div>
     </div>
