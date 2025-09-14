@@ -269,8 +269,8 @@ export default function Home() {
   return (
     <Layout>
       <HomeLanding />
-      <section className="section_hero h-screen flex relative overflow-hidden">
-        {/* 左半邊 */}
+      {/* <section className="section_hero h-screen flex relative overflow-hidden">
+      
         <div className="left bg-[#ba1632] overflow-hidden  bg-[url('https://image.memorycorner8.com/DAV02145.jpg')] bg-cover bg-center bg-no-repeat relative w-1/2 h-full">
           <div className="mask w-full h-full bg-black/20 z-20 top-0 left-0 "></div>
           <motion.div
@@ -297,12 +297,12 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* 右半邊 */}
+       
         <div
           ref={rightRef}
           className="right bg-[#092538] w-1/2 h-full relative overflow-hidden"
         >
-          {/* 霧氣 */}
+        
           <div className="steam-wrap pointer-events-none w-screen absolute left-0 bottom-0 z-40">
             <img
               src="https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog2.png"
@@ -321,7 +321,7 @@ export default function Home() {
             />
           </div>
 
-          {/* 火鍋圖層 */}
+      
           <div className="hotpot absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
             <div className="relative w-[600px] h-[600px]">
               <Image
@@ -355,7 +355,7 @@ export default function Home() {
             />
           </div>
 
-          {/* 中央 hotpot：滑入 + 滾動旋轉 */}
+      
           <motion.div
             className="hotpot absolute left-1/2 w-[500px] top-[18%] -translate-x-1/2 -translate-y-1/2 z-[51]"
             initial={{ x: "60vw", opacity: 0 }}
@@ -374,7 +374,7 @@ export default function Home() {
             />
           </motion.div>
 
-          {/* 小料彈出 */}
+       
           {vgItems.map((it, i) => (
             <VgPop key={it.src} containerRef={rightRef} item={it} index={i} />
           ))}
@@ -492,7 +492,7 @@ export default function Home() {
         .hotpot img {
           will-change: transform;
         }
-      `}</style>
+      `}</style> */}
 
       <section className="flex  py-20 flex-col relative overflow-hidden h-screen">
         <div className="flex justify-center  xl:w-[85%] md:w-[90%] w-full  px-5 mx-auto max-w-[1920px] ">

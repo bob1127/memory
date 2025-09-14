@@ -3,7 +3,6 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import EmblaCarousel from "./EmblaCarousel"; // ✅ 新增：底部產品輪播（使用 Embla）
 
 export default function ProductSlider({
   slides = [
@@ -101,22 +100,22 @@ export default function ProductSlider({
     },
   ],
 
-  /** ✅ 右下產品輪播清單（可自訂 toIndex 指到哪個 slide；未給則當作 next） */
+  /** ✅ 右下產品輪播：可自訂對應到哪個 slide（toIndex），未指定則預設 go next */
   productItems = [
-    { src: "/images/beer04.png", title: "精釀 01", toIndex: 1 },
-    { src: "/images/beer05.png", title: "精釀 02", toIndex: 1 },
-    { src: "/images/beer06.png", title: "精釀 03", toIndex: 1 },
-    { src: "/images/vg07.png", title: "小料 01", toIndex: 0 },
-    { src: "/images/vg08.png", title: "小料 02", toIndex: 0 },
-    { src: "/images/vg04.png", title: "小料 03", toIndex: 0 },
-    { src: "/images/desert.png", title: "甜點", toIndex: 2 },
+    { src: "/images/beer04.png", label: "精釀 01", toIndex: 1 },
+    { src: "/images/beer05.png", label: "精釀 02", toIndex: 1 },
+    { src: "/images/beer06.png", label: "精釀 03", toIndex: 1 },
+    { src: "/images/vg07.png", label: "小料 01", toIndex: 0 },
+    { src: "/images/vg08.png", label: "小料 02", toIndex: 0 },
+    { src: "/images/vg04.png", label: "小料 03", toIndex: 0 },
+    { src: "/images/desert.png", label: "甜點", toIndex: 2 },
   ],
 
   // 主圖進出動畫
   switchDelay = 0.5,
   dur = 1.0,
 
-  // 主圖周圍縮圖
+  // 不規則發散縮圖自訂（主圖周圍那群）
   thumbsMax = 6,
   thumbSize = 88,
   baseRadius = 40,
@@ -138,6 +137,7 @@ export default function ProductSlider({
   const directionForwardRef = useRef(true);
   const activeTLRef = useRef({ in: null, out: null });
 
+  // ===== 工具：角度亂數 =====
   const toRad = (deg) => (deg * Math.PI) / 180;
   const rand = (seed) => {
     let x = Math.sin(seed + 1) * 10000;
@@ -204,8 +204,9 @@ export default function ProductSlider({
 
     gsap.delayedCall(switchDelay, () => {
       const inEl = items[nextIdx];
+      const forward = directionForwardRef.current;
       gsap.set(inEl.querySelector(".card"), {
-        x: directionForwardRef.current ? "100vw" : "-100vw",
+        x: forward ? "100vw" : "-100vw",
         rotate: 40,
       });
       activeTLRef.current.in = animateIn(inEl);
@@ -213,7 +214,7 @@ export default function ProductSlider({
     });
   };
 
-  /** ✅ 直接切到指定 index（給底部 Embla 點擊用） */
+  /** ✅ 直接切換到指定 index（給底部輪播用） */
   const goTo = (targetIdx) => {
     const items = itemsRef.current.filter(Boolean);
     if (!initedRef.current || !items.length) return;
@@ -223,18 +224,24 @@ export default function ProductSlider({
       targetIdx >= items.length ||
       targetIdx === current
     ) {
+      // 不合法或相同 index → 當作 next
       return go("next");
     }
+
+    // 估算方向（簡單版）
     directionForwardRef.current = targetIdx > current;
+
     activeTLRef.current.in?.kill();
     activeTLRef.current.out?.kill();
+
     const outEl = items[current];
     activeTLRef.current.out = animateOut(outEl);
 
     gsap.delayedCall(switchDelay, () => {
       const inEl = items[targetIdx];
+      const forward = directionForwardRef.current;
       gsap.set(inEl.querySelector(".card"), {
-        x: directionForwardRef.current ? "100vw" : "-100vw",
+        x: forward ? "100vw" : "-100vw",
         rotate: 40,
       });
       activeTLRef.current.in = animateIn(inEl);
@@ -271,7 +278,7 @@ export default function ProductSlider({
       label: "",
     }));
 
-  // ===== 主圖周圍縮圖座標 =====
+  // ===== 不規則發散縮圖座標（主圖周圍） =====
   const computeScatter = (count) => {
     const out = [];
     for (let i = 0; i < count; i++) {
@@ -288,13 +295,14 @@ export default function ProductSlider({
         Math.sin(toRad(ang)) * r +
         (rand(current * 30 + i) * 2 - 1) * (jitter * 0.35);
 
-      const adjX = x < 0 ? Math.abs(x) * 0.6 : x;
+      const adjX = x < 0 ? Math.abs(x) * 0.6 : x; // 稍微右偏，避免壓到主圖
       out.push({ x: adjX, y });
     }
     return out;
   };
   const scatter = computeScatter(currentThumbs.length);
 
+  // 縮圖變體（主圖周圍那群）
   const itemVariants = {
     initial: () => ({ opacity: 0, scale: 0.65, x: 0, y: 0 }),
     enter: (i) => ({
@@ -316,12 +324,13 @@ export default function ProductSlider({
     }),
   };
 
-  // ✅ 底部 Embla 用的 slides 轉換
-  const bottomSlides = productItems.map((p) => ({
-    image: p.src,
-    title: p.title || "",
-    description: p.description || "",
-  }));
+  // ====== 底部產品輪播 ======
+  const railRef = useRef(null);
+  const scrollByAmt = 280;
+  const scrollLeft = () =>
+    railRef.current?.scrollBy({ left: -scrollByAmt, behavior: "smooth" });
+  const scrollRight = () =>
+    railRef.current?.scrollBy({ left: scrollByAmt, behavior: "smooth" });
 
   return (
     <section
@@ -342,7 +351,7 @@ export default function ProductSlider({
         }}
       />
 
-      {/* 右半：主圖 + 不規則發散縮圖 + 底部 Embla */}
+      {/* 右半：主圖 + 不規則發散縮圖 + 底部產品輪播 */}
       <div className="right !bg-[#f0f1ec] flex-col flex relative">
         {/* 裝飾群組 */}
         <AnimatePresence initial={false} mode="wait">
@@ -475,8 +484,10 @@ export default function ProductSlider({
           </motion.div>
         </AnimatePresence>
 
-        {/* ===== 主圖卡片區（預留底部輪播高度） ===== */}
-        <div className="card-slider pb-[160px]">
+        {/* ===== 主圖卡片區 ===== */}
+        <div className="card-slider pb-[140px]">
+          {" "}
+          {/* 預留底部輪播高度 */}
           <div className="nav">
             <button className="prev" onClick={handlePrev} aria-label="Previous">
               <svg viewBox="0 0 50 9">
@@ -489,7 +500,6 @@ export default function ProductSlider({
               </svg>
             </button>
           </div>
-
           <div className="items">
             {slides.map((s, i) => (
               <div
@@ -500,7 +510,7 @@ export default function ProductSlider({
                 }}
               >
                 <div className="card">
-                  {/* 主圖周圍縮圖群 */}
+                  {/* 主圖周圍縮圖群：主圖定位後爆開 */}
                   {i === current && (
                     <AnimatePresence initial={false}>
                       {isSettled && (
@@ -520,55 +530,53 @@ export default function ProductSlider({
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0, transition: { duration: 0.15 } }}
                         >
-                          {(slide.thumbs || [])
-                            .slice(0, thumbsMax)
-                            .map((t, ti) => (
-                              <motion.button
-                                key={ti}
-                                className="thumb"
-                                custom={ti}
-                                initial="initial"
-                                animate="enter"
-                                exit="exit"
-                                variants={itemVariants}
-                                whileHover={{
-                                  scale: 1.06,
-                                  transition: {
-                                    type: "spring",
-                                    stiffness: 420,
-                                    damping: 24,
-                                  },
-                                }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => handleNext()} // 與你原本 /images/beer04.png 一樣 → 下一張
+                          {currentThumbs.map((t, ti) => (
+                            <motion.button
+                              key={ti}
+                              className="thumb"
+                              custom={ti}
+                              initial="initial"
+                              animate="enter"
+                              exit="exit"
+                              variants={itemVariants}
+                              whileHover={{
+                                scale: 1.06,
+                                transition: {
+                                  type: "spring",
+                                  stiffness: 420,
+                                  damping: 24,
+                                },
+                              }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => handleNext()} // 與你原本 /images/beer04.png 行為一致：下一張
+                              style={{
+                                position: "absolute",
+                                left: 0,
+                                top: 0,
+                                transform: "translate(-50%, -50%)",
+                                width: thumbSize,
+                                height: thumbSize,
+                                borderRadius: thumbBorderRadius,
+                                background: "transparent",
+                                border: "none",
+                                overflow: "hidden",
+                                display: "grid",
+                                placeItems: "center",
+                                zIndex: 99999,
+                              }}
+                              aria-label={t.label || `thumb-${ti + 1}`}
+                            >
+                              <img
+                                src={t.src}
+                                alt={t.label || `thumb-${ti + 1}`}
                                 style={{
-                                  position: "absolute",
-                                  left: 0,
-                                  top: 0,
-                                  transform: "translate(-50%, -50%)",
-                                  width: thumbSize,
-                                  height: thumbSize,
-                                  borderRadius: thumbBorderRadius,
-                                  background: "transparent",
-                                  border: "none",
-                                  overflow: "hidden",
-                                  display: "grid",
-                                  placeItems: "center",
-                                  zIndex: 99999,
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
                                 }}
-                                aria-label={t.label || `thumb-${ti + 1}`}
-                              >
-                                <img
-                                  src={t.src}
-                                  alt={t.label || `thumb-${ti + 1}`}
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                  }}
-                                />
-                              </motion.button>
-                            ))}
+                              />
+                            </motion.button>
+                          ))}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -582,17 +590,43 @@ export default function ProductSlider({
           </div>
         </div>
 
-        {/* ====== 右半底部：Embla 產品輪播（點擊 → goTo / next） ====== */}
-        <div className="absolute left-0 right-0 bottom-0 z-50">
-          <EmblaCarousel
-            slides={bottomSlides}
-            options={{ loop: true, align: "start", dragFree: false }}
-            onSlideClick={(i) => {
-              const p = productItems[i];
-              if (p && Number.isInteger(p.toIndex)) goTo(p.toIndex);
-              else handleNext();
-            }}
-          />
+        {/* ====== 右半底部：產品輪播（左右切換 + 點擊觸發轉場） ====== */}
+        <div className="product-carousel">
+          <button
+            className="pnav prev"
+            onClick={scrollLeft}
+            aria-label="Scroll left"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M15 6l-6 6 6 6" />
+            </svg>
+          </button>
+
+          <div className="rail" ref={railRef}>
+            {productItems.map((p, i) => (
+              <button
+                key={`${p.src}-${i}`}
+                className="pitem"
+                onClick={() =>
+                  Number.isInteger(p.toIndex) ? goTo(p.toIndex) : handleNext()
+                }
+                title={p.label || "product"}
+              >
+                <img src={p.src} alt={p.label || `product-${i + 1}`} />
+                {p.label && <span className="plabel">{p.label}</span>}
+              </button>
+            ))}
+          </div>
+
+          <button
+            className="pnav next"
+            onClick={scrollRight}
+            aria-label="Scroll right"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -656,7 +690,7 @@ export default function ProductSlider({
           width: 2.25rem;
           stroke: #111;
           cursor: pointer;
-          z-index: 60;
+          z-index: 10;
           pointer-events: auto;
           background: #fff;
           border-radius: 999px;
@@ -687,14 +721,121 @@ export default function ProductSlider({
           stroke-width: 1.5px;
         }
 
+        /* ===== 右下產品輪播 ===== */
+        .product-carousel {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          padding: 14px 64px; /* 留空間給左右箭頭 */
+          background: linear-gradient(
+            180deg,
+            rgba(240, 241, 236, 0) 0%,
+            rgba(240, 241, 236, 0.75) 40%,
+            rgba(240, 241, 236, 0.96) 100%
+          );
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          z-index: 50;
+          backdrop-filter: blur(2px);
+        }
+        .product-carousel .rail {
+          overflow-x: auto;
+          display: flex;
+          gap: 12px;
+          padding: 6px 2px;
+          scroll-snap-type: x mandatory;
+          scrollbar-width: none;
+        }
+        .product-carousel .rail::-webkit-scrollbar {
+          display: none;
+        }
+
+        .product-carousel .pitem {
+          flex: 0 0 auto;
+          width: 110px;
+          height: 110px;
+          border-radius: 16px;
+          background: #fff;
+          border: 1px solid #00000010;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+          display: grid;
+          place-items: center;
+          overflow: hidden;
+          scroll-snap-align: start;
+          transition: transform 0.15s ease, box-shadow 0.25s ease,
+            border-color 0.25s ease;
+        }
+        .product-carousel .pitem:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+          border-color: #00000022;
+        }
+        .product-carousel .pitem img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .product-carousel .plabel {
+          position: absolute;
+          bottom: 6px;
+          left: 8px;
+          right: 8px;
+          background: rgba(0, 0, 0, 0.55);
+          color: #fff;
+          font-size: 11px;
+          line-height: 1;
+          padding: 6px 8px;
+          border-radius: 10px;
+          text-align: center;
+          pointer-events: none;
+        }
+
+        .product-carousel .pnav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          border: 1px solid #00000014;
+          background: #fff;
+          display: grid;
+          place-items: center;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+          cursor: pointer;
+          z-index: 60;
+        }
+        .product-carousel .pnav.prev {
+          left: 14px;
+        }
+        .product-carousel .pnav.next {
+          right: 14px;
+        }
+        .product-carousel .pnav svg {
+          width: 22px;
+          height: 22px;
+          fill: none;
+          stroke: #111;
+          stroke-width: 2;
+        }
+
         @media (max-width: 1024px) {
           .right {
             order: -1;
-            min-height: 86vh;
+            min-height: 80vh;
           }
           .card {
             width: min(48vh, 86vw);
             height: min(48vh, 86vw);
+          }
+          .product-carousel {
+            padding: 10px 52px;
+          }
+          .product-carousel .pitem {
+            width: 96px;
+            height: 96px;
           }
         }
       `}</style>
