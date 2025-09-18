@@ -83,9 +83,9 @@ const EmblaCarousel = (props) => {
     >
       {/* RWD：在不同寬度時調整每張卡片的寬度比例 */}
       <style>{`
-        .embla__viewport { --slide-size: 37%; }
-        @media (max-width: 1700px) { .embla__viewport { --slide-size: 60%; } }
-        @media (max-width: 1200px) { .embla__viewport { --slide-size: 60%; } }
+        .embla__viewport { --slide-size: 20%; }
+        @media (max-width: 1700px) { .embla__viewport { --slide-size: 30%; } }
+        @media (max-width: 1200px) { .embla__viewport { --slide-size: 30%; } }
         @media (max-width: 768px)  { .embla__viewport { --slide-size: 58%; } }
         @media (max-width: 550px)  { .embla__viewport { --slide-size: 84%; } }
       `}</style>
@@ -106,7 +106,7 @@ const EmblaCarousel = (props) => {
               }}
             >
               <div
-                className="embla__slide__card !h-auto overflow-hidden border-none md:border bg-white pb-8 md:border-black flex flex-col items-center justify-start font-semibold"
+                className="embla__slide__card !h-auto overflow-hidden border-none md:border  pb-8 md:border-black flex flex-col items-center justify-start font-semibold"
                 style={{
                   boxShadow: "inset 0 0 0 0.2rem var(--detail-medium-contrast)",
                   borderRadius: "1.8rem",

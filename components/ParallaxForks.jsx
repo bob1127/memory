@@ -95,7 +95,7 @@ export default function ParallaxForks({
   return (
     <div
       ref={rootRef}
-      className="parallax-root !relative overflow-hidden border mt-[0px] py-[0px] !h-[550px]"
+      className="parallax-root  !w-full relative overflow-hidden  mt-[0px] py-[0px] !h-[550px]"
       style={{ width, height }}
       aria-label="Parallax forks (mouse-follow)"
     >

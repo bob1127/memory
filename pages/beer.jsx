@@ -1,10 +1,11 @@
 // app/page.jsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Layout from "./Layout";
 import { motion, AnimatePresence } from "framer-motion";
+import Marquee from "react-marquee-slider";
 
 // ←←← 這裡換成你的 WhatsApp 號碼（國際格式、不要加 +）
 const PHONE_INTL = "886939767977";
@@ -14,6 +15,37 @@ const PRODUCTS = [
   { id: "beer01", name: "台灣啤酒-01", img: "/images/beer04.png" },
   // { id: "beer02", name: "金牌啤酒 500ml", img: "/images/beer02.png" },
 ];
+
+// 跑馬燈素材（確保是「陣列」）
+const MARQUEE_ITEMS = [
+  {
+    src: "https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1100x1100_ea22b01a-1894-4e50-acfc-1ec3550da288.gif",
+    alt: "beer anim 1",
+  },
+  {
+    src: "https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1100x1100_ea22b01a-1894-4e50-acfc-1ec3550da288.gif",
+    alt: "beer anim 2",
+  },
+  {
+    src: "https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1100x1100_ea22b01a-1894-4e50-acfc-1ec3550da288.gif",
+    alt: "beer anim 3",
+  },
+  {
+    src: "https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1100x1100_ea22b01a-1894-4e50-acfc-1ec3550da288.gif",
+    alt: "beer anim 4",
+  },
+  {
+    src: "https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1100x1100_ea22b01a-1894-4e50-acfc-1ec3550da288.gif",
+    alt: "beer anim 5",
+  },
+  {
+    src: "https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1100x1100_ea22b01a-1894-4e50-acfc-1ec3550da288.gif",
+    alt: "beer anim 6",
+  },
+];
+
+// 跑馬燈在 hero 動畫開始後多久出現（毫秒）
+const APPEAR_DELAY_MS = 800;
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -25,6 +57,14 @@ export default function Home() {
   const [buyerName, setBuyerName] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
   const [buyerNote, setBuyerNote] = useState("");
+
+  // 控制跑馬燈顯示時機（提早一點出現）
+  const [showMarquee, setShowMarquee] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowMarquee(true), APPEAR_DELAY_MS);
+    return () => clearTimeout(t);
+  }, []);
 
   // 開啟彈窗
   const openOrder = (product) => {
@@ -67,42 +107,181 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="section_hero flex justify-center items-center bg-[url('/images/bg01.png')] bg-center bg-contain h-[70vh]">
-        <div className="flex flex-col justify-center items-center">
+      {/* 跑馬燈：進場更明顯，提前於 hero 動畫完全結束 */}
+      <AnimatePresence>
+        {showMarquee && (
+          <motion.div
+            key="marquee-wrap"
+            className="pointer-events-none w-full py-6 overflow-hidden absolute z-50 left-0 top-20"
+            initial={{ opacity: 0, y: 64, scale: 0.94, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: 16, scale: 0.98, filter: "blur(6px)" }}
+            transition={{ duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
+            style={{ willChange: "transform, opacity, filter" }}
+          >
+            {/* 漸層遮罩，讓跑馬燈更立體 */}
+            <div className="" />
+
+            {/* 第一排：右→左（rtl） */}
+            <Marquee velocity={28} direction="rtl" scatterRandomly={false}>
+              {MARQUEE_ITEMS.map((item, idx) => (
+                <div
+                  key={`m1-${idx}`}
+                  className="mx-6 flex items-center drop-shadow"
+                >
+                  <img
+                    src={item.src}
+                    alt={item.alt}
+                    loading="lazy"
+                    className="w-[420px] object-contain"
+                  />
+                </div>
+              ))}
+            </Marquee>
+
+            {/* 第二排：左→右（ltr） */}
+            <Marquee velocity={24} direction="ltr" scatterRandomly={false}>
+              {MARQUEE_ITEMS.map((item, idx) => (
+                <div
+                  key={`m2-${idx}`}
+                  className="mx-6 flex items-center drop-shadow"
+                >
+                  <img
+                    src={item.src}
+                    alt={item.alt}
+                    loading="lazy"
+                    className="w-[420px] object-contain"
+                  />
+                </div>
+              ))}
+            </Marquee>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hero（兩張圖：由大到小 + 淡入） */}
+      <section className="section_hero relative h-screen overflow-hidden">
+        {/* Logo：先到位、縮放淡入 */}
+        <motion.div
+          className="absolute right-20 top-20 z-20"
+          initial={{ scale: 1.5, opacity: 0, y: -10 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          style={{ willChange: "transform, opacity" }}
+        >
           <Image
-            src="/images/旗幟.png"
+            src="/images/logo-6.png"
             alt="logo"
-            className="max-w-[340px]"
-            width={330}
-            height={120}
+            placeholder="empty"
+            loading="eager"
+            priority
+            width={800}
+            height={500}
+            className="w-[200px] transform-gpu"
           />
+        </motion.div>
+
+        {/* 啤酒大圖：稍晚進場、由大到小 */}
+        <motion.div
+          className="absolute left-10 bottom-20 z-20"
+          initial={{ scale: 1.5, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ duration: 1.3, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          style={{ willChange: "transform, opacity" }}
+        >
           <Image
-            src="/images/logo04.png"
-            alt="logo"
-            className="max-w-[340px]"
-            width={330}
-            height={120}
+            src="/images/beer02.png"
+            alt="beer"
+            placeholder="empty"
+            loading="eager"
+            priority
+            width={800}
+            height={500}
+            className="w-[700px] transform-gpu"
           />
-          <div className="info flex justify-center items-center">
-            <Image
-              src="/images/text04.png"
-              alt="logo"
-              className="max-w-[60px] mx-3"
-              width={60}
-              height={60}
-            />
-            <p className="text-[14px] tracking-widest">- SINCE 2022 -</p>
-            <Image
-              src="/images/text05.png"
-              alt="logo"
-              className="max-w-[60px] mx-3"
-              width={60}
-              height={60}
-            />
+        </motion.div>
+      </section>
+      <section className="section-about max-w-[1920px] mt-20 xl:w-[80%] md:w-[90%] mx-auto w-full">
+        <div className="w-1/2">
+          <div className="txt">
+            <span className="text-[#fc9f47] text-[18px] font-noraml">
+              About Beer Store
+            </span>
+            <h2 className="text-6xl text-[#fc9f47] font-bold">BEER STORE</h2>
+            <h2 className="text-6xl text-[#fc9f47] font-bold">
+              Your Story, Your Beer
+            </h2>
           </div>
-          <div className="txt font-bold mt-2">
-            嚴選冷凍美食、經典台灣零食飲料
+          <div className="grid grid-cols-2 gap-10 mt-8">
+            <div>
+              <p>
+                しまなみブルワリーは美しい瀬戸内の島々を臨む広島県尾道市にあるブルワリーです。オーナーブルワーの松岡風人が日本のビール文化を支えたビール職人・山田一巳さんに憧れて弟子入りし、そこからクラフトラガーにこだわって15年。
+              </p>
+            </div>
+            <div>
+              <p>
+                しまなみブルワリーは美しい瀬戸内の島々を臨む広島県尾道市にあるブルワリーです。オーナーブルワーの松岡風人が日本のビール文化を支えたビール職人・山田一巳さんに憧れて弟子入りし、そこからクラフトラガーにこだわって15年。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section-intro py-20 ">
+        <div className="bg-slate-100 item w-[90%] rounded-tr-3xl relative">
+          <div className="flex p-20">
+            <div className=" flex justify-center items-start w-1/2">
+              <div className="txt-intro flex justify-center flex-col items-start ">
+                <p className="text-2xl text-stone-800">
+                  美味的拉格啤酒的正中間
+                </p>
+                <h3 className="text-5xl font-bold text-stone-900">
+                  罷工皮爾斯納
+                </h3>
+                <div className="info flex  mt-8 items-center justify-center">
+                  <div className="left flex flex-col">
+                    <span>風格：比爾森啤酒</span>
+                    <span>酒精：5.5%</span>
+                    <span>內容量：370ml</span>
+                  </div>
+                  <div className="h-[70px] w-[1px] mx-5 mt-2 bg-gray-400"></div>
+                  <div className="left flex flex-col">
+                    <span>
+                      原材料： 大麥麥芽（加拿大、德國）、啤酒花、愛爾蘭苔蘚
+                    </span>
+                    <span>保質期：4個月</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className=" flex w-1/2 justify-center  items-center">
+              <div className="absolute bottom-0">
+                <div
+                  className="flex
+                "
+                >
+                  <Image
+                    src="https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1350x1210_v-fms_webp_aab1e546-a749-42e7-a54a-4a796f388ba5_small.webp"
+                    alt="beer"
+                    placeholder="empty"
+                    loading="eager"
+                    priority
+                    width={800}
+                    height={500}
+                    className="w-[350px] transform-gpu"
+                  />
+                  <Image
+                    src="https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1350x1210_v-fms_webp_aab1e546-a749-42e7-a54a-4a796f388ba5_small.webp"
+                    alt="beer"
+                    placeholder="empty"
+                    loading="eager"
+                    priority
+                    width={800}
+                    height={500}
+                    className="w-[500px] transform-gpu"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
