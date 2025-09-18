@@ -416,7 +416,7 @@ export default function Home() {
             <SnackDropLoop
               anchorRef={anchorRef}
               className="w-[80%] bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
-              imgSrc="/images/snack/png-clipart-chocolate-bar-biscuit-product-snack-cacao-tree-sandwich-biscuits-food-chocolate-bar-Photoroom.png"
+              imgSrc="/images/snack/output-onlinegiftools.gif"
               imgClassName="w-[380px]"
               spawn={460}
               sway={-90}
@@ -431,7 +431,7 @@ export default function Home() {
             <SnackDropLoop
               anchorRef={anchorRef}
               className="w-[80%] bottom-[0%] -translate-x-1/2 left-[35%] z-[9]"
-              imgSrc="/images/snack/6_edafda29-95a5-4756-8bc2-d57c4392d920.png-Photoroom.png"
+              imgSrc="/images/snack/output-onlinegiftools (1).gif"
               imgClassName="w-[400px]"
               spawn={480}
               sway={-120}
@@ -446,7 +446,7 @@ export default function Home() {
             <SnackDropLoop
               anchorRef={anchorRef}
               className="w-[80%] bottom-[2%] -translate-x-1/2 left-[25%] z-[60]"
-              imgSrc="/images/snack/APPLE-CHIPS-SUP-Front_2000x.png-Photoroom.png"
+              imgSrc="/images/snack/output-onlinegiftools (2).gif"
               imgClassName="w-[350px]"
               spawn={520}
               sway={0}
@@ -463,7 +463,7 @@ export default function Home() {
             <SnackDropLoop
               anchorRef={anchorRef}
               className="w-[80%] bottom-[10%] -translate-x-1/2 left-[18%] z-[60]"
-              imgSrc="/images/snack/jalapeño p product-Photoroom.png"
+              imgSrc="/images/snack/output-onlinegiftools (3).gif"
               imgClassName="w-[400px]"
               spawn={500}
               sway={0}
