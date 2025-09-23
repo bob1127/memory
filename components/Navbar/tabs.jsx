@@ -31,8 +31,9 @@ export const SlideTabsExample = () => {
         { label: "憶點點", href: "/main02" },
       ],
     },
+    { key: "menu", label: "品牌門店", href: "/brand01" },
     { key: "menu", label: "品牌菜單", href: "/menu" },
-    { key: "news", label: "品牌動態", href: "/main01" },
+    { key: "news", label: "品牌動態", href: "/news" },
     { key: "join", label: "加盟合作", href: "/participation" },
   ];
 
@@ -99,7 +100,7 @@ export const SlideTabsExample = () => {
             }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4 }}
-            className="fixed left-0 w-full top-0 z-[1000] !bg-[#212121]"
+            className="fixed left-0 w-full top-0 z-[1000] !bg-[#996c2d]"
           >
             <div className="flex justify-between items-center px-5 !rounded-[8px] text-white mx-auto w-[96.5%] ">
               {/* Logo */}

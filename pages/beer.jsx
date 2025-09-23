@@ -226,11 +226,39 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="section-intro py-20 ">
+      <section className="section-video  bg-[#189BBC] mt-20 h-[55vh] flex justify-center items-center ">
+        <div className="flex flex-row    max-w-[1920px] xl:w-[80%] md:w-[90%] w-full mx-auto">
+          <div className="left-txt w-[35%] flex justify-center items-center">
+            <div className="flex flex-col">
+              <div className="flex  items-end">
+                {" "}
+                <span className="text-white font-light text-5xl">STYLE</span>
+                <span className="text-white font-light text-md ml-5">
+                  スタイル
+                </span>
+                <br></br>
+              </div>
+              <h2 className="fonr-bold text-white text-8xl mt-10">LAGER</h2>
+              <p className="max-w-[400px] tracking-widest text-[14px] text-white">
+                オーナーブルワーの松岡は、マイクロブルワリーでは珍しくラガースタイルを得意としています。全世界で一番愛されているピルスナーを、確かな技術で醸します。
+              </p>
+            </div>
+          </div>
+          <div className="right-video w-[65%] relative">
+            <div className="absolute z-40 top-[-200px] right-0">
+              <video
+                className="max-w-[700px]"
+                src="https://www.pexels.com/zh-tw/download/video/2498732/"
+              ></video>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section-intro pb-20 ">
         <div className="bg-slate-100 item w-[90%] rounded-tr-3xl relative">
           <div className="flex p-20">
             <div className=" flex justify-center items-start w-1/2">
-              <div className="txt-intro flex justify-center flex-col items-start ">
+              <div className="txt-intro py-20 flex justify-center flex-col items-start ">
                 <p className="text-2xl text-stone-800">
                   美味的拉格啤酒的正中間
                 </p>
@@ -260,14 +288,14 @@ export default function Home() {
                 "
                 >
                   <Image
-                    src="https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1350x1210_v-fms_webp_aab1e546-a749-42e7-a54a-4a796f388ba5_small.webp"
+                    src="https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1350x1210_v-fms_webp_346625a1-ef1c-45e9-8c29-9bba84b02ded_small.webp"
                     alt="beer"
                     placeholder="empty"
                     loading="eager"
                     priority
                     width={800}
                     height={500}
-                    className="w-[350px] transform-gpu"
+                    className="w-[450px] mr-[-300px] transform-gpu"
                   />
                   <Image
                     src="https://storage.googleapis.com/studio-design-asset-files/projects/G3qbJR3dqJ/s-1350x1210_v-fms_webp_aab1e546-a749-42e7-a54a-4a796f388ba5_small.webp"

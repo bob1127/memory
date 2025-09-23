@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 export default function Footer() {
   return (
-    <footer className="relative bg-[#2e2e2e] py-20 w-full ">
+    <footer className="relative bg-[#a48150] py-20 w-full ">
       {/* SVG 中間圓弧突起 */}
 
       {/* Footer內容 */}

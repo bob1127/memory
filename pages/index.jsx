@@ -691,7 +691,7 @@ export default function Home() {
               className="w-[950px] mx-auto"
             ></Image>
           </div>
-          <div className="bottom max-w-[1920px]  lg:flex-row flex-col xl:w-[85%] md:w-[95%] w-full mx-auto  flex">
+          {/* <div className="bottom max-w-[1920px]  lg:flex-row flex-col xl:w-[85%] md:w-[95%] w-full mx-auto  flex">
             <div className="left flex flex-col justify-center items-center w-full lg:w-1/2">
               <div className="flex flex-col justify-center  items-center lg:items-start">
                 {" "}
@@ -738,7 +738,7 @@ export default function Home() {
                 className="w-[450px] mx-auto"
               ></Image>
             </div>
-          </div>
+          </div> */}
         </div>
       </section>
     </Layout>

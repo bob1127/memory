@@ -44,8 +44,8 @@ export default function Participation() {
 
   return (
     <Layout>
-      <div className="bg-[#f0d0ab] py-20"></div>
-      <section className="section_why bg-[#f0d0ab] ">
+      <div className="bg-[#e9d9be] py-20"></div>
+      <section className="section_why bg-[#e9d9be] ">
         <div className="max-w-[1920px] mx-auto xl:w-[80%] md:w-[90%] w-full flex flex-col justify-center items-center">
           <div className="title flex flex-col justify-center items-center">
             <h1 className="text-5xl font-extrabold">為什麼選擇加盟有香？</h1>
@@ -161,7 +161,7 @@ export default function Participation() {
           </div>
         </div>
       </section>
-      <section className="  bg-[#f0d0ab]">
+      <section className="  bg-[#e9d9be]">
         <div className="max-w-[1920px] mx-auto xl:w-[80%] md:w-[90%] w-full row flex flex-col pt-5 justify-center items-center">
           <div className="flex flex-col justify-center items-center "></div>
           <div className="grid  grid-col-1 lg:grid-cols-2 mt-8 gap-5">
