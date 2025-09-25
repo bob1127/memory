@@ -6,6 +6,7 @@ import Image from "next/image";
 import ParallaxForks from "@/components/ParallaxForks";
 import Marquee from "react-marquee-slider";
 import Link from "next/link";
+import BeerCans from "@/components/BeerCans";
 import dynamic from "next/dynamic";
 import BottomVideoGallery from "../components/BottomVideoCarousel";
 import Carousel from "../components/EmblaCarouselTravel/index";
@@ -368,31 +369,104 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="mt-[-20px] z-10">
+      <div className="mt-[-20px] z-10 ">
         <MinimalPushOverlayMenu />
       </div>
 
-      <section className="bg-[] w-full m-0">
-        <div className="flex justify-center items-center">
-          <div className="left !w-1/2 bg-[#e49929] relative h-[90vh] flex justify-center items-center ">
-            <div className="absolute left-[-40px] top-[40px]">LOAH</div>
-            <div className="flex p-20 flex-col">
-              <h2 className="text-5xl text-gray-800 font-bold">
-                Blue Sky Drink
-              </h2>
-              <p className="text-[16px] mt-5 leading-loose tracking-wider">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Vero
-                hic dolorum officia ducimus quos molestiae consequuntur
-                voluptatibus! Fugit eaque, neque facilis alias ducimus corrupti
-                esse eos, quod voluptate consequuntur explicabo distinctio
-                architecto.
+      <section className="bg-[] w-full m-0 bg-white ">
+        <div className="grid grid-cols-4 h-[85vh] ">
+          <div className="bg-[#282bd4] group mb-10 flex flex-col items-center justify-center">
+            <div className="beer">
+              <img
+                src="/images/BUD_LIGHT_12oz_C_AdAge_RGB1-e1450364966247-001-removebg-preview.png"
+                alt=""
+                className="w-full mx-auto select-none pointer-events-none"
+              />
+            </div>
+
+            {/* 用 opacity / translate 動畫，避免 hidden/block */}
+            <div
+              className="info w-[60%] mx-auto
+                  opacity-0 translate-y-2
+                  transition-all duration-300 ease-out
+                  group-hover:opacity-100 group-hover:translate-y-0"
+            >
+              <h2 className="text-xl font-bold text-white">Title</h2>
+              <p className="text-gray-50">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta
+                amet molestiae id beatae, facilis ipsum voluptate quo animi
               </p>
-              <button className="border-black font-bold bg白 w-full mt-5 sm:w-[120px] px-3 py-2 text-stone-800  border-1">
-                More
-              </button>
             </div>
           </div>
-          <div className="right w-1/2  overflow-hidden  bg-[url('/images/有香03.png')] bg-center bg-cover  bg-no-repeat  h-[90vh]"></div>
+          <div className="bg-[#d4285e] group mb-10 flex flex-col items-center justify-center">
+            <div className="beer">
+              <img
+                src="/images/BUD_LIGHT_12oz_C_AdAge_RGB1-e1450364966247-001-removebg-preview.png"
+                alt=""
+                className="w-full mx-auto select-none pointer-events-none"
+              />
+            </div>
+
+            {/* 用 opacity / translate 動畫，避免 hidden/block */}
+            <div
+              className="info w-[60%] mx-auto
+                  opacity-0 translate-y-2
+                  transition-all duration-300 ease-out
+                  group-hover:opacity-100 group-hover:translate-y-0"
+            >
+              <h2 className="text-xl font-bold text-white">Title</h2>
+              <p className="text-gray-50">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta
+                amet molestiae id beatae, facilis ipsum voluptate quo animi
+              </p>
+            </div>
+          </div>
+          <div className="bg-[#d49b28] group mb-10 flex flex-col items-center justify-center">
+            <div className="beer">
+              <img
+                src="/images/BUD_LIGHT_12oz_C_AdAge_RGB1-e1450364966247-001-removebg-preview.png"
+                alt=""
+                className="w-full mx-auto select-none pointer-events-none"
+              />
+            </div>
+
+            {/* 用 opacity / translate 動畫，避免 hidden/block */}
+            <div
+              className="info w-[60%] mx-auto
+                  opacity-0 translate-y-2
+                  transition-all duration-300 ease-out
+                  group-hover:opacity-100 group-hover:translate-y-0"
+            >
+              <h2 className="text-xl font-bold text-white">Title</h2>
+              <p className="text-gray-50">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta
+                amet molestiae id beatae, facilis ipsum voluptate quo animi
+              </p>
+            </div>
+          </div>
+          <div className="bg-[#202293] group mb-10 flex flex-col items-center justify-center">
+            <div className="beer">
+              <img
+                src="/images/BUD_LIGHT_12oz_C_AdAge_RGB1-e1450364966247-001-removebg-preview.png"
+                alt=""
+                className="w-full mx-auto select-none pointer-events-none"
+              />
+            </div>
+
+            {/* 用 opacity / translate 動畫，避免 hidden/block */}
+            <div
+              className="info w-[60%] mx-auto
+                  opacity-0 translate-y-2
+                  transition-all duration-300 ease-out
+                  group-hover:opacity-100 group-hover:translate-y-0"
+            >
+              <h2 className="text-xl font-bold text-white">Title</h2>
+              <p className="text-gray-50">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta
+                amet molestiae id beatae, facilis ipsum voluptate quo animi
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

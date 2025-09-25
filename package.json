@@ -108,6 +108,7 @@
     "react-player": "^2.16.0",
     "react-responsive": "^10.0.0",
     "react-responsive-carousel": "^3.2.23",
+    "react-scroll-parallax": "^3.4.5",
     "react-simple-typewriter": "^5.0.1",
     "react-slick": "^0.29.0",
     "react-sticky": "^6.0.3",
