@@ -6,9 +6,13 @@ import Image from "next/image";
 import ParallaxForks from "@/components/ParallaxForks";
 import Marquee from "react-marquee-slider";
 import Link from "next/link";
-import HomeLanding from "@/components/ProductSlider01";
+import dynamic from "next/dynamic";
 import BottomVideoGallery from "../components/BottomVideoCarousel";
 import Carousel from "../components/EmblaCarouselTravel/index";
+const MinimalPushOverlayMenu = dynamic(
+  () => import("@/components/MinimalPushOverlayMenu"),
+  { ssr: false } // GSAP/DOM 動畫僅在瀏覽器執行
+);
 import Layout from "../pages/Layout";
 import {
   motion,
@@ -365,7 +369,7 @@ export default function Home() {
   return (
     <Layout>
       <div className="mt-[-20px] z-10">
-        <HomeLanding />
+        <MinimalPushOverlayMenu />
       </div>
 
       <section className="bg-[] w-full m-0">
@@ -533,7 +537,7 @@ export default function Home() {
       </section>
       {/* ======= /零食區塊 ======= */}
 
-      <section className="section_brand_story relative py-20">
+      <section className="section_brand_story relative bg-white py-20">
         <div className="side-info absolute rotate-[-90deg] left-[-5%] top-[35%]">
           <div className="flex justify-center items-center">
             <div className=" ">
@@ -612,7 +616,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section_video py-20">
+      <section className="section_video py-20 bg-white">
         <BottomVideoGallery
           items={[
             {
@@ -661,7 +665,7 @@ export default function Home() {
         />
       </section>
 
-      <section className="section_app_operation py-20">
+      <section className="section_app_operation py-20 bg-white">
         <div className="max-w-[1920px]  mx-auto xl:w-[85%] md:w-[92%] w-full">
           <div className="top">
             <div className="title mx-auto flex justify中心 items-center flex-col">

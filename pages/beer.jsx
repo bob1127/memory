@@ -6,7 +6,7 @@ import Image from "next/image";
 import Layout from "./Layout";
 import { motion, AnimatePresence } from "framer-motion";
 import Marquee from "react-marquee-slider";
-
+import { cartStore } from "@/lib/cartStore";
 // ←←← 這裡換成你的 WhatsApp 號碼（國際格式、不要加 +）
 const PHONE_INTL = "886939767977";
 
@@ -336,11 +336,31 @@ export default function Home() {
                 width={330}
                 height={120}
               />
+
+              {/* 加入購物車 */}
               <button
-                onClick={() => openOrder(p)}
-                className="mt-4 rounded-xl bg-green-600 text-white px-4 py-2 hover:opacity-90"
+                onClick={() => {
+                  cartStore.add({ id: p.id, name: p.name, img: p.img }, 1);
+                  // 小小動畫回饋
+                  const btn = document.getElementById(`btn-${p.id}`);
+                  if (btn) {
+                    btn.animate(
+                      [
+                        { transform: "scale(1)", filter: "brightness(1)" },
+                        {
+                          transform: "scale(1.06)",
+                          filter: "brightness(1.15)",
+                        },
+                        { transform: "scale(1)", filter: "brightness(1)" },
+                      ],
+                      { duration: 300, easing: "cubic-bezier(.2,.8,.2,1)" }
+                    );
+                  }
+                }}
+                id={`btn-${p.id}`}
+                className="mt-4 rounded-xl bg-black text-white px-4 py-2 hover:opacity-90"
               >
-                選擇並下單
+                加入購物車
               </button>
             </div>
           ))}

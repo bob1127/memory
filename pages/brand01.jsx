@@ -267,7 +267,7 @@ export default function Home() {
       <div
         role="tablist"
         aria-label="品牌切換"
-        className="sticky top-0 z-[60]  backdrop-blur md:px-10 px-6 py-4"
+        className="sticky top-0 z-[60] backdrop-blur md:px-10 px-6 py-4"
       >
         <div className="max-w-[1920px] xl:w-[80%] md:w-[90%] w-full mx-auto flex items-center gap-2">
           {slides.map((s, i) => {
@@ -293,8 +293,7 @@ export default function Home() {
                     active
                       ? "bg-[#d09a25] text-white border-gray-200"
                       : "bg-white text-stone-800 border-stone-300 hover:bg-stone-100"
-                  }
-                `}
+                  }`}
               >
                 {s.tabLabel}
               </button>
@@ -313,14 +312,17 @@ export default function Home() {
           <Tabs />
         </div>
 
+        {/* 主要區塊：兩欄。讓右欄內容夠長，左欄 sticky 才有意義 */}
         <section
-          className="section_hero flex h-[150vh] max-w-[1920px] xl:w-[80%] md:w-[90%] w-full mx-auto "
+          className="section_hero flex max-w-[1920px] xl:w-[80%] md:w-[90%] w-full mx-auto items-start gap-0"
           id={`panel-${slide.key}`}
           role="tabpanel"
           aria-labelledby={`tab-${slide.key}`}
         >
-          {/* ===== 左側（固定結構，但內容跟著tab換） ===== */}
-          <div className="left-info p-20 w-[45%]">
+          {/* ===== 左側（Sticky） =====
+               - top-24：與你的 Navbar 高度對齊，可依實際高度調整（例如 top-[88px]）
+               - self-start / shrink-0 / h-fit：避免被自動拉伸或壓縮 */}
+          <div className="left-info sticky top-0 self-start shrink-0 w-full lg:w-[45%] h-fit p-6 lg:p-20">
             <div className="info bg-white rounded-[35px]">
               <div className="p-10">
                 <div className="flex py-8">
@@ -447,8 +449,7 @@ export default function Home() {
                     {!isOpenNow && (
                       <div className="closed-msg mt-2 text-red-700">
                         目前為非營業時間（營業時段 {businessOpen}–
-                        {businessClose}
-                        ，加拿大時間）
+                        {businessClose}，加拿大時間）
                       </div>
                     )}
                   </div>
@@ -474,9 +475,9 @@ export default function Home() {
           </div>
 
           {/* ===== 右側（會跟著 tab 切換） ===== */}
-          <div className="right-info w-[55%] ">
-            <div className="content bg-[url('/images/newspaper.png')] bg-center bg-cover bg-no-repeat w-[100%] mx-auto h-full flex justify-center ">
-              <div className="txt z-50 w-[85%] mx-auto mt-20 h-[85%] overflow-scroll">
+          <div className="right-info w-full lg:w-[55%]">
+            <div className="content bg-[url('/images/newspaper.png')] bg-center bg-cover bg-no-repeat w-full mx-auto min-h-screen flex justify-center">
+              <div className="txt z-50 w-[85%] mx-auto mt-20 h-auto">
                 <h2 className="text-3xl font-bold mt-10">
                   {slide.right?.heading ?? "品牌故事"}
                 </h2>
@@ -556,171 +557,35 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section className="section-map bg-[#f3efeb] py-20">
-          <div className="flex max-w-[1920px] xl:w-[80%] md:w-[90%] w-full mx-auto gap-8">
-            {/* 左側地圖 */}
-            <div className="left-map w-1/2">
-              <div className="rounded-2xl overflow-hidden shadow-sm border">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2608.107910790804!2d-123.1348249!3d49.1795389!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5486752efe16bd09%3A0xa2a39cad862b0891!2zU3dlZXQgTWVtb3J5IOaGtum7num7ng!5e0!3m2!1szh-TW!2stw!4v1758173674678!5m2!1szh-TW!2stw"
-                  className="w-full h-[500px]"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  allowFullScreen
-                />
-              </div>
-            </div>
 
-            {/* 右側資訊（假資料） */}
-            <div className="right-info w-1/2">
-              <div className="bg-white/90 rounded-3xl border p-8 shadow-sm">
-                {/* 標題 + 標籤 */}
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-2xl font-bold leading-tight">
-                      有香 Memory Corner — Richmond
-                    </h3>
-                    <p className="text-stone-500 mt-1">
-                      餐飲 / 甜點飲品 / 家常料理
-                    </p>
+                <div className="left p-3 w-1/2">
+                  <p>
+                    我們相信：好味道，來自對日常的觀察與耐心的堆疊；更來自每位夥伴的講究與堅持。
+                  </p>
+                  <div className="border p-8 mt-3">
+                    {slide.right?.sideBlockTitle ?? "日常的講究"}
+                    ：挑選、新鮮、比例、火候。
                   </div>
-                  <div className="flex flex-wrap gap-2 shrink-0">
-                    <span className="inline-block text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-                      今日營業
-                    </span>
-                    <span className="inline-block text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">
-                      最後點餐 22:30
-                    </span>
-                  </div>
-                </div>
-
-                {/* 重要資訊 */}
-                <div className="grid md:grid-cols-2 grid-cols-1 gap-6 mt-6">
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div>
-                        <b className="block text-stone-800">地址</b>
-                        <p className="text-stone-600">
-                          溫哥華 Richmond 市中心 XXX 路 XXX 號 2F（近 Canada
-                          Line「XXX站」）
-                        </p>
-                        <a
-                          href="https://maps.google.com/?q=Sweet+Memory+Richmond"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 underline text-sm mt-1 inline-block"
-                        >
-                          在 Google Maps 開啟
-                        </a>
+                  <p className="mt-5">
+                    無論你選擇哪一道，我們都希望你在忙碌的一天裡，能用餐桌交換彼此的溫度。
+                  </p>
+                  <div className="flex">
+                    <div className="left w-1/2">
+                      <div className="relative mt-5 overflow-hidden aspect-[16/9]">
+                        <Image
+                          src={slide.src}
+                          alt="panel-thumb"
+                          placeholder="empty"
+                          loading="lazy"
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                     </div>
-
-                    <div className="flex items-start gap-3">
-                      <div>
-                        <b className="block text-stone-800">營業時間</b>
-                        <p className="text-stone-600">
-                          週一～週日 11:30–23:30（最後點餐 22:30）
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div>
-                        <b className="block text-stone-800">停車 / 交通</b>
-                        <p className="text-stone-600">
-                          商場地下停車（2hr 免費）；Canada Line XXX 站步行 2
-                          分鐘
-                        </p>
-                      </div>
+                    <div className="right w-1/2 text-[14px] pl-4 pt-3">
+                      {slide.subtitle}
                     </div>
                   </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div>
-                        <b className="block text-stone-800">電話</b>
-                        <a
-                          href="tel:6041234567"
-                          className="text-stone-600 hover:underline"
-                        >
-                          (604) 123-4567
-                        </a>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div>
-                        <b className="block text-stone-800">Email</b>
-                        <a
-                          href="mailto:hello@memorygroup.fake"
-                          className="text-stone-600 hover:underline"
-                        >
-                          hello@memorygroup.fake
-                        </a>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div>
-                        <b className="block text-stone-800">付款</b>
-                        <p className="text-stone-600">
-                          Visa / MasterCard / AMEX / 現金 / Apple Pay / Google
-                          Pay
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 外送 / 社群 / 連結 */}
-                <div className="mt-6 grid md:grid-cols-3 grid-cols-1 gap-4">
-                  <div className="bg-stone-50 rounded-2xl p-4 border">
-                    <b className="block mb-2">線上訂位</b>
-                    <a
-                      href="https://lin.ee/xxxx"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 underline"
-                    >
-                      LINE 官方：@youxiang
-                    </a>
-                  </div>
-                  <div className="bg-stone-50 rounded-2xl p-4 border">
-                    <b className="block mb-2">外送平台</b>
-                    <p className="text-stone-600">
-                      DoorDash / Uber Eats / Skip（建置中）
-                    </p>
-                  </div>
-                </div>
-
-                {/* CTA 按鈕 */}
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <a
-                    href="tel:6041234567"
-                    className="px-4 py-2 rounded-2xl bg-black text-white hover:opacity-90 transition inline-flex items-center gap-2"
-                  >
-                    直接來電
-                  </a>
-                  <a
-                    href="https://lin.ee/xxxx"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 rounded-2xl bg-white border hover:bg-stone-50 transition inline-flex items-center gap-2"
-                  >
-                    LINE 線上訂位
-                  </a>
-                  <a
-                    href="https://maps.google.com/?q=Sweet+Memory+Richmond"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 rounded-2xl bg-white border hover:bg-stone-50 transition inline-flex items-center gap-2"
-                  >
-                    開啟導航
-                  </a>
                 </div>
               </div>
             </div>

@@ -7,21 +7,9 @@ import React, {
   useState,
 } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
 import Head from "next/head";
 
-/** 小工具：圓點與左右鍵 */
-const Dot = ({ selected, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    aria-label="Go to slide"
-    className={`w-2 h-2 rounded-full ${
-      selected ? "bg-black" : "bg-neutral-400"
-    }`}
-    title="Go to slide"
-  />
-);
+/** 小工具：左右鍵（保留） */
 const IconBtn = ({ dir = "prev", ...rest }) => (
   <button
     type="button"
@@ -51,17 +39,10 @@ export default function BottomVideoGallery({
   className = "",
   items = [],
   options = { loop: true, align: "start" },
-  autoplayDelay = 5000,
+  // autoplayDelay 移除（不再使用自動輪播）
   onItemClick,
 }) {
-  const autoplay = useRef(
-    Autoplay({
-      delay: autoplayDelay,
-      stopOnInteraction: false,
-      stopOnMouseEnter: false,
-      playOnInit: true,
-    })
-  );
+  // 移除 Autoplay plugin，僅使用 embla 本體
   const mergedOptions = {
     loop: true,
     align: "start",
@@ -69,9 +50,7 @@ export default function BottomVideoGallery({
     containScroll: "keepSnaps",
     ...options,
   };
-  const [emblaRef, emblaApi] = useEmblaCarousel(mergedOptions, [
-    autoplay.current,
-  ]);
+  const [emblaRef, emblaApi] = useEmblaCarousel(mergedOptions);
 
   const [selected, setSelected] = useState(0);
   const mainVideoRef = useRef(null);
@@ -102,8 +81,8 @@ export default function BottomVideoGallery({
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
     return () => {
-      emblaApi.off("select", onSelect);
-      emblaApi.off("reInit", onSelect);
+      emblaApi?.off("select", onSelect);
+      emblaApi?.off("reInit", onSelect);
     };
   }, [emblaApi, onSelect]);
 
@@ -267,19 +246,10 @@ export default function BottomVideoGallery({
             </div>
           </div>
 
-          {/* 控制列（跟著 800px 容器一起置中） */}
+          {/* 控制列：只保留左右鍵，拿掉底部圓點 */}
           <div className="flex items-center justify-center gap-3 mt-3">
             <IconBtn dir="prev" onClick={() => emblaApi?.scrollPrev()} />
             <IconBtn dir="next" onClick={() => emblaApi?.scrollNext()} />
-          </div>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            {(emblaApi?.scrollSnapList() || items).map((_, i) => (
-              <Dot
-                key={i}
-                selected={i === selected}
-                onClick={() => emblaApi?.scrollTo(i)}
-              />
-            ))}
           </div>
         </div>
       </div>
