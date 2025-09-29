@@ -220,13 +220,6 @@ export default function MinimalPushOverlayMenu({
   return (
     <nav className={`nav-root ${open ? "is-open" : ""}`}>
       {/* 頂部：logo（原本的三鍵已移除） */}
-      <div className="menu-bar">
-        <div className="menu-logo">
-          <a href="#">
-            <img src={logoSrc} alt="logo" />
-          </a>
-        </div>
-      </div>
 
       {/* Overlay */}
       <div ref={overlayRef} className="menu-overlay">

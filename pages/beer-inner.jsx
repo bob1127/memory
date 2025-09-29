@@ -8,6 +8,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
+import Marquee from "react-marquee-slider";
 import "swiper/css/thumbs";
 import HotProductsCarousel from "@/components/HotProductsCarousel";
 import { cartStore } from "@/lib/cartStore"; // ★ 引入購物車 store
@@ -250,11 +251,21 @@ export default function ProductPage() {
 
         {/* ===== 熱銷產品輪播 ===== */}
         <section className="mt-14">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold">熱銷產品</h2>
-            <a href="#" className="text-sm text-blue-600 hover:underline">
-              看更多
-            </a>
+          <div className="mb-8">
+            <div className="flex flex-col justify-center items-center">
+              <div>
+                <b className="text-3xl">更多好物商品</b>
+              </div>
+              <div>
+                <span className="text-3xl font-bold">Explore</span>
+                <span className="text-3xl font-bold text-[#e48e3d] mx-1">
+                  Related
+                </span>
+                <span className="text-3xl font-bold text-[#e48e3d] mx-1">
+                  Products
+                </span>
+              </div>
+            </div>
           </div>
           <HotProductsCarousel
             items={HOT_ITEMS}
@@ -270,6 +281,25 @@ export default function ProductPage() {
           />
         </section>
       </div>
+      <section className="section-map pt-20 flex flex-col">
+        <div>
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2608.125676211783!2d-123.1274940232461!3d49.17920177807608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x548675082541f249%3A0x87d1f92d1d46df5f!2zTWVtb3J5IENvcm5lciDmnInpppk!5e0!3m2!1szh-TW!2stw!4v1759130334759!5m2!1szh-TW!2stw"
+            className="w-full h-[500px]"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <div>
+          <Marquee>
+            <h2 className="text-[70px] mx-3  ">MEMORY CORNER</h2>
+            <h2 className="text-[70px] mx-3 ">MEMORY CORNER</h2>
+            <h2 className="text-[70px] mx-3  ">MEMORY CORNER</h2>
+            <h2 className="text-[70px] mx-3 ">MEMORY CORNER</h2>
+          </Marquee>
+        </div>
+      </section>
     </Layout>
   );
 }

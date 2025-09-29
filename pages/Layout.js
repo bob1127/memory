@@ -60,7 +60,7 @@ export default function RootLayout({ children }) {
       </Head>
 
         
-      <div className=" w-full  pt-[60px]">
+      <div className=" ">
          
 
       <NextUIProvider>

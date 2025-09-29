@@ -68,7 +68,7 @@ export default function Home() {
               <Image
                 className=""
                 alt="brand-menu"
-                src="/images/memu/259w-U_qri6ZfpN4.webp"
+                src="/images/menu/259w-U_qri6ZfpN4.webp"
                 placeholder="empty"
                 priority
                 width={800}
@@ -79,7 +79,7 @@ export default function Home() {
               <Image
                 className=""
                 alt="brand-menu"
-                src="/images/memu/1319465f72ba46f181a2fdc9b0cd13a0.jpg"
+                src="/images/menu/1319465f72ba46f181a2fdc9b0cd13a0.jpg"
                 placeholder="empty"
                 priority
                 width={800}
@@ -90,7 +90,7 @@ export default function Home() {
               <Image
                 className=""
                 alt="brand-menu"
-                src="/images/memu/white-modern-minimalist-food-restaurant-menu-design-template-567740575581a41e63e0054cb15a2ceb_screen.jpg"
+                src="/images/menu/white-modern-minimalist-food-restaurant-menu-design-template-567740575581a41e63e0054cb15a2ceb_screen.jpg"
                 placeholder="empty"
                 priority
                 width={800}
