@@ -6,6 +6,15 @@ import gsap from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 import { SplitText } from "gsap/SplitText";
 import Image from "next/image";
+import { gsap as _gsap } from "gsap";
+import SplitType from "split-type";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import Carousel from "../components/EmblaCarouselTravel/index";
 
 // GSAP 註冊（SplitText 現在免費，確保使用 3.13+）
 if (typeof window !== "undefined" && !gsap.core.globals()._menu_once_) {
@@ -219,8 +228,6 @@ export default function MinimalPushOverlayMenu({
 
   return (
     <nav className={`nav-root ${open ? "is-open" : ""}`}>
-      {/* 頂部：logo（原本的三鍵已移除） */}
-
       {/* Overlay */}
       <div ref={overlayRef} className="menu-overlay">
         <div ref={overlayContentRef} className="menu-overlay-content">
@@ -269,7 +276,7 @@ export default function MinimalPushOverlayMenu({
                 ))}
               </div>
 
-              {/* 右：可滾動短文（取代原本 tags + footer 左側地點） */}
+              {/* 右：可滾動短文 */}
               <div
                 className="menu-col"
                 ref={(el) => (menuColsRef.current[1] = el)}
@@ -285,7 +292,6 @@ export default function MinimalPushOverlayMenu({
               className="menu-footer"
               ref={(el) => (menuColsRef.current[2] = el)}
             >
-              {/* 左側留白（原 Toronto 改到上面短文區塊了） */}
               <div className="menu-col" />
               <div className="menu-col">
                 {m.footer.right.map((p, i) => (
@@ -622,23 +628,13 @@ export default function MinimalPushOverlayMenu({
   );
 }
 
-/* ===== 你的 ProductSlider（維持原邏輯；可改為獨立檔案再 import） ===== */
-import { gsap as _gsap } from "gsap";
-import SplitType from "split-type";
-import { motion, AnimatePresence } from "framer-motion";
-import Carousel from "../components/EmblaCarouselTravel/index";
-
-const makeHref = (cta = {}) => {
-  if (cta.tel) return `tel:${String(cta.tel).replace(/[\s-]/g, "")}`;
-  return cta.href || "#";
-};
-
+/* ===== 你的 ProductSlider（維持原邏輯；加入 AOS + 視差 + z-50） ===== */
 function ProductSlider({
   slides = [
     {
       title: "有香 Memory Corner ",
       subtitle: "Crisp & clean flavor profile",
-      src: "/images/DAV01683.png",
+      src: "/images/DAV01683.png", // ← 第一張
       ctas: [
         {
           text: "外帶自取",
@@ -758,7 +754,6 @@ function ProductSlider({
   businessOpen = "11:30",
   businessClose = "23:30",
 
-  // 來自父層：移到圖片下方的功能鈕需要呼叫父層方法
   onOpenMenu,
   onSetActive,
   onCloseMenu,
@@ -771,6 +766,14 @@ function ProductSlider({
   const initedRef = useRef(false);
   const directionForwardRef = useRef(true);
   const activeTLRef = useRef({ in: null, out: null });
+
+  // 視差：筷子
+  const chopsticksRef = useRef(null);
+  const { scrollYProgress: chopsticksProg } = useScroll({
+    target: chopsticksRef,
+    offset: ["start 85%", "end 15%"],
+  });
+  const chopsticksY = useTransform(chopsticksProg, [0, 1], ["-12vh", "12vh"]);
 
   // 營業時間
   const [isOpenNow, setIsOpenNow] = useState(true);
@@ -1021,8 +1024,8 @@ function ProductSlider({
 
   return (
     <div className="bg-white h-screen pb-20">
-      <div className="mx-auto  py-20  w-[80%]   flex justify-center items-center">
-        <section className="grid w-full !bg-white  grid-cols-1 lg:grid-cols-2 isolate">
+      <div className="mx-auto py-20 w-[80%] flex justify-center items-center">
+        <section className="grid w-full !bg-white grid-cols-1 lg:grid-cols-2 isolate">
           {/* 左半 */}
           <div className="left relative z-30 !bg-white ">
             <div className="copy">
@@ -1067,8 +1070,25 @@ function ProductSlider({
             </div>
           </div>
 
-          {/* 右半：主圖 + 不規則發散縮圖 */}
-          <div className="right flex-col flex relative overflow-vishible">
+          {/* 右半：主圖 + 筷子視差 + 發散縮圖 */}
+          <div className="right flex-col flex relative overflow-visible">
+            {/* 筷子 → AOS + 視差 */}
+            <div
+              ref={chopsticksRef}
+              className="absolute top-[15%] right-[-35%] z-50 pointer-events-none"
+              data-aos="fade-down"
+              data-aos-duration="1200"
+              data-aos-easing="ease-out-cubic"
+            >
+              <motion.img
+                src="https://static.vecteezy.com/system/resources/thumbnails/049/096/323/small_2x/hand-grasping-wooden-chopsticks-for-eating-transparent-png.png"
+                alt="chopsticks"
+                className="max-w-[800px] will-change-transform"
+                style={{ y: chopsticksY }}
+                draggable={false}
+              />
+            </div>
+
             <AnimatePresence initial={false} mode="wait">
               <motion.div
                 key={`decor-${current}`}
@@ -1186,8 +1206,19 @@ function ProductSlider({
                         </AnimatePresence>
                       )}
 
-                      {/* 主圖 */}
-                      <img className="card-bg" src={s.src} alt={s.title} />
+                      {/* 主圖（第 1 張加 AOS zoom-in） */}
+                      <img
+                        className="card-bg"
+                        src={s.src}
+                        alt={s.title}
+                        {...(s.src === "/images/DAV01683.png"
+                          ? {
+                              "data-aos": "zoom-in",
+                              "data-aos-duration": "900",
+                              "data-aos-delay": "120",
+                            }
+                          : {})}
+                      />
                     </div>
                   </div>
                 ))}
@@ -1196,11 +1227,13 @@ function ProductSlider({
 
             {/* ✅ 功能按鈕：移到 DAV01683.png（第 1 張）下方，只在 current===0 顯示 */}
             {idx === 0 && (
-              <div className="menu-button-group under-image">
+              <div className="menu-button-group under-image mt-6 flex gap-6 justify-center">
                 <button
-                  className={` border-red-500 !h-auto ${
+                  className={`relative z-50 ${
                     isOpen && active === 0 ? "is-active" : ""
                   }`}
+                  data-aos="fade-up"
+                  data-aos-delay="200"
                   onClick={() => (isOpen ? onSetActive?.(0) : onOpenMenu?.(0))}
                 >
                   <div className="flex flex-col justify-center items-center">
@@ -1213,7 +1246,11 @@ function ProductSlider({
                   </div>
                 </button>
                 <button
-                  className={` ${isOpen && active === 1 ? "is-active" : ""}`}
+                  className={`relative z-50 ${
+                    isOpen && active === 1 ? "is-active" : ""
+                  }`}
+                  data-aos="fade-up"
+                  data-aos-delay="400"
                   onClick={() => (isOpen ? onSetActive?.(1) : onOpenMenu?.(1))}
                 >
                   <div className="flex flex-col justify-center items-center">
@@ -1226,7 +1263,11 @@ function ProductSlider({
                   </div>
                 </button>
                 <button
-                  className={` ${isOpen && active === 2 ? "is-active" : ""}`}
+                  className={`relative z-50 ${
+                    isOpen && active === 2 ? "is-active" : ""
+                  }`}
+                  data-aos="fade-up"
+                  data-aos-delay="600"
                   onClick={() => (isOpen ? onSetActive?.(2) : onOpenMenu?.(2))}
                 >
                   <div className="flex flex-col justify-center items-center">
@@ -1284,7 +1325,6 @@ function ProductSlider({
               margin: 0 0 18px;
               overflow: hidden;
             }
-
             .right {
               position: relative;
             }
@@ -1331,7 +1371,7 @@ function ProductSlider({
               transform: scale(1);
             }
 
-            /* ✅ 移下來的新位置樣式 */
+            /* 下方按鈕群 */
             .menu-button-group.under-image {
               display: flex;
               gap: 0.5rem;
@@ -1339,7 +1379,7 @@ function ProductSlider({
               align-items: center;
               margin-top: 18px;
               padding: 8px 10px;
-              pointer-events: all; /* 確保可點 */
+              pointer-events: all;
             }
             .menu-button {
               appearance: none;

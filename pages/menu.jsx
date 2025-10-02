@@ -123,7 +123,7 @@ export default function Home() {
                       natus. Dignissimos iste omnis consectetur, voluptates
                     </div>
                     <Link
-                      href="menu-inner"
+                      href="/menu01"
                       className=" bg-[#ea3636] mt-3 border px-4 py-2 font-bold "
                     >
                       MENU
@@ -157,7 +157,7 @@ export default function Home() {
                       natus. Dignissimos iste omnis consectetur, voluptates
                     </div>
                     <Link
-                      href="menu-inner"
+                      href="/menu01"
                       className=" bg-[#ea3636] mt-3 border px-4 py-2 font-bold "
                     >
                       MENU
@@ -192,7 +192,7 @@ export default function Home() {
                       Lorem ipsum, dolor sit amet consectetur adipisicing elit.
                     </div>
                     <Link
-                      href="menu-inner"
+                      href="/menu01"
                       className=" bg-[#ea3636] mt-3 border px-4 py-2 font-bold "
                     >
                       MENU

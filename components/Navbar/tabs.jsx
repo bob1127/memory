@@ -5,11 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { cartStore } from "@/lib/cartStore";
 
-/* ---------------- Flyout（參考你的示例） ---------------- */
-function FlyoutLink({ children, href = "#", FlyoutContent }) {
+/* ------- 簡潔 Hover Flyout（靠左對齊） ------- */
+function FlyoutLink({ label, href = "#", FlyoutContent }) {
   const [open, setOpen] = useState(false);
   const showFlyout = !!FlyoutContent && open;
 
@@ -19,27 +19,30 @@ function FlyoutLink({ children, href = "#", FlyoutContent }) {
       onMouseLeave={() => setOpen(false)}
       className="relative w-fit h-fit"
     >
-      <Link href={href} className="relative  text-white">
-        {children}
+      <Link
+        href={href}
+        className="relative text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+      >
+        {label}
         <span
           style={{ transform: showFlyout ? "scaleX(1)" : "scaleX(0)" }}
-          className="absolute -bottom-2 -left-2 -right-2 h-1 origin-left scale-x-0 rounded-full  transition-transform duration-300 ease-out"
+          className="absolute -bottom-1 left-0 right-0 h-[2px] origin-left scale-x-0 bg-white/70 transition-transform duration-300 ease-out"
         />
       </Link>
+
       <AnimatePresence>
         {showFlyout && (
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            style={{ translateX: "-50%" }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute left-1/2 top-12 z-[1200] bg-[#ffffff] rounded-xl text-black  shadow-xl"
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            /* 置中 → 靠左 */
+            className="absolute left-0 top-8 z-[1200] rounded-lg border border-gray-200 bg-white text-gray-800 shadow-lg"
           >
-            {/* 防止游標從觸發器滑到面板時抖動 */}
-            <div className="absolute -top-6 left-0 right-0 h-6 bg-transparent" />
-            <div className="absolute left-1/2 top-0 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-[#ffffff]" />
-            <FlyoutContent />
+            <div className="p-3">
+              <FlyoutContent />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -47,55 +50,79 @@ function FlyoutLink({ children, href = "#", FlyoutContent }) {
   );
 }
 
-/* ------------ 二層內容（依網站地圖示例，可自行調整連結） ------------ */
+/* ------------ 二層內容（純文字連結） ------------ */
 const BrandStoresContent = () => (
-  <div className="w-72 bg-[#9b1d1d]  p-6">
-    <h3 className="font-semibold mb-3 text-white">品牌門店</h3>
-    <Link
-      href="/brand01"
-      className="block text-sm py-1 text-white hover:underline"
-    >
-      有香餐飲
-    </Link>
-    <Link
-      href="/brand01"
-      className="block text-sm py-1 text-white hover:underline"
-    >
-      憶點點
-    </Link>
-    <Link
-      href="/brand01"
-      className="block text-sm py-1 text-white hover:underline"
-    >
-      有香ㄟ灶腳
-    </Link>
-  </div>
+  <ul className="min-w-56 text-sm">
+    <li>
+      <Link
+        href="/brand01"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        關於有香餐飲集團
+      </Link>
+    </li>
+    <li>
+      <Link
+        href="/brand01"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        有香
+      </Link>
+    </li>
+    <li>
+      <Link
+        href="/brand01"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        憶點點
+      </Link>
+    </li>
+    <li>
+      <Link
+        href="/brand01"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        有香ㄟ灶腳
+      </Link>
+    </li>
+  </ul>
 );
 
 const BrandMenuContent = () => (
-  <div className="w-72 bg-[#9b1d1d] border-white border p-6">
-    <Link href="/menu" className="font-semibold mb-5  text-base text-white">
-      品牌菜單-總覽
-    </Link>
-    <Link
-      href="/menu01"
-      className="block text-sm py-1 text-white hover:underline"
-    >
-      有香 菜單
-    </Link>
-    <Link
-      href="/menu02"
-      className="block text-sm py-1 text-white hover:underline"
-    >
-      憶點點 菜單
-    </Link>
-    <Link
-      href="/menu03"
-      className="block text-sm py-1 text-white hover:underline"
-    >
-      有香ㄟ灶腳 菜單
-    </Link>
-  </div>
+  <ul className="min-w-56 text-sm">
+    <li>
+      <Link
+        href="/menu"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        菜單總覽
+      </Link>
+    </li>
+    <li>
+      <Link
+        href="/menu01"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        有香
+      </Link>
+    </li>
+    <li>
+      <Link
+        href="/menu02"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        憶點點
+      </Link>
+    </li>
+    <li>
+      <Link
+        href="/menu03"
+        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
+      >
+        有香ㄟ灶腳
+      </Link>
+    </li>
+  </ul>
 );
 
 export const SlideTabsExample = () => {
@@ -118,7 +145,7 @@ export const SlideTabsExample = () => {
   // 手機選單
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isBrandOpenMobile, setIsBrandOpenMobile] = useState(false);
-  const [isMenuOpenMobile, setIsMenuOpenMobile] = useState(false); // 品牌菜單 手風琴
+  const [isMenuOpenMobile, setIsMenuOpenMobile] = useState(false);
 
   // 購物車
   const [cart, setCart] = useState([]);
@@ -158,78 +185,79 @@ export const SlideTabsExample = () => {
           }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.4 }}
-          className="fixed left-0 top-0 z-[1000] w-full "
+          className="fixed left-0 top-0 z-[1000] w-full"
         >
-          <div className="mx-auto w-[96.5%] flex items-center justify-between px-5 text-white">
-            {/* Logo */}
-            <div className="w-[30%] pl-5">
-              <Link href="/" aria-label="Home">
-                <div className="w-[180px] p-2">
+          <div className="mx-auto w-[96.5%] mt-5 px-5 text-white">
+            <div className="flex items-center">
+              {/* ── 左欄：手機 Logo（桌機隱藏／作為置中用的占位） ── */}
+              <div className="w-1/3 md:w-1/3">
+                <div className="pl-5 md:hidden">
+                  <Link href="/" aria-label="Home">
+                    <div className="w-[160px] p-2">
+                      <Image
+                        src="/images/logo/有香餐飲集團-logo.png"
+                        alt="有香餐飲集團"
+                        width={180}
+                        height={56}
+                        priority
+                      />
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              {/* ── 中欄：桌機主選單（置中） ── */}
+              <div className="hidden md:flex w-1/3 items-center justify-center gap-8">
+                <FlyoutLink
+                  href="/"
+                  label="品牌門店"
+                  FlyoutContent={BrandStoresContent}
+                />
+                <FlyoutLink
+                  href="/menu"
+                  label="品牌菜單"
+                  FlyoutContent={BrandMenuContent}
+                />
+
+                {/* 中間 Logo */}
+                <Link href="/" aria-label="Home" className="pl-2">
                   <Image
                     src="/images/logo/有香餐飲集團-logo.png"
                     alt="有香餐飲集團"
-                    width={200}
-                    height={60}
+                    width={150}
+                    height={48}
                     priority
+                    className="h-auto w-[190px]"
                   />
-                </div>
-              </Link>
-            </div>
+                </Link>
 
-            {/* Desktop 主選單（Hover 二層） */}
-            <div className="hidden md:flex w-[40%]  items-center justify-center gap-8">
-              <FlyoutLink
-                href="/brand"
-                className=""
-                FlyoutContent={BrandStoresContent}
-              >
-                <img
-                  src="/images/navbar-品牌門店.png"
-                  alt="navbar-品牌門店"
-                  className="w-[100px] mt-2"
-                />
-              </FlyoutLink>
+                <Link
+                  href="/news"
+                  className="text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+                >
+                  品牌動態
+                </Link>
+                <Link
+                  href="/participation"
+                  className="text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+                >
+                  加盟合作
+                </Link>
+              </div>
 
-              <FlyoutLink href="/menu" FlyoutContent={BrandMenuContent}>
-                <img
-                  src="/images/navbar-品牌菜單.png"
-                  alt="navbar-品牌菜單"
-                  className="w-[100px] mt-2"
-                />
-              </FlyoutLink>
-
-              <Link href="/news" className="relative text-white">
-                <img
-                  src="/images/navbar-品牌動態.png"
-                  alt="navbar-品牌動態"
-                  className="w-[100px] mt-2"
-                />
-              </Link>
-
-              <Link href="/participation" className="relative text-white">
-                <img
-                  src="/images/navbar-加盟合作.png"
-                  alt="navbar-加盟合作"
-                  className="w-[100px] mt-2"
-                />
-              </Link>
-            </div>
-
-            {/* 右側：保留的 ORDER｜購物車 */}
-            <div className="w-[80%] md:w-[30%]">
-              <div className="flex items-center justify-center gap-3">
+              {/* ── 右欄：線上訂購 & 購物車（靠右） ── */}
+              <div className="flex w-2/3 md:w-1/3 items-center justify-end gap-3">
                 <Link
                   href="/beer"
-                  className="rounded-[30px] border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white"
+                  className="rounded-[30px] border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white hover:bg-[#881b1b] transition-colors"
                 >
                   ORDER｜線上訂購
                 </Link>
 
-                {/* 購物車按鈕 */}
                 <button
                   aria-label="cart"
                   onClick={() => setCartOpen((v) => !v)}
-                  className="relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30  hover:bg-white/20"
+                  className="relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -274,7 +302,6 @@ export const SlideTabsExample = () => {
                 transition={{ type: "spring", stiffness: 280, damping: 30 }}
                 className="fixed left-0 right-0 top-0 z-[1100] h-[90vh] max-h-[90vh] border-b bg-white text-black shadow-2xl"
               >
-                {/* 頂部 */}
                 <div className="mx-auto flex w-[80%] items-center justify-between border-b p-4">
                   <b>購物車</b>
                   <button
@@ -285,7 +312,6 @@ export const SlideTabsExample = () => {
                   </button>
                 </div>
 
-                {/* 內容 */}
                 <div className="ml-[160px] h-[calc(90vh-56px-72px)] w-[60%] overflow-y-auto p-4">
                   {cart.length === 0 ? (
                     <p className="text-sm text-gray-500">目前沒有商品</p>
@@ -347,10 +373,9 @@ export const SlideTabsExample = () => {
                   )}
                 </div>
 
-                {/* 底部 */}
                 <div className="border-t p-4">
                   <button
-                    className="mx-auro w-full max-w-[140px] rounded-lg bg-black px-4 py-2 text-white"
+                    className="mx-auro w-full max-w-[140px] rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
                     onClick={() => {
                       setCartOpen(false);
                       router.push("/checkout");
@@ -366,7 +391,7 @@ export const SlideTabsExample = () => {
         </motion.nav>
       </AnimatePresence>
 
-      {/* 手機：漢堡選單內容（含二層手風琴） */}
+      {/* 手機：漢堡選單內容（不變） */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -401,7 +426,7 @@ export const SlideTabsExample = () => {
                       className="pl-3"
                     >
                       {[
-                        { label: "有香餐飲", href: "/main01" },
+                        { label: "有香", href: "/main01" },
                         { label: "憶點點", href: "/main02" },
                         { label: "有香ㄟ灶腳", href: "/main03" },
                       ].map((sub) => (
@@ -462,7 +487,6 @@ export const SlideTabsExample = () => {
                 </AnimatePresence>
               </div>
 
-              {/* 其他主選單 */}
               {[
                 { label: "品牌動態", href: "/news" },
                 { label: "加盟合作", href: "/participation" },
@@ -477,11 +501,10 @@ export const SlideTabsExample = () => {
                 </Link>
               ))}
 
-              {/* 保留：ORDER｜購物車（手機內也可快速進入） */}
               <div className="mt-2 flex items-center gap-3">
                 <Link
                   href="/beer"
-                  className="rounded-[30px] border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white"
+                  className="rounded-[30px] border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white hover:bg-[#881b1b] transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   ORDER｜線上訂購

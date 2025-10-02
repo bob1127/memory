@@ -178,77 +178,6 @@ export default function ProductPage() {
           </div>
         </div>
 
-        <section className="mt-10 grid md:grid-cols-3 gap-6">
-          {/* 介紹卡 */}
-          <div className="rounded-2xl border bg-white p-6">
-            <h3 className="font-semibold text-lg mb-3">風味筆記</h3>
-            <p className="text-gray-700 leading-relaxed">
-              以低溫長時間發酵，帶出乾淨麥香與細緻碳酸；口感清爽，苦味適中，尾韻乾淨不黏口。建議飲用溫度
-              6–8℃
-            </p>
-          </div>
-
-          {/* 規格表 */}
-          <div className="rounded-2xl border bg-white p-6">
-            <h3 className="font-semibold text-lg mb-3">規格資訊</h3>
-            <table className="w-full text-sm">
-              <tbody className="[&_td]:py-1.5 [&_td]:align-top [&_td:first-child]:text-gray-500">
-                <tr>
-                  <td>容量</td>
-                  <td>370ml</td>
-                </tr>
-                <tr>
-                  <td>酒精濃度</td>
-                  <td>5.5%</td>
-                </tr>
-                <tr>
-                  <td>原料</td>
-                  <td>大麥麥芽、啤酒花、酵母、水</td>
-                </tr>
-                <tr>
-                  <td>保存方式</td>
-                  <td>建議冷藏，避免陽光直射</td>
-                </tr>
-                <tr>
-                  <td>有效期限</td>
-                  <td>製造日起 4 個月</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* 出貨/退換 */}
-          <div className="rounded-2xl border bg-white p-6">
-            <h3 className="font-semibold text-lg mb-3">出貨與退換</h3>
-            <ul className="text-gray-700 list-disc pl-5 space-y-1">
-              <li>工作日下單 24–48 小時內出貨。</li>
-              <li>易碎品將以防撞材妥善包裝。</li>
-              <li>未拆封可於 7 日鑑賞期內退換（運費自付）。</li>
-            </ul>
-          </div>
-        </section>
-
-        {/* FAQ（手風琴） */}
-        <section className="mt-8">
-          <h3 className="font-semibold text-lg mb-3">常見問題</h3>
-          <Accordion
-            items={[
-              {
-                q: "需要冷藏配送嗎？",
-                a: "一般常溫配送即可，收到後建議冷藏保存、冰鎮後風味更佳。",
-              },
-              {
-                q: "含酒精能否超商取貨？",
-                a: "依各地法規限制，部分通路可能不支援，請以結帳頁可選配送方式為準。",
-              },
-              {
-                q: "是否提供禮盒與客製卡片？",
-                a: "可，請在結帳備註填寫需求或聯繫客服。",
-              },
-            ]}
-          />
-        </section>
-
         {/* ===== 熱銷產品輪播 ===== */}
         <section className="mt-14">
           <div className="mb-8">
@@ -281,25 +210,6 @@ export default function ProductPage() {
           />
         </section>
       </div>
-      <section className="section-map pt-20 flex flex-col">
-        <div>
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2608.125676211783!2d-123.1274940232461!3d49.17920177807608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x548675082541f249%3A0x87d1f92d1d46df5f!2zTWVtb3J5IENvcm5lciDmnInpppk!5e0!3m2!1szh-TW!2stw!4v1759130334759!5m2!1szh-TW!2stw"
-            className="w-full h-[500px]"
-            allowfullscreen=""
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
-        </div>
-        <div>
-          <Marquee>
-            <h2 className="text-[70px] mx-3  ">MEMORY CORNER</h2>
-            <h2 className="text-[70px] mx-3 ">MEMORY CORNER</h2>
-            <h2 className="text-[70px] mx-3  ">MEMORY CORNER</h2>
-            <h2 className="text-[70px] mx-3 ">MEMORY CORNER</h2>
-          </Marquee>
-        </div>
-      </section>
     </Layout>
   );
 }
