@@ -17,109 +17,92 @@ import Link from "next/link";
 const NEWS = [
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
   {
     img: "/images/news-01.jpg",
-
     title: "滿額贈送Line Pay 點數回饋，買越多賺越多",
     desc: "[Line Pay 回饋]",
   },
 ];
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 8; // ✅ 一頁 8 筆：超過 8 筆才會出現第二頁
 
 /* ===== 更絲滑的 spring（柔順） ===== */
 const spring = { type: "spring", stiffness: 70, damping: 22, mass: 0.9 };
@@ -133,7 +116,7 @@ const listVariants = (reduce) => ({
       delayChildren: reduce ? 0 : 0.04,
     },
   },
-  exit: { opacity: 1 }, // 不特別做退場，專注進場序列
+  exit: { opacity: 1 },
 });
 
 /* 單卡片：大位移 + 模糊 → 清晰 */
@@ -154,7 +137,6 @@ export default function News() {
   const reduce = useReducedMotion();
 
   useEffect(() => {
-    // 切頁時回到頂部
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
@@ -172,7 +154,7 @@ export default function News() {
           <section className="py-[150px] bg-[#e9d9be]">
             <div
               className="mx-auto w-full md:w-[90%] px-5 xl:w-[85%] max-w-[1920px]
-                       grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+                         grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               {/* 父層用 stagger 控制所有卡片依序 fade-up */}
               <AnimatePresence mode="wait">
@@ -215,8 +197,8 @@ export default function News() {
                                 alt="news-item-img"
                                 fill
                                 className="object-cover w-full"
-                                sizes="(max-width: 1024px) 50vw, 33vw"
-                                priority={i < 3} // 首屏幾張優先載入
+                                sizes="(max-width: 1024px) 50vw, 25vw" // ⚙️ 四欄時 25vw
+                                priority={i < 4} // 首屏前 4 張優先載入
                               />
                             </motion.div>
                           </div>

@@ -321,7 +321,7 @@ function BeerCard({
   return (
     <FadeUp delay={delay}>
       <motion.article
-        className="relative group flex items-center justify-center overflow-hidden"
+        className="relative group flex items-center h-full justify-center overflow-hidden"
         style={{ backgroundColor: bg }}
         initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
@@ -466,7 +466,7 @@ export default function Home() {
 
         {/* ====== 你指定要保留的 Section：四等份卡片 ====== */}
         <section className="w-full m-0 bg-white overflow-visible pt-20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-[85vh]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-[80vh]">
             <BeerCard
               bg="#cdcdd5"
               title="Title"
@@ -495,16 +495,13 @@ export default function Home() {
         </section>
 
         {/* ======= 零食：各自落入袋口（原尺寸→袋口縮小）＋ 無限循環 ======= */}
-        <section
-          ref={dingingRef}
-          className="section_Dinging bg-[#ebe5df] pb-20"
-        >
+        <section ref={dingingRef} className="section_Dinging bg-[#ebe5df] ">
           <div className="flex justify-center">
             <div className="left w-1/2 overflow-hidden min-h-screen relative">
               <FadeUp
                 delay={0.05}
                 amount={0.25}
-                className="absolute left-1/2 -translate-x-1/2 top-0"
+                className="absolute left-[35%] -translate-x-1/2 top-[5%]"
               >
                 <Image
                   src="/images/snack/buynow.png"
@@ -581,7 +578,7 @@ export default function Home() {
               <FadeUp
                 delay={0.1}
                 amount={0.2}
-                className="absolute w-[80%] bottom-[-35%] z-[99] -translate-x-1/2 left-1/2 "
+                className="absolute w-[100%] bottom-[-35%] z-[99] -translate-x-1/2 left-0 "
               >
                 <Image
                   src="/images/bag.png"
@@ -590,7 +587,7 @@ export default function Home() {
                   loading="lazy"
                   width={1000}
                   height={1000}
-                  className="!w-[1000px]"
+                  className="!w-[1300px] "
                 />
               </FadeUp>
             </div>
@@ -600,7 +597,7 @@ export default function Home() {
               <FadeUp amount={0.35}>
                 <div className="flex flex-col">
                   <FadeUp>
-                    <h2 className="font-normal text-[#ff3c3c] text-6xl">
+                    <h2 className="font-extrabold text-[#ff3c3c] text-6xl">
                       Dinging Memory
                     </h2>
                   </FadeUp>
@@ -670,8 +667,26 @@ export default function Home() {
                   className="w-[55px]"
                 ></Image>
               </div>
-              <div className="txt text-xl tracking-wider">
+              <div className="txt text-xl flex  items-center font-bold rotate-[-90deg] tracking-wider">
+                <Image
+                  src="/images/text04.png"
+                  alt=""
+                  placeholder="empty"
+                  loading="lazy"
+                  width={200}
+                  height={200}
+                  className="w-[55px]"
+                ></Image>
                 The Memory Taiwan Food
+                <Image
+                  src="/images/text05.png"
+                  alt=""
+                  placeholder="empty"
+                  loading="lazy"
+                  width={200}
+                  height={200}
+                  className="w-[55px]"
+                ></Image>
               </div>
               <div className=" ">
                 <Image
@@ -686,7 +701,7 @@ export default function Home() {
               </div>
             </div>
           </FadeUp>
-          <div className="title max-w-[1920px] xl:w-[80%] md:w-[90%] w-full mx-auto">
+          <div className="title max-w-[1920px] xl:w-[70%] md:w-[90%] w-full mx-auto">
             <FadeUp>
               <h2 className="text-4xl font-bold font-stone-800">BARND STORY</h2>
             </FadeUp>
@@ -703,7 +718,7 @@ export default function Home() {
               </div>
             </FadeUp>
           </div>
-          <div className="brand max-w-[1920px] xl:w-[80%] md:w-[90%] gap-5 w-full mx-auto grid grid-cols-3 ">
+          <div className="brand max-w-[1920px] xl:w-[70%] md:w-[90%] gap-5 w-full mx-auto grid grid-cols-3 ">
             <FadeUp delay={0.04} amount={0.25} className="relative">
               <Link href="main01">
                 <Image
