@@ -23,7 +23,41 @@ import {
   AnimatePresence,
   useScroll,
   useTransform,
+  useReducedMotion,
 } from "framer-motion";
+
+/* ========== 共用：滾動進場（大距離、超柔順） ========== */
+function FadeUp({
+  children,
+  className = "",
+  delay = 0,
+  distance = 96,
+  amount = 0.3,
+}) {
+  const prefersReduced = useReducedMotion?.();
+  if (prefersReduced) {
+    return <div className={className}>{children}</div>;
+  }
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: distance, filter: "blur(6px)" }}
+      whileInView={{
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        transition: {
+          ease: [0.16, 1, 0.3, 1],
+          duration: 1.05,
+          delay,
+        },
+      }}
+      viewport={{ once: true, amount, margin: "0px 0px -10% 0px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 /* ========== 小元件：從火鍋中心「彈出」到最終位置（無裁切、只設寬度） ========== */
 function VgPop({ containerRef, item, index }) {
@@ -277,7 +311,6 @@ function SnackDropLoop({
 }
 
 /* ========= 小卡片（四等份） ========= */
-/* ========= 小卡片（四等份） ========= */
 function BeerCard({
   bg = "#cdcdd5",
   title = "Title",
@@ -286,52 +319,54 @@ function BeerCard({
   ...rest
 }) {
   return (
-    <motion.article
-      className="relative group flex items-center justify-center overflow-hidden"
-      style={{ backgroundColor: bg }}
-      initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
-      whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-      viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
-      transition={{
-        duration: 0.9,
-        ease: [0.22, 1, 0.36, 1],
-        delay,
-      }}
-      {...rest} // ⭐ 把 data-aos, data-aos-delay 傳給最外層
-    >
-      <div
-        className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 w-[72%] text-center
+    <FadeUp delay={delay}>
+      <motion.article
+        className="relative group flex items-center justify-center overflow-hidden"
+        style={{ backgroundColor: bg }}
+        initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
+        whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+        viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
+        transition={{
+          duration: 0.9,
+          ease: [0.22, 1, 0.36, 1],
+          delay,
+        }}
+        {...rest}
+      >
+        <div
+          className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 w-[72%] text-center
         opacity-0 -translate-y-3
         transition-all duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)]
         group-hover:opacity-100 group-hover:translate-y-0 will-change-transform z-20"
-      >
-        <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
-        <p className="text-white/90 leading-relaxed">{desc}</p>
-      </div>
+        >
+          <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+          <p className="text-white/90 leading-relaxed">{desc}</p>
+        </div>
 
-      <div
-        className="relative w-[78%] max-w-[620px]
+        <div
+          className="relative w-[78%] max-w-[620px]
         translate-y-0
         transition-transform duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)]
         group-hover:translate-y-10 will-change-transform z-10 overflow-hidden group-hover:overflow-visible"
-      >
-        <div
-          className="translate-y-0 scale-[1.1] origin-top
+        >
+          <div
+            className="translate-y-0 scale-[1.1] origin-top
           transition-transform duration-[1400ms] ease-[cubic-bezier(.22,1,.36,1)]
           group-hover:scale-[1.6] group-hover:translate-y-[35%] will-change-transform"
-        >
-          <img
-            src="/images/BUD_LIGHT_12oz_C_AdAge_RGB1-e1450364966247-001-removebg-preview.png"
-            alt="Beer"
-            className="w-[180%] mx-auto h-[500px] block"
-            decoding="async"
-            loading="eager"
-            fetchPriority="high"
-            draggable="false"
-          />
+          >
+            <img
+              src="/images/BUD_LIGHT_12oz_C_AdAge_RGB1-e1450364966247-001-removebg-preview.png"
+              alt="Beer"
+              className="w-[180%] mx-auto h-[500px] block"
+              decoding="async"
+              loading="eager"
+              fetchPriority="high"
+              draggable="false"
+            />
+          </div>
         </div>
-      </div>
-    </motion.article>
+      </motion.article>
+    </FadeUp>
   );
 }
 
@@ -429,36 +464,32 @@ export default function Home() {
           <MinimalPushOverlayMenu />
         </div>
 
-        {/* ====== 你指定要保留的 Section：加上 in-view fade-up ====== */}
+        {/* ====== 你指定要保留的 Section：四等份卡片 ====== */}
         <section className="w-full m-0 bg-white overflow-visible pt-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-[85vh]">
             <BeerCard
               bg="#cdcdd5"
               title="Title"
               desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              data-aos="fade-up"
-              data-aos-delay="0"
+              delay={0}
             />
             <BeerCard
               bg="#cdcdd5"
               title="Title"
               desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              data-aos="fade-up"
-              data-aos-delay="150"
+              delay={0.15}
             />
             <BeerCard
               bg="#e5e563"
               title="Title"
               desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              data-aos="fade-up"
-              data-aos-delay="300"
+              delay={0.3}
             />
             <BeerCard
               bg="#9e9ee5"
               title="Title"
               desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              data-aos="fade-up"
-              data-aos-delay="450"
+              delay={0.45}
             />
           </div>
         </section>
@@ -470,7 +501,11 @@ export default function Home() {
         >
           <div className="flex justify-center">
             <div className="left w-1/2 overflow-hidden min-h-screen relative">
-              <div className="absolute left-1/2 -translate-x-1/2 top-0">
+              <FadeUp
+                delay={0.05}
+                amount={0.25}
+                className="absolute left-1/2 -translate-x-1/2 top-0"
+              >
                 <Image
                   src="/images/snack/buynow.png"
                   width={500}
@@ -478,13 +513,14 @@ export default function Home() {
                   className="w-[320px]"
                   alt="buy now"
                 />
-              </div>
+              </FadeUp>
 
               <div
                 ref={anchorRef}
                 className="absolute -translate-x-1/2 bottom-[18%] w-[8px] h-[8px] left-[34%]"
               />
 
+              {/* ↓ 這些是連續掉落動畫，不包 FadeUp 以避免中斷 */}
               <SnackDropLoop
                 anchorRef={anchorRef}
                 className="w-[80%] bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
@@ -542,7 +578,11 @@ export default function Home() {
                 xOffset={-280}
               />
 
-              <div className="absolute w-[80%] bottom-[-35%] z-[99] -translate-x-1/2 left-1/2 ">
+              <FadeUp
+                delay={0.1}
+                amount={0.2}
+                className="absolute w-[80%] bottom-[-35%] z-[99] -translate-x-1/2 left-1/2 "
+              >
                 <Image
                   src="/images/bag.png"
                   alt="bag"
@@ -552,53 +592,72 @@ export default function Home() {
                   height={1000}
                   className="!w-[1000px]"
                 />
-              </div>
+              </FadeUp>
             </div>
 
             {/* 右側說明文 */}
             <div className="right w-1/2 flex justify-center items-center">
-              <div className="flex flex-col">
-                <h2 className="font-normal text-[#ff3c3c] text-6xl">
-                  Dinging Memory
-                </h2>
-                <div className="mt-10">
-                  <p className="text-[#ff3c3c] font-bold text-xl tracking-wider">
-                    Lorem dolor sit amet consectetur
-                  </p>
-                </div>
-                <div>
-                  <ul>
-                    <li className="mt-5 font-normal ">
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Ab, eveniet.
-                    </li>
-                    <li className="mt-5 font-normal ">
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Ab, eveniet.
-                    </li>
-                    <li className="mt-5 font-normal ">
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Ab, eveniet.
-                    </li>
-                    <li className="mt-5 font-normal ">
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Ab, eveniet.
-                    </li>
-                  </ul>
+              <FadeUp amount={0.35}>
+                <div className="flex flex-col">
+                  <FadeUp>
+                    <h2 className="font-normal text-[#ff3c3c] text-6xl">
+                      Dinging Memory
+                    </h2>
+                  </FadeUp>
                   <div className="mt-10">
-                    <p className="text-[#ff3c3c] w-1/2 font-bold text-xl tracking-wider ">
-                      Lorem dolor sit amet consectetur Lorem dolor sit amet
-                      consectetur
-                    </p>
+                    <FadeUp delay={0.06}>
+                      <p className="text-[#ff3c3c] font-bold text-xl tracking-wider">
+                        Lorem dolor sit amet consectetur
+                      </p>
+                    </FadeUp>
+                  </div>
+                  <div>
+                    <ul>
+                      <FadeUp delay={0.08}>
+                        <li className="mt-5 font-normal ">
+                          Lorem ipsum dolor sit amet consectetur adipisicing
+                          elit. Ab, eveniet.
+                        </li>
+                      </FadeUp>
+                      <FadeUp delay={0.1}>
+                        <li className="mt-5 font-normal ">
+                          Lorem ipsum dolor sit amet consectetur adipisicing
+                          elit. Ab, eveniet.
+                        </li>
+                      </FadeUp>
+                      <FadeUp delay={0.12}>
+                        <li className="mt-5 font-normal ">
+                          Lorem ipsum dolor sit amet consectetur adipisicing
+                          elit. Ab, eveniet.
+                        </li>
+                      </FadeUp>
+                      <FadeUp delay={0.14}>
+                        <li className="mt-5 font-normal ">
+                          Lorem ipsum dolor sit amet consectetur adipisicing
+                          elit. Ab, eveniet.
+                        </li>
+                      </FadeUp>
+                    </ul>
+                    <div className="mt-10">
+                      <FadeUp delay={0.16}>
+                        <p className="text-[#ff3c3c] w-1/2 font-bold text-xl tracking-wider ">
+                          Lorem dolor sit amet consectetur Lorem dolor sit amet
+                          consectetur
+                        </p>
+                      </FadeUp>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </FadeUp>
             </div>
           </div>
         </section>
 
         <section className="section_brand_story relative bg-white py-20">
-          <div className="side-info absolute rotate-[-90deg] left-[-5%] top-[35%]">
+          <FadeUp
+            delay={0.02}
+            className="side-info absolute rotate-[-90deg] left-[-5%] top-[35%]"
+          >
             <div className="flex justify-center items-center">
               <div className=" ">
                 <Image
@@ -626,20 +685,26 @@ export default function Home() {
                 ></Image>
               </div>
             </div>
-          </div>
+          </FadeUp>
           <div className="title max-w-[1920px] xl:w-[80%] md:w-[90%] w-full mx-auto">
-            <h2 className="text-4xl font-bold font-stone-800">BARND STORY</h2>
-            <h3 className="text-2xl font-bold">
-              consectetur adipisicing elit. Modi, aliquid!
-            </h3>
-            <div className="description mt-8 max-w-[600px]">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-              Laudantium obcaecati quis esse id sed ex minima nam incidunt
-              mollitia perferendis?
-            </div>
+            <FadeUp>
+              <h2 className="text-4xl font-bold font-stone-800">BARND STORY</h2>
+            </FadeUp>
+            <FadeUp delay={0.06}>
+              <h3 className="text-2xl font-bold">
+                consectetur adipisicing elit. Modi, aliquid!
+              </h3>
+            </FadeUp>
+            <FadeUp delay={0.12}>
+              <div className="description mt-8 max-w-[600px]">
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                Laudantium obcaecati quis esse id sed ex minima nam incidunt
+                mollitia perferendis?
+              </div>
+            </FadeUp>
           </div>
           <div className="brand max-w-[1920px] xl:w-[80%] md:w-[90%] gap-5 w-full mx-auto grid grid-cols-3 ">
-            <div className="relative">
+            <FadeUp delay={0.04} amount={0.25} className="relative">
               <Link href="main01">
                 <Image
                   src="/images/室內.png"
@@ -650,8 +715,8 @@ export default function Home() {
                   className="max-w-[650px] w-[88%] mt-10"
                 ></Image>
               </Link>
-            </div>
-            <div>
+            </FadeUp>
+            <FadeUp delay={0.08} amount={0.25}>
               <Link href="/main02">
                 <Image
                   src="/images/室內.png"
@@ -662,8 +727,8 @@ export default function Home() {
                   className="max-w-[650px] w-[88%] mt-10"
                 ></Image>
               </Link>
-            </div>
-            <div>
+            </FadeUp>
+            <FadeUp delay={0.12} amount={0.25}>
               <Image
                 src="/images/室內.png"
                 width={1000}
@@ -672,103 +737,124 @@ export default function Home() {
                 height={1500}
                 className="max-w-[650px] w-[88%] mt-10"
               ></Image>
-            </div>
+            </FadeUp>
           </div>
         </section>
 
-        <section className="section_video py-20 bg-white">
-          <div className="title mx-auto flex justify中心 items-center flex-col">
-            <h2 className="text-[#1b1b1b] text-6xl font-extrabold">VIDEO</h2>
-            <h3 className="text-[#f39837] text-2xl font-normal">
-              Lorem ipsum dolor, sit amet consectetur adipisicing.
-            </h3>
-            <p className="max-w-[600px] text-center font-light">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Laboriosam, porro blanditiis tempore rem, accusamus sed quibusdam,
-              facilis quod eum accusantium aliquid? Labore, dignissimos.
-              Molestiae mollitia esse officia beatae quas quis?
-            </p>
-            <button className="border text白 bg-[#f2893e] border-black mt-4 mb-8 px-6 py-2">
-              Go youtube
-            </button>
+        <section className="section_video py-20 bg白 bg-white">
+          <div className="title mx-auto flex justify-center items-center flex-col">
+            <FadeUp>
+              <h2 className="text-[#1b1b1b] text-6xl font-extrabold">VIDEO</h2>
+            </FadeUp>
+            <FadeUp delay={0.06}>
+              <h3 className="text-[#f39837] text-2xl font-normal">
+                Lorem ipsum dolor, sit amet consectetur adipisicing.
+              </h3>
+            </FadeUp>
+            <FadeUp delay={0.12}>
+              <p className="max-w-[600px] text-center font-light">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                Laboriosam, porro blanditiis tempore rem, accusamus sed
+                quibusdam, facilis quod eum accusantium aliquid? Labore,
+                dignissimos. Molestiae mollitia esse officia beatae quas quis?
+              </p>
+            </FadeUp>
+            <FadeUp delay={0.18}>
+              <button className="border text-white bg-[#f2893e] border-black mt-4 mb-8 px-6 py-2">
+                Go youtube
+              </button>
+            </FadeUp>
           </div>
-          <BottomVideoGallery
-            items={[
-              {
-                src: "https://www.pexels.com/zh-tw/download/video/3015488/",
-                title: "Pexels 3015488",
-                poster:
-                  "https://images.pexels.com/photos/769289/pexels-photo-769289.jpeg",
-                toIndex: 0,
-              },
-              {
-                src: "https://www.pexels.com/zh-tw/download/video/3195369/",
-                title: "Pexels 3195369",
-                poster:
-                  "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
-                toIndex: 1,
-              },
-              {
-                src: "https://www.pexels.com/zh-tw/download/video/1341925/",
-                title: "Pexels 1341925",
-                poster:
-                  "https://images.pexels.com/photos/769289/pexels-photo-769289.jpeg",
-                toIndex: 2,
-              },
-              {
-                src: "https://www.pexels.com/zh-tw/download/video/2959312/",
-                title: "Pexels 2959312",
-                poster:
-                  "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
-                toIndex: 3,
-              },
-              {
-                src: "https://www.pexels.com/zh-tw/download/video/3195728/",
-                title: "Pexels 3195728",
-                poster:
-                  "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
-                toIndex: 4,
-              },
-            ]}
-            onItemClick={(i, item) => {
-              if (Number.isInteger(item?.toIndex)) {
-                // goTo(item.toIndex);
-              } else {
-                // handleNext();
-              }
-            }}
-          />
+          <FadeUp delay={0.08} amount={0.25}>
+            <BottomVideoGallery
+              items={[
+                {
+                  src: "https://www.pexels.com/zh-tw/download/video/3015488/",
+                  title: "Pexels 3015488",
+                  poster:
+                    "https://images.pexels.com/photos/769289/pexels-photo-769289.jpeg",
+                  toIndex: 0,
+                },
+                {
+                  src: "https://www.pexels.com/zh-tw/download/video/3195369/",
+                  title: "Pexels 3195369",
+                  poster:
+                    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
+                  toIndex: 1,
+                },
+                {
+                  src: "https://www.pexels.com/zh-tw/download/video/1341925/",
+                  title: "Pexels 1341925",
+                  poster:
+                    "https://images.pexels.com/photos/769289/pexels-photo-769289.jpeg",
+                  toIndex: 2,
+                },
+                {
+                  src: "https://www.pexels.com/zh-tw/download/video/2959312/",
+                  title: "Pexels 2959312",
+                  poster:
+                    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
+                  toIndex: 3,
+                },
+                {
+                  src: "https://www.pexels.com/zh-tw/download/video/3195728/",
+                  title: "Pexels 3195728",
+                  poster:
+                    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
+                  toIndex: 4,
+                },
+              ]}
+              onItemClick={(i, item) => {
+                if (Number.isInteger(item?.toIndex)) {
+                  // goTo(item.toIndex);
+                } else {
+                  // handleNext();
+                }
+              }}
+            />
+          </FadeUp>
         </section>
 
         <section className="section_app_operation py-20 bg-white">
           <div className="max-w-[1920px] mx-auto xl:w-[85%] md:w-[92%] w-full">
             <div className="top">
-              <div className="title mx-auto flex justify中心 items-center flex-col">
-                <h2 className="text-[#1b1b1b] text-6xl font-extrabold">
-                  APP INTRO
-                </h2>
-                <h3 className="text-[#f39837] text-2xl font-normal">
-                  Lorem ipsum dolor, sit amet consectetur adipisicing.
-                </h3>
-                <p className="max-w-[600px] text-center font-light">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Laboriosam, porro blanditiis tempore rem, accusamus sed
-                  quibusdam, facilis quod eum accusantium aliquid? Labore,
-                  dignissimos. Molestiae mollitia esse officia beatae quas quis?
-                </p>
-                <button className="border text白 bg-[#f2893e] border-black mt-4 mb-8 px-6 py-2">
-                  Go App
-                </button>
+              <div className="title mx-auto flex justify-center items-center flex-col">
+                <FadeUp>
+                  <h2 className="text-[#1b1b1b] text-6xl font-extrabold">
+                    APP INTRO
+                  </h2>
+                </FadeUp>
+                <FadeUp delay={0.06}>
+                  <h3 className="text-[#f39837] text-2xl font-normal">
+                    Lorem ipsum dolor, sit amet consectetur adipisicing.
+                  </h3>
+                </FadeUp>
+                <FadeUp delay={0.12}>
+                  <p className="max-w-[600px] text-center font-light">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    Laboriosam, porro blanditiis tempore rem, accusamus sed
+                    quibusdam, facilis quod eum accusantium aliquid? Labore,
+                    dignissimos. Molestiae mollitia esse officia beatae quas
+                    quis?
+                  </p>
+                </FadeUp>
+                <FadeUp delay={0.18}>
+                  <button className="border text-white bg-[#f2893e] border-black mt-4 mb-8 px-6 py-2">
+                    Go App
+                  </button>
+                </FadeUp>
               </div>
-              <Image
-                src="/images/mobile-top.png"
-                alt=""
-                placeholder="empty"
-                loading="lazy"
-                width={1000}
-                height={1000}
-                className="w-[950px] mx-auto"
-              ></Image>
+              <FadeUp delay={0.1} amount={0.25}>
+                <Image
+                  src="/images/mobile-top.png"
+                  alt=""
+                  placeholder="empty"
+                  loading="lazy"
+                  width={1000}
+                  height={1000}
+                  className="w-[950px] mx-auto"
+                ></Image>
+              </FadeUp>
             </div>
           </div>
         </section>
