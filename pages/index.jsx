@@ -355,7 +355,7 @@ function BeerCard({
           group-hover:scale-[1.6] group-hover:translate-y-[35%] will-change-transform"
           >
             <img
-              src="/images/BUD_LIGHT_12oz_C_AdAge_RGB1-e1450364966247-001-removebg-preview.png"
+              src="/images/0616ala-removebg-preview.png"
               alt="Beer"
               className="w-[180%] mx-auto h-[500px] block"
               decoding="async"
@@ -773,11 +773,6 @@ export default function Home() {
                 quibusdam, facilis quod eum accusantium aliquid? Labore,
                 dignissimos. Molestiae mollitia esse officia beatae quas quis?
               </p>
-            </FadeUp>
-            <FadeUp delay={0.18}>
-              <button className="border text-white bg-[#f2893e] border-black mt-4 mb-8 px-6 py-2">
-                Go youtube
-              </button>
             </FadeUp>
           </div>
           <FadeUp delay={0.08} amount={0.25}>
