@@ -1,12 +1,96 @@
+// components/SlideTabsExample.jsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  Menu,
+  X,
+  User2,
+  LogIn,
+  LogOut,
+  Minus,
+  Plus,
+  Trash2,
+  ShoppingCart,
+} from "lucide-react";
+import { useRouter } from "next/router";
+
 import { cartStore } from "@/lib/cartStore";
+import { authStore } from "@/lib/authStore";
+
+/* -------------------- 動畫 Variants -------------------- */
+const easeOut = [0.22, 1, 0.36, 1];
+
+const fadeUp = {
+  initial: { opacity: 0, y: 10, scale: 0.98, filter: "blur(6px)" },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { duration: 0.22, ease: easeOut },
+  },
+  exit: {
+    opacity: 0,
+    y: 10,
+    scale: 0.98,
+    filter: "blur(6px)",
+    transition: { duration: 0.18, ease: easeOut },
+  },
+};
+
+const modalFade = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.2 } },
+  exit: { opacity: 0, transition: { duration: 0.18 } },
+};
+
+const modalCard = {
+  initial: { opacity: 0, y: 16, scale: 0.96 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.26, ease: easeOut },
+  },
+  exit: {
+    opacity: 0,
+    y: 10,
+    scale: 0.97,
+    transition: { duration: 0.18, ease: easeOut },
+  },
+};
+
+const cartOverlay = modalFade;
+
+const cartPanel = {
+  initial: { y: -24, opacity: 0, scale: 0.98 },
+  animate: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    transition: { type: "spring", stiffness: 260, damping: 30 },
+  },
+  exit: {
+    y: -24,
+    opacity: 0,
+    scale: 0.98,
+    transition: { duration: 0.2, ease: easeOut },
+  },
+};
+
+const listItem = {
+  initial: { opacity: 0, y: 10 },
+  animate: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: 0.05 * i, duration: 0.22, ease: easeOut },
+  }),
+  exit: { opacity: 0, y: 10, transition: { duration: 0.15 } },
+};
 
 /* ------- 簡潔 Hover Flyout（靠左對齊） ------- */
 function FlyoutLink({ label, href = "#", FlyoutContent }) {
@@ -26,23 +110,17 @@ function FlyoutLink({ label, href = "#", FlyoutContent }) {
         {label}
         <span
           style={{ transform: showFlyout ? "scaleX(1)" : "scaleX(0)" }}
-          className="absolute -bottom-1 left-0 right-0 h-[2px] origin-left scale-x-0 bg-white/70 transition-transform duration-300 ease-out"
+          className="absolute -bottom-1 left-0 right-0 h-[2px] origin-left scale-x-0 bg-black/20 transition-transform duration-300 ease-out"
         />
       </Link>
 
       <AnimatePresence>
         {showFlyout && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            /* 置中 → 靠左 */
-            className="absolute left-0 top-8 z-[1200] rounded-lg border border-gray-200 bg-white text-gray-800 shadow-lg"
+            {...fadeUp}
+            className="absolute left-0 top-8 z-[1200] rounded-xl border border-black/10 bg-white/95 shadow-lg backdrop-blur-md"
           >
-            <div className="p-3">
-              <FlyoutContent />
-            </div>
+            <div className="p-3">{FlyoutContent && <FlyoutContent />}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -53,75 +131,41 @@ function FlyoutLink({ label, href = "#", FlyoutContent }) {
 /* ------------ 二層內容（純文字連結） ------------ */
 const BrandStoresContent = () => (
   <ul className="min-w-56 text-sm">
-    <li>
-      <Link
-        href="/brand01"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        關於有香餐飲集團
-      </Link>
-    </li>
-    <li>
-      <Link
-        href="/brand01"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        有香
-      </Link>
-    </li>
-    <li>
-      <Link
-        href="/brand01"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        憶點點
-      </Link>
-    </li>
-    <li>
-      <Link
-        href="/brand01"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        有香ㄟ灶腳
-      </Link>
-    </li>
+    {[
+      ["關於有香餐飲集團", "/brand01"],
+      ["有香", "/brand01"],
+      ["憶點點", "/brand01"],
+      ["有香ㄟ灶腳", "/brand01"],
+    ].map(([t, href]) => (
+      <li key={t}>
+        <Link
+          href={href}
+          className="block text-base text-black rounded-lg px-3 py-2 hover:text-white hover:bg-[#e09437] transition-colors"
+        >
+          {t}
+        </Link>
+      </li>
+    ))}
   </ul>
 );
 
 const BrandMenuContent = () => (
   <ul className="min-w-56 text-sm">
-    <li>
-      <Link
-        href="/menu"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        菜單總覽
-      </Link>
-    </li>
-    <li>
-      <Link
-        href="/menu01"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        有香
-      </Link>
-    </li>
-    <li>
-      <Link
-        href="/menu02"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        憶點點
-      </Link>
-    </li>
-    <li>
-      <Link
-        href="/menu03"
-        className="block text-base text-black rounded px-3 py-2 hover:text-white hover:bg-[#e09437]"
-      >
-        有香ㄟ灶腳
-      </Link>
-    </li>
+    {[
+      ["菜單總覽", "/menu"],
+      ["有香", "/menu01"],
+      ["憶點點", "/menu02"],
+      ["有香ㄟ灶腳", "/menu03"],
+    ].map(([t, href]) => (
+      <li key={t}>
+        <Link
+          href={href}
+          className="block text-base text-black rounded-lg px-3 py-2 hover:text-white hover:bg-[#e09437] transition-colors"
+        >
+          {t}
+        </Link>
+      </li>
+    ))}
   </ul>
 );
 
@@ -156,20 +200,35 @@ export const SlideTabsExample = () => {
     return unsub;
   }, []);
   const cartCount = cart.reduce((n, it) => n + (it.qty || 0), 0);
+  const subtotal = cart.reduce(
+    (sum, it) => sum + Number(it.price || 0) * (it.qty || 0),
+    0
+  );
+
+  // 會員
+  const [auth, setAuth] = useState(authStore.get());
+  const [userOpen, setUserOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState("login"); // login | register
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authErr, setAuthErr] = useState("");
+
+  useEffect(() => {
+    authStore.init();
+    const unsub = authStore.subscribe((s) => setAuth({ ...s }));
+    return unsub;
+  }, []);
 
   return (
-    <div className="">
-      {/* 背景遮罩（手機菜單用） */}
+    <div>
+      {/* 手機菜單遮罩 */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
+            {...modalFade}
             className="fixed inset-0 z-[900] pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
           >
-            <div className="w-full h-full bg-black/30 backdrop-blur-sm pointer-events-auto" />
+            <div className="w-full h-full bg-black/35 backdrop-blur-sm pointer-events-auto" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -184,12 +243,12 @@ export const SlideTabsExample = () => {
             y: isScrollingUp ? 0 : -20,
           }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.35, ease: easeOut }}
           className="fixed left-0 top-0 z-[1000] w-full"
         >
           <div className="mx-auto w-[96.5%] mt-5 px-5 text-white">
             <div className="flex items-center">
-              {/* ── 左欄：手機 Logo（桌機隱藏／作為置中用的占位） ── */}
+              {/* 左：手機 Logo 佔位 */}
               <div className="w-1/3 md:w-1/3">
                 <div className="pl-5 md:hidden">
                   <Link href="/" aria-label="Home">
@@ -206,7 +265,7 @@ export const SlideTabsExample = () => {
                 </div>
               </div>
 
-              {/* ── 中欄：桌機主選單（置中） ── */}
+              {/* 中：桌機選單 */}
               <div className="hidden md:flex w-1/3 items-center justify-center gap-8">
                 <FlyoutLink
                   href="/"
@@ -245,7 +304,7 @@ export const SlideTabsExample = () => {
                 </Link>
               </div>
 
-              {/* ── 右欄：線上訂購 & 購物車（靠右） ── */}
+              {/* 右：訂購 / 會員 / 購物車 / 漢堡 */}
               <div className="flex w-2/3 md:w-1/3 items-center justify-end gap-3">
                 <Link
                   href="/beer"
@@ -254,23 +313,83 @@ export const SlideTabsExample = () => {
                   ORDER｜線上訂購
                 </Link>
 
+                {/* 會員 icon */}
+                <div className="relative">
+                  <button
+                    aria-label="user"
+                    onClick={() => setUserOpen((v) => !v)}
+                    className="relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
+                  >
+                    <User2 size={18} />
+                  </button>
+
+                  <AnimatePresence>
+                    {userOpen && (
+                      <motion.div
+                        {...fadeUp}
+                        className="absolute right-0 mt-2 w-60 rounded-xl border border-white/15 bg-black/80 text-white shadow-xl backdrop-blur-md"
+                      >
+                        {!auth.user ? (
+                          <div className="p-2">
+                            <button
+                              onClick={() => {
+                                setShowAuthModal(true);
+                                setAuthMode("login");
+                                setUserOpen(false);
+                              }}
+                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                            >
+                              <LogIn size={16} /> 登入
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowAuthModal(true);
+                                setAuthMode("register");
+                                setUserOpen(false);
+                              }}
+                              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                            >
+                              <User2 size={16} /> 註冊
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="p-2 text-sm">
+                            <div className="px-3 py-2">
+                              嗨，
+                              {auth.user.displayName ||
+                                auth.user.name ||
+                                auth.user.email}
+                            </div>
+                            <Link
+                              href="/account"
+                              className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                              onClick={() => setUserOpen(false)}
+                            >
+                              我的帳戶 / 訂單
+                            </Link>
+                            <button
+                              onClick={() => {
+                                authStore.logout();
+                                setUserOpen(false);
+                              }}
+                              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-red-200 hover:bg-red-500/10 transition-colors"
+                            >
+                              <LogOut size={16} /> 登出
+                            </button>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* 購物車 */}
                 <button
                   aria-label="cart"
                   onClick={() => setCartOpen((v) => !v)}
                   className="relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="18"
-                    height="18"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <circle cx="9" cy="20" r="1.5" />
-                    <circle cx="17" cy="20" r="1.5" />
-                    <path d="M3 4h2l2.6 11.3a2 2 0 0 0 2 1.7h6.8a2 2 0 0 0 2-1.7L21 8H7" />
-                  </svg>
+                  <ShoppingCart size={18} />
                   {cartCount > 0 && (
                     <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-500 px-1 text-[11px] text-white">
                       {cartCount}
@@ -292,116 +411,211 @@ export const SlideTabsExample = () => {
             </div>
           </div>
 
-          {/* 購物車下拉 Panel（保留） */}
+          {/* 購物車下拉 Panel（美化版） */}
           <AnimatePresence>
             {cartOpen && (
-              <motion.section
-                initial={{ y: "-100%", opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: "-100%", opacity: 0 }}
-                transition={{ type: "spring", stiffness: 280, damping: 30 }}
-                className="fixed left-0 right-0 top-0 z-[1100] h-[90vh] max-h-[90vh] border-b bg-white text-black shadow-2xl"
-              >
-                <div className="mx-auto flex w-[80%] items-center justify-between border-b p-4">
-                  <b>購物車</b>
-                  <button
-                    className="text-sm text-gray-500 hover:text-black"
-                    onClick={() => setCartOpen(false)}
-                  >
-                    關閉
-                  </button>
-                </div>
+              <>
+                {/* 背景遮罩 */}
+                <motion.div
+                  {...cartOverlay}
+                  className="fixed inset-0 z-[1090] bg-black/35 backdrop-blur-sm"
+                  onClick={() => setCartOpen(false)}
+                />
+                {/* Panel */}
+                <motion.section
+                  variants={cartPanel}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="fixed left-1/2 top-4 z-[1100] w-[min(920px,92vw)] -translate-x-1/2 rounded-2xl border border-black/10 bg-white/98 shadow-2xl backdrop-blur-md"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between gap-3 border-b border-black/10 px-5 py-3">
+                    <div className="flex items-center gap-2 text-lg font-semibold">
+                      <ShoppingCart size={18} />
+                      購物車
+                      {cartCount > 0 && (
+                        <span className="ml-1 text-sm font-normal text-black/60">
+                          · {cartCount} 件
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      className="rounded-full px-3 py-1.5 text-sm text-gray-600 hover:bg-black/5"
+                      onClick={() => setCartOpen(false)}
+                    >
+                      關閉
+                    </button>
+                  </div>
 
-                <div className="ml-[160px] h-[calc(90vh-56px-72px)] w-[60%] overflow-y-auto p-4">
-                  {cart.length === 0 ? (
-                    <p className="text-sm text-gray-500">目前沒有商品</p>
-                  ) : (
-                    cart.map((it) => (
-                      <div
-                        key={it.id}
-                        className="flex items-center gap-3 rounded-lg p-2"
-                      >
-                        <img
-                          src={it.img}
-                          alt={it.name}
-                          className="w-[150px] rounded bg-gray-50 object-contain"
-                        />
-                        <div className="flex-1">
-                          <div className="line-clamp-2 text-sm font-medium">
-                            {it.name}
+                  {/* Body */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3">
+                    {/* Items */}
+                    <div className="lg:col-span-2 max-h-[58vh] overflow-y-auto px-5 py-4">
+                      {cart.length === 0 ? (
+                        <EmptyCart />
+                      ) : (
+                        <ul className="space-y-3">
+                          <AnimatePresence initial={false}>
+                            {cart.map((it, i) => (
+                              <motion.li
+                                key={it.id}
+                                custom={i}
+                                variants={listItem}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                className="rounded-xl border border-black/10 bg-white p-3 shadow-sm hover:shadow-md transition-shadow"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={it.img}
+                                    alt={it.name}
+                                    className="h-20 w-20 shrink-0 rounded-lg bg-gray-50 object-contain ring-1 ring-black/5"
+                                  />
+
+                                  <div className="min-w-0 flex-1">
+                                    <div className="line-clamp-2 text-sm font-medium">
+                                      {it.name}
+                                    </div>
+
+                                    <div className="mt-2 flex items-center gap-2">
+                                      <button
+                                        className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5 active:scale-95 transition"
+                                        onClick={() =>
+                                          cartStore.setQty(
+                                            it.id,
+                                            Math.max(1, (it.qty || 1) - 1)
+                                          )
+                                        }
+                                      >
+                                        <Minus size={14} />
+                                      </button>
+                                      <input
+                                        className="h-7 w-12 rounded-lg border border-black/10 text-center text-sm"
+                                        value={it.qty}
+                                        onChange={(e) =>
+                                          cartStore.setQty(
+                                            it.id,
+                                            Math.max(
+                                              1,
+                                              parseInt(
+                                                e.target.value || "1",
+                                                10
+                                              )
+                                            )
+                                          )
+                                        }
+                                      />
+                                      <button
+                                        className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5 active:scale-95 transition"
+                                        onClick={() =>
+                                          cartStore.setQty(
+                                            it.id,
+                                            (it.qty || 1) + 1
+                                          )
+                                        }
+                                      >
+                                        <Plus size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col items-end gap-2">
+                                    <div className="text-sm font-semibold">
+                                      NT${" "}
+                                      {(
+                                        Number(it.price || 0) * (it.qty || 0)
+                                      ).toLocaleString()}
+                                    </div>
+                                    <button
+                                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 active:scale-95 transition"
+                                      onClick={() => cartStore.remove(it.id)}
+                                    >
+                                      <Trash2 size={14} />
+                                      移除
+                                    </button>
+                                  </div>
+                                </div>
+                              </motion.li>
+                            ))}
+                          </AnimatePresence>
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Summary */}
+                    <div className="border-t border-black/10 lg:border-l lg:border-t-0">
+                      <div className="sticky top-0 px-5 py-4">
+                        <div className="rounded-xl border border-black/10 bg-white p-4 shadow-sm">
+                          <div className="text-base font-semibold">
+                            訂單摘要
                           </div>
-                          <div className="mt-1 flex items-center gap-2">
+
+                          <div className="mt-3 space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-black/70">小計</span>
+                              <span className="font-medium">
+                                NT$ {subtotal.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-black/70">運費</span>
+                              <span className="text-black/60">依配送計算</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between border-t border-dashed border-black/10 pt-3">
+                            <span className="font-semibold">總計</span>
+                            <span className="text-lg font-bold">
+                              NT$ {subtotal.toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 grid gap-2">
                             <button
-                              className="h-6 w-6 rounded border"
-                              onClick={() =>
-                                cartStore.setQty(it.id, Math.max(1, it.qty - 1))
-                              }
+                              className="rounded-xl bg-black px-4 py-3 text-white shadow-sm hover:opacity-90 active:scale-[0.99] transition"
+                              onClick={() => {
+                                setCartOpen(false);
+                                router.push("/checkout");
+                              }}
+                              disabled={cart.length === 0}
                             >
-                              −
+                              前往結帳（{cartCount}）
                             </button>
-                            <input
-                              className="w-10 rounded border text-center"
-                              value={it.qty}
-                              onChange={(e) =>
-                                cartStore.setQty(
-                                  it.id,
-                                  Math.max(
-                                    1,
-                                    parseInt(e.target.value || "1", 10)
-                                  )
-                                )
-                              }
-                            />
                             <button
-                              className="h-6 w-6 rounded border"
-                              onClick={() =>
-                                cartStore.setQty(it.id, it.qty + 1)
-                              }
+                              className="rounded-xl border border-black/15 bg-white px-4 py-3 text-black hover:bg-black/5 active:scale-[0.99] transition"
+                              onClick={() => setCartOpen(false)}
                             >
-                              +
+                              繼續購物
                             </button>
                           </div>
                         </div>
-                        <button
-                          className="text-xs text-gray-500 hover:text-red-600"
-                          onClick={() => cartStore.remove(it.id)}
-                        >
-                          移除
-                        </button>
                       </div>
-                    ))
-                  )}
-                </div>
-
-                <div className="border-t p-4">
-                  <button
-                    className="mx-auro w-full max-w-[140px] rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
-                    onClick={() => {
-                      setCartOpen(false);
-                      router.push("/checkout");
-                    }}
-                    disabled={cart.length === 0}
-                  >
-                    前往結帳（{cartCount}）
-                  </button>
-                </div>
-              </motion.section>
+                    </div>
+                  </div>
+                </motion.section>
+              </>
             )}
           </AnimatePresence>
         </motion.nav>
       </AnimatePresence>
 
-      {/* 手機：漢堡選單內容（不變） */}
+      {/* 手機：漢堡選單內容（保持原樣 + 動畫） */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            className="fixed left-0 right-0 top-[64px] z-[950] overflow-hidden rounded-b-lg bg-[#db2f2f] px-4 pb-4 text-white shadow-lg"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: "auto",
+              opacity: 1,
+              transition: { duration: 0.25 },
+            }}
+            exit={{ height: 0, opacity: 0, transition: { duration: 0.2 } }}
+            className="fixed left-0 right-0 top-[64px] z-[950] overflow-hidden rounded-b-xl bg-[#db2f2f] px-4 pb-4 text-white shadow-lg"
           >
             <div className="flex flex-col gap-2 py-6">
-              {/* 品牌門店（手風琴） */}
+              {/* 品牌門店 */}
               <div className="border-b border-white/20 pb-2">
                 <button
                   className="flex w-full items-center justify-between py-2"
@@ -420,9 +634,16 @@ export const SlideTabsExample = () => {
                   {isBrandOpenMobile && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
+                      animate={{
+                        height: "auto",
+                        opacity: 1,
+                        transition: { duration: 0.22 },
+                      }}
+                      exit={{
+                        height: 0,
+                        opacity: 0,
+                        transition: { duration: 0.18 },
+                      }}
                       className="pl-3"
                     >
                       {[
@@ -444,7 +665,7 @@ export const SlideTabsExample = () => {
                 </AnimatePresence>
               </div>
 
-              {/* 品牌菜單（手風琴） */}
+              {/* 品牌菜單 */}
               <div className="border-b border-white/20 pb-2">
                 <button
                   className="flex w-full items-center justify-between py-2"
@@ -463,9 +684,16 @@ export const SlideTabsExample = () => {
                   {isMenuOpenMobile && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
+                      animate={{
+                        height: "auto",
+                        opacity: 1,
+                        transition: { duration: 0.22 },
+                      }}
+                      exit={{
+                        height: 0,
+                        opacity: 0,
+                        transition: { duration: 0.18 },
+                      }}
                       className="pl-3"
                     >
                       {[
@@ -523,8 +751,249 @@ export const SlideTabsExample = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 登入/註冊 Modal（柔順） */}
+      <AuthModal
+        open={showAuthModal}
+        mode={authMode}
+        loading={authLoading}
+        error={authErr}
+        onClose={() => setShowAuthModal(false)}
+        onSwitchMode={() =>
+          setAuthMode((m) => (m === "login" ? "register" : "login"))
+        }
+        onSubmit={async (payload) => {
+          try {
+            setAuthErr("");
+            setAuthLoading(true);
+            if (authMode === "login") {
+              await authStore.login(payload); // { username, password }
+            } else {
+              await authStore.register(payload); // { email, password, phone, name, first_name?, last_name? }
+            }
+            setShowAuthModal(false);
+          } catch (e) {
+            setAuthErr(String(e?.message || e));
+          } finally {
+            setAuthLoading(false);
+          }
+        }}
+      />
     </div>
   );
 };
 
 export default SlideTabsExample;
+
+/* ====== 空購物車 ====== */
+function EmptyCart() {
+  return (
+    <div className="grid min-h-[220px] place-items-center rounded-xl border border-dashed border-black/15 bg-gray-50/60 text-center">
+      <div>
+        <ShoppingCart className="mx-auto mb-2 opacity-50" size={28} />
+        <div className="text-sm text-black/60">目前沒有商品</div>
+      </div>
+    </div>
+  );
+}
+
+/* ===== 登入/註冊 Modal + 表單（含 fade/scale 動畫） ===== */
+function AuthModal({
+  open,
+  mode,
+  onClose,
+  onSwitchMode,
+  onSubmit,
+  loading,
+  error,
+}) {
+  if (!open) return null;
+  return (
+    <AnimatePresence>
+      <motion.div
+        variants={modalFade}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        className="fixed inset-0 z-[2000] grid place-items-center bg-black/50 p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          variants={modalCard}
+          className="w-full max-w-[420px] rounded-2xl bg-white p-5 text-black shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold">
+              {mode === "login" ? "會員登入" : "會員註冊"}
+            </h3>
+            <button
+              className="rounded-full px-2 py-1 text-gray-500 hover:bg-black/5"
+              onClick={onClose}
+            >
+              ✕
+            </button>
+          </div>
+          <AuthForm
+            mode={mode}
+            loading={loading}
+            error={error}
+            onSubmit={onSubmit}
+            switchMode={onSwitchMode}
+          />
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
+  const [f, setF] = useState({
+    username: "",
+    password: "",
+    email: "",
+    phone: "",
+    name: "",
+  });
+  const onChange = (k) => (e) => setF((v) => ({ ...v, [k]: e.target.value }));
+
+  const nameToFirstLast = (name) => {
+    const s = String(name || "").trim();
+    if (!s) return { first_name: "", last_name: "" };
+    const parts = s.split(/\s+/);
+    if (parts.length >= 2) {
+      return {
+        first_name: parts.slice(0, -1).join(" "),
+        last_name: parts.at(-1),
+      };
+    }
+    return { first_name: s, last_name: "" };
+  };
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (mode === "login") {
+          onSubmit({ username: f.username.trim(), password: f.password });
+        } else {
+          if (
+            !f.email.trim() ||
+            !f.phone.trim() ||
+            !f.name.trim() ||
+            !f.password
+          ) {
+            alert("請完整填寫：Email、手機、姓名、密碼");
+            return;
+          }
+          const { first_name, last_name } = nameToFirstLast(f.name);
+          onSubmit({
+            email: f.email.trim(),
+            password: f.password,
+            phone: f.phone.trim(),
+            name: f.name.trim(),
+            first_name,
+            last_name,
+          });
+        }
+      }}
+      className="space-y-3"
+    >
+      {mode === "login" ? (
+        <>
+          <input
+            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            placeholder="Email 或手機"
+            value={f.username}
+            onChange={onChange("username")}
+            autoComplete="username"
+            required
+          />
+          <input
+            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            type="password"
+            placeholder="密碼"
+            value={f.password}
+            onChange={onChange("password")}
+            autoComplete="current-password"
+            required
+          />
+        </>
+      ) : (
+        <>
+          <input
+            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            type="email"
+            placeholder="Email（必填）"
+            value={f.email}
+            onChange={onChange("email")}
+            autoComplete="email"
+            required
+          />
+          <input
+            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            type="tel"
+            placeholder="手機號碼（必填）"
+            value={f.phone}
+            onChange={onChange("phone")}
+            inputMode="tel"
+            autoComplete="tel"
+            required
+          />
+          <input
+            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            placeholder="姓名（必填）"
+            value={f.name}
+            onChange={onChange("name")}
+            autoComplete="name"
+            required
+          />
+          <input
+            className="w-full rounded-lg border border-black/15 px-3 py-2"
+            type="password"
+            placeholder="設定密碼（必填）"
+            value={f.password}
+            onChange={onChange("password")}
+            autoComplete="new-password"
+            required
+          />
+        </>
+      )}
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-lg border border-red-200 bg-red-50 p-2 text-sm text-red-600"
+        >
+          {error}
+        </motion.div>
+      )}
+
+      <button
+        disabled={loading}
+        className="w-full rounded-xl bg-black px-4 py-2 text-white shadow-sm hover:opacity-90 active:scale-[0.99] transition disabled:opacity-50"
+      >
+        {loading ? "處理中…" : mode === "login" ? "登入" : "註冊並登入"}
+      </button>
+
+      <div className="text-center text-sm text-gray-600">
+        {mode === "login" ? (
+          <>
+            還沒有帳號？{" "}
+            <button type="button" onClick={switchMode} className="underline">
+              前往註冊
+            </button>
+          </>
+        ) : (
+          <>
+            已經有帳號？{" "}
+            <button type="button" onClick={switchMode} className="underline">
+              立即登入
+            </button>
+          </>
+        )}
+      </div>
+    </form>
+  );
+}
