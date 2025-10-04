@@ -740,6 +740,14 @@ export const SlideTabsExample = () => {
                   </Link>
                 ))}
               </div>
+              <div className="flex flex-col gap-2 py-4 px-4">
+                <Link
+                  href="/products"
+                  className="py-3 text-gray-800 border-b border-gray-200 hover:text-black"
+                >
+                  ORDER｜線上訂購
+                </Link>
+              </div>
             </motion.div>
           </>
         )}
