@@ -1,13 +1,18 @@
 // pages/api/store/products.js
 export default async function handler(req, res) {
-  const { page = 1, per_page = 24, search = "" } = req.query;
+  const { page = 1, per_page = 24, search = "", category = "" } = req.query;
   const base = process.env.WC_URL;
-  if (!base) return res.status(500).json({ ok: false, message: "WC_URL 未設定" });
+  if (!base) {
+    return res.status(500).json({ ok: false, message: "WC_URL 未設定" });
+  }
 
   const url = new URL(`${base}/wp-json/wc/store/products`);
   url.searchParams.set("page", page);
   url.searchParams.set("per_page", per_page);
   if (search) url.searchParams.set("search", search);
+
+  // ✅ 這行很關鍵：把前端帶來的分類往 Woo Store API 轉傳（支援 slug）
+  if (category) url.searchParams.set("category", category);
 
   try {
     const r = await fetch(url.toString(), { headers: { Accept: "application/json" } });

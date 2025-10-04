@@ -1,5 +1,4 @@
 // pages/api/wc/create-order.js
-
 function b64(str) {
   return Buffer.from(str).toString("base64");
 }
@@ -21,12 +20,19 @@ function mapPaymentSlug(label = "") {
       return { slug: row.slug, title: row.title };
     }
   }
-  // 預設
   return { slug: "cod", title: t || "貨到付款" };
 }
 
 const ensureURL = (u) => (u || "").replace(/\/+$/, "");
 const sanitize = (v) => (typeof v === "string" ? v.trim() : "");
+
+// ⬇︎ 你前端 checkout 要傳的三個地區「slug」之一：
+// 'vancouver_city' | 'burnaby' | 'surrey_whiterock'
+const DELIVERY_AREA_MAP = {
+  vancouver_city: "Vancouver City (including …)",
+  burnaby: "Burnaby",
+  surrey_whiterock: "White Rock / South Surrey / North Surrey",
+};
 
 // 封裝下單請求（可選 Basic 或 query auth）
 async function postOrder({ url, payload, ck, cs, useQueryAuth = false }) {
@@ -87,49 +93,60 @@ export default async function handler(req, res) {
     // === 付款方式對照 ===
     const { slug: payment_method, title: payment_method_title } = mapPaymentSlug(form.payment);
 
-    // 取前端送來的外送資訊
-    const deliveryArea = sanitize(form.deliveryArea);
-    const deliverySlot = sanitize(form.deliverySlot);
+    // === 外送地區（slug + label）與詳細地址 ===
+    const areaSlugRaw = sanitize(form.deliveryArea); // 前端送來的 slug
+    const areaSlug =
+      areaSlugRaw && DELIVERY_AREA_MAP[areaSlugRaw] ? areaSlugRaw : ""; // 僅接受三個有效值
+    const areaLabel = areaSlug ? DELIVERY_AREA_MAP[areaSlug] : ""; // 顯示用名稱
+    const addressDetail = sanitize(form.deliveryAddressDetail || form.address); // 你頁面中的詳細地址欄位
 
-    // === 帳單/寄送 ===（city 若沒填就帶入外送地區，方便後台檢視）
+    // === 帳單/寄送 ===（city 帶入地區名稱，地址放 input 寫的詳細地址）
     const billing = {
       first_name: sanitize(form.name),
       last_name: "",
-      address_1: sanitize(form.address),
+      address_1: addressDetail,
       address_2: "",
-      city: sanitize(form.city) || deliveryArea,
+      city: areaLabel || sanitize(form.city),
       state: "",
       postcode: "",
-      country: "TW",
+      country: "CA", // 加拿大
       email: sanitize(form.email),
       phone: sanitize(form.phone),
     };
     const shipping = {
       first_name: sanitize(form.name),
       last_name: "",
-      address_1: sanitize(form.address),
+      address_1: addressDetail,
       address_2: "",
-      city: sanitize(form.city) || deliveryArea,
+      city: areaLabel || sanitize(form.city),
       state: "",
       postcode: "",
-      country: "TW",
+      country: "CA",
     };
 
-    // === 備註/自訂欄位 ===
+    // === 備註/自訂欄位（關鍵：這三個 key 供後台篩選/顯示） ===
     const meta_data = [
+      // 其他資訊（保留你原本的）
       { key: "wechat", value: sanitize(form.wechat) },
       { key: "contact_other", value: sanitize(form.contactOther) },
       { key: "subscribe_newsletter", value: !!form.subscribe },
       { key: "frontend_source", value: "Next.js custom checkout (Pages)" },
+
+      // ↓↓↓ 外送地區（**這三個 key 是後台列表/篩選會用到**）
+      ...(areaSlug
+        ? [
+            { key: "_delivery_area", value: areaSlug }, // e.g. 'burnaby'
+            { key: "_delivery_area_label", value: areaLabel }, // e.g. 'Burnaby'
+            { key: "_delivery_address_detail", value: addressDetail }, // 客人填的詳細地址
+          ]
+        : []),
     ];
-    if (deliveryArea) meta_data.push({ key: "delivery_area", value: deliveryArea });
-    if (deliverySlot) meta_data.push({ key: "delivery_slot", value: deliverySlot });
 
     const customer_note =
       `來源：自訂結帳頁\n` +
       `付款方式：${sanitize(form.payment) || "未選"}\n` +
-      (deliveryArea ? `外送地區：${deliveryArea}\n` : "") +
-      (deliverySlot ? `外送日期/時段：${deliverySlot}\n` : "") +
+      (areaLabel ? `外送地區：${areaLabel}\n` : "") +
+      (addressDetail ? `外送地址：${addressDetail}\n` : "") +
       (form.wechat ? `WeChat：${sanitize(form.wechat)}\n` : "") +
       (form.contactOther ? `其他聯絡：${sanitize(form.contactOther)}\n` : "");
 
@@ -137,7 +154,7 @@ export default async function handler(req, res) {
     const orderPayload = {
       payment_method,
       payment_method_title,
-      set_paid: false,   // 沒串金流 → false
+      set_paid: false, // 沒串金流 → false
       status: "pending",
       billing,
       shipping,
