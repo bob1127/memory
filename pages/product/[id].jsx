@@ -121,11 +121,11 @@ export default function ProductDetail() {
         }
       `}</style>
 
-      <main className="max-w-6xl mx-auto py-12 px-10">
+      <main className="max-w-6xl mx-auto pb-20 pt-[140px] px-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* 左：主圖 + 縮圖 */}
           <div className="w-full flex flex-col items-center gap-4">
-            <div className="w-full max-w-[520px] aspect-[3/4] relative">
+            <div className="w-full max-w-[520px] aspect-[4/4] relative">
               <Swiper
                 loop
                 navigation
@@ -182,7 +182,7 @@ export default function ProductDetail() {
           </div>
 
           {/* 右：內容 */}
-          <div className="flex items-start pt-0 sm:pt-20">
+          <div className="flex pl-10 items-start pt-0 sm:pt-20">
             <div className="right-info">
               <h1 className="text-2xl font-bold mb-2">{p.name}</h1>
               <div className="text-xl mb-2">NT$ {price}</div>
