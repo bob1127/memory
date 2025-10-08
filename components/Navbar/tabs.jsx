@@ -286,10 +286,11 @@ export const SlideTabsExample = () => {
             {/* 右：訂購 / 會員 / 購物車 / 漢堡 */}
             <div className="flex w-2/3 md:w-1/3 items-center justify-end gap-3">
               <Link
-                href="/products"
+                href="https://corner-rouge.vercel.app/"
+                target="_blank"
                 className="rounded-[30px] hidden sm:block border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white hover:bg-[#881b1b] transition-colors"
               >
-                ORDER｜線上訂購
+                餐廳｜線上點餐
               </Link>
 
               {/* 會員 icon */}
@@ -742,10 +743,11 @@ export const SlideTabsExample = () => {
               </div>
               <div className="flex flex-col gap-2 py-4 px-4">
                 <Link
-                  href="/products"
+                  href="https://corner-rouge.vercel.app/"
+                  target="_blank"
                   className="py-3 text-gray-800 border-b border-gray-200 hover:text-black"
                 >
-                  ORDER｜線上訂購
+                  餐廳｜線上點餐
                 </Link>
               </div>
             </motion.div>
