@@ -465,8 +465,8 @@ export default function Home() {
         </div>
 
         {/* ====== 你指定要保留的 Section：四等份卡片 ====== */}
-        <section className="w-full m-0 bg-white overflow-visible pt-20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-[80vh]">
+        <section className="">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-auto md:h-[80vh]">
             <BeerCard
               bg="#cdcdd5"
               title="Title"
@@ -495,157 +495,166 @@ export default function Home() {
         </section>
 
         {/* ======= 零食：各自落入袋口（原尺寸→袋口縮小）＋ 無限循環 ======= */}
-        <section ref={dingingRef} className="section_Dinging bg-[#ebe5df] ">
-          <div className="flex justify-center">
-            <div className="left w-1/2 overflow-hidden min-h-screen relative">
-              <FadeUp
-                delay={0.05}
-                amount={0.25}
-                className="absolute left-[35%] -translate-x-1/2 top-[5%]"
-              >
-                <Image
-                  src="/images/snack/buynow.png"
-                  width={500}
-                  height={300}
-                  className="w-[320px]"
-                  alt="buy now"
+        <section
+          ref={dingingRef}
+          className="section_Dinging relative bg-[#ebe5df] overflow-x-hidden"
+        >
+          <div className="mx-auto max-w-[1920px] px-4 sm:px-6">
+            <div className="flex flex-col lg:flex-row justify-center">
+              {/* 左側：動畫區 */}
+              <div className="left w-full lg:w-1/2 overflow-hidden min-h-screen relative">
+                <FadeUp
+                  delay={0.05}
+                  amount={0.25}
+                  className="absolute left-[30%] -translate-x-1/2 top-[5%]"
+                >
+                  <Image
+                    src="/images/snack/buynow.png"
+                    width={500}
+                    height={300}
+                    className="w-[260px] sm:w-[320px] h-auto"
+                    alt="buy now"
+                  />
+                </FadeUp>
+
+                <div
+                  ref={anchorRef}
+                  className="absolute left-[34%] -translate-x-1/2 bottom-[18%] w-2 h-2"
                 />
-              </FadeUp>
 
-              <div
-                ref={anchorRef}
-                className="absolute -translate-x-1/2 bottom-[18%] w-[8px] h-[8px] left-[34%]"
-              />
-
-              {/* ↓ 這些是連續掉落動畫，不包 FadeUp 以避免中斷 */}
-              <SnackDropLoop
-                anchorRef={anchorRef}
-                className="w-[80%] bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
-                imgSrc="/images/snack/output-onlinegiftools.gif"
-                imgClassName="w-[380px]"
-                spawn={460}
-                sway={-90}
-                spin={18}
-                scaleStart={1.0}
-                scaleEnd={0.7}
-                duration={2.2}
-                delay={0.0}
-              />
-              <SnackDropLoop
-                anchorRef={anchorRef}
-                className="w-[80%] bottom-[0%] -translate-x-1/2 left-[35%] z-[9]"
-                imgSrc="/images/snack/output-onlinegiftools (1).gif"
-                imgClassName="w-[400px]"
-                spawn={480}
-                sway={-120}
-                spin={-14}
-                scaleStart={1.0}
-                scaleEnd={0.68}
-                duration={2.35}
-                delay={0.35}
-              />
-              <SnackDropLoop
-                anchorRef={anchorRef}
-                className="w-[80%] bottom-[2%] -translate-x-1/2 left-[25%] z-[60]"
-                imgSrc="/images/snack/output-onlinegiftools (2).gif"
-                imgClassName="w-[350px]"
-                spawn={520}
-                sway={0}
-                spin={10}
-                scaleStart={1.0}
-                scaleEnd={0.66}
-                duration={2.3}
-                delay={0.7}
-                lockXToMouth
-                xOffset={-240}
-              />
-              <SnackDropLoop
-                anchorRef={anchorRef}
-                className="w-[80%] bottom-[10%] -translate-x-1/2 left-[18%] z-[60]"
-                imgSrc="/images/snack/output-onlinegiftools (3).gif"
-                imgClassName="w-[400px]"
-                spawn={500}
-                sway={0}
-                spin={-16}
-                scaleStart={1.0}
-                scaleEnd={0.64}
-                duration={2.4}
-                delay={1.05}
-                lockXToMouth
-                xOffset={-280}
-              />
-
-              <FadeUp
-                delay={0.1}
-                amount={0.2}
-                className="absolute w-[100%] bottom-[-35%] z-[99] -translate-x-1/2 left-0 "
-              >
-                <Image
-                  src="/images/bag.png"
-                  alt="bag"
-                  placeholder="empty"
-                  loading="lazy"
-                  width={1000}
-                  height={1000}
-                  className="!w-[1300px] "
+                {/* ↓ 連續掉落動畫 */}
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%] bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
+                  imgSrc="/images/snack/output-onlinegiftools.gif"
+                  imgClassName="w-[320px] sm:w-[380px]"
+                  spawn={460}
+                  sway={-90}
+                  spin={18}
+                  scaleStart={1.0}
+                  scaleEnd={0.7}
+                  duration={2.2}
+                  delay={0.0}
                 />
-              </FadeUp>
-            </div>
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%] bottom-[0%] -translate-x-1/2 left-[35%] z-[9]"
+                  imgSrc="/images/snack/output-onlinegiftools (1).gif"
+                  imgClassName="w-[340px] sm:w-[400px]"
+                  spawn={480}
+                  sway={-120}
+                  spin={-14}
+                  scaleStart={1.0}
+                  scaleEnd={0.68}
+                  duration={2.35}
+                  delay={0.35}
+                />
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%] bottom-[2%] -translate-x-1/2 left-[25%] z-[60]"
+                  imgSrc="/images/snack/output-onlinegiftools (2).gif"
+                  imgClassName="w-[300px] sm:w-[350px]"
+                  spawn={520}
+                  sway={0}
+                  spin={10}
+                  scaleStart={1.0}
+                  scaleEnd={0.66}
+                  duration={2.3}
+                  delay={0.7}
+                  lockXToMouth
+                  xOffset={-240}
+                />
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%] bottom-[10%] -translate-x-1/2 left-[18%] z-[60]"
+                  imgSrc="/images/snack/output-onlinegiftools (3).gif"
+                  imgClassName="w-[320px] sm:w-[400px]"
+                  spawn={500}
+                  sway={0}
+                  spin={-16}
+                  scaleStart={1.0}
+                  scaleEnd={0.64}
+                  duration={2.4}
+                  delay={1.05}
+                  lockXToMouth
+                  xOffset={-280}
+                />
 
-            {/* 右側說明文 */}
-            <div className="right w-1/2 flex justify-center items-center">
-              <FadeUp amount={0.35}>
-                <div className="flex flex-col">
-                  <FadeUp>
-                    <h2 className="font-extrabold text-[#ff3c3c] text-6xl">
-                      Dinging Memory
-                    </h2>
-                  </FadeUp>
-                  <div className="mt-10">
-                    <FadeUp delay={0.06}>
-                      <p className="text-[#ff3c3c] font-bold text-xl tracking-wider">
-                        Lorem dolor sit amet consectetur
-                      </p>
+                {/* ✅ bag 圖：正確置中 + 響應式寬度，避免撐寬 */}
+                <FadeUp
+                  delay={0.1}
+                  amount={0.2}
+                  className="absolute w-full bottom-[-35%] z-[9999] left-0 -translate-x-1/2"
+                >
+                  <Image
+                    src="/images/11998087.png"
+                    alt="bag"
+                    placeholder="empty"
+                    loading="lazy"
+                    width={1300}
+                    height={1000}
+                    // 重要：不要固定 1300px；以視窗為準
+                    className="max-w-[1000px] h-auto"
+                  />
+                </FadeUp>
+              </div>
+
+              {/* 右側：文案區 */}
+              <div className="right w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
+                <FadeUp amount={0.35} className="w-full max-w-[680px]">
+                  <div className="flex flex-col">
+                    <FadeUp>
+                      <h2 className="font-extrabold text-[#ff3c3c] text-4xl sm:text-5xl lg:text-6xl">
+                        Dinging Memory
+                      </h2>
                     </FadeUp>
-                  </div>
-                  <div>
-                    <ul>
+
+                    <div className="mt-6 sm:mt-8">
+                      <FadeUp delay={0.06}>
+                        <p className="text-[#ff3c3c] font-bold text-lg sm:text-xl tracking-wider">
+                          Lorem dolor sit amet consectetur
+                        </p>
+                      </FadeUp>
+                    </div>
+
+                    <ul className="mt-2">
                       <FadeUp delay={0.08}>
-                        <li className="mt-5 font-normal ">
+                        <li className="mt-4 leading-relaxed">
                           Lorem ipsum dolor sit amet consectetur adipisicing
                           elit. Ab, eveniet.
                         </li>
                       </FadeUp>
                       <FadeUp delay={0.1}>
-                        <li className="mt-5 font-normal ">
+                        <li className="mt-4 leading-relaxed">
                           Lorem ipsum dolor sit amet consectetur adipisicing
                           elit. Ab, eveniet.
                         </li>
                       </FadeUp>
                       <FadeUp delay={0.12}>
-                        <li className="mt-5 font-normal ">
+                        <li className="mt-4 leading-relaxed">
                           Lorem ipsum dolor sit amet consectetur adipisicing
                           elit. Ab, eveniet.
                         </li>
                       </FadeUp>
                       <FadeUp delay={0.14}>
-                        <li className="mt-5 font-normal ">
+                        <li className="mt-4 leading-relaxed">
                           Lorem ipsum dolor sit amet consectetur adipisicing
                           elit. Ab, eveniet.
                         </li>
                       </FadeUp>
                     </ul>
-                    <div className="mt-10">
+
+                    <div className="mt-8 sm:mt-10">
                       <FadeUp delay={0.16}>
-                        <p className="text-[#ff3c3c] w-1/2 font-bold text-xl tracking-wider ">
+                        <p className="text-[#ff3c3c] font-bold text-lg sm:text-xl tracking-wider max-w-[28ch]">
                           Lorem dolor sit amet consectetur Lorem dolor sit amet
                           consectetur
                         </p>
                       </FadeUp>
                     </div>
                   </div>
-                </div>
-              </FadeUp>
+                </FadeUp>
+              </div>
             </div>
           </div>
         </section>

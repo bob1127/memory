@@ -64,7 +64,7 @@ export default function RootLayout({ children }) {
          
 
       <NextUIProvider>
-  <NextThemesProvider attribute="class" defaultTheme="light">
+  <NextThemesProvider>
     <UserProvider>  {/* ✅ 提早包住所有元件 */}
       <Navbar />
       <Sidebar sidebarProduct={sidebarProduct} onAddToCart={handleAddToCart} />

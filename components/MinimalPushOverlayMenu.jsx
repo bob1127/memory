@@ -634,7 +634,7 @@ function ProductSlider({
     {
       title: "有香 Memory Corner ",
       subtitle: "Crisp & clean flavor profile",
-      src: "/images/DAV01683.png", // ← 第一張
+      src: "/images/羊肉爐1.png", // ← 第一張
       ctas: [
         {
           text: "外帶自取",
@@ -1023,11 +1023,11 @@ function ProductSlider({
   };
 
   return (
-    <div className="bg-white h-screen pb-20">
+    <div className="bg-[#edebeb] h-auto ">
       <div className="mx-auto py-20 w-[80%] flex justify-center items-center">
-        <section className="grid w-full !bg-white grid-cols-1 lg:grid-cols-2 isolate">
+        <section className="grid w-full bg-[#edebeb] grid-cols-1 lg:grid-cols-2 isolate">
           {/* 左半 */}
-          <div className="left relative z-30 !bg-white ">
+          <div className="left relative z-30 bg-[#edebeb] ">
             <div className="copy">
               <div className="my-5">
                 <Image
@@ -1040,21 +1040,11 @@ function ProductSlider({
                   className="max-w-[190px]"
                 />
               </div>
-              <div className="border-b-1 pb-2 mb-8">
-                <span className="bg-[#dc9352] text-white px-4 rounded-2xl py-1">
-                  有香
-                </span>
-                <span className=" text-gray-800 px-4 rounded-2xl py-1">
-                  有香
-                </span>
-                <span className=" text-gray-800 px-4 rounded-2xl py-1">
-                  有香
-                </span>
-              </div>
+
               <h2 className="info-title text-5xl font-bold">有香餐飲</h2>
-              <p className="info-subtitle text-lg tracking-wider">
+              <h2 className="info-subtitle text-[#db3030] text-[95px] leading-none font-extrabold tracking-tighter">
                 MEMORY CORNER
-              </p>
+              </h2>
               <div className="infoCard h-[380px] relative mt-10">
                 <h3 className="text-2xl font-bold">Lorem ipsum dolor.</h3>
                 <p>
@@ -1072,6 +1062,36 @@ function ProductSlider({
 
           {/* 右半：主圖 + 筷子視差 + 發散縮圖 */}
           <div className="right flex-col flex relative overflow-visible">
+            <div
+              ref={chopsticksRef}
+              className="absolute bottom-[0%] left-[-15%] z-50 rotate-[90deg] pointer-events-none"
+              data-aos="fade-down"
+              data-aos-duration="1200"
+              data-aos-easing="ease-out-cubic"
+            >
+              <motion.img
+                src="/images/Generated-Image-September-05,-2025---7_10PM.png"
+                alt="chopsticks"
+                className="max-w-[450px] will-change-transform"
+                style={{ y: chopsticksY }}
+                draggable={false}
+              />
+            </div>
+            <div
+              ref={chopsticksRef}
+              className="absolute top-[10%] left-[-140%] z-50 rotate-[90deg] pointer-events-none"
+              data-aos="fade-down"
+              data-aos-duration="1200"
+              data-aos-easing="ease-out-cubic"
+            >
+              <motion.img
+                src="/images/湯匙.png"
+                alt="chopsticks"
+                className="max-w-[450px] will-change-transform"
+                style={{ y: chopsticksY }}
+                draggable={false}
+              />
+            </div>
             {/* 筷子 → AOS + 視差 */}
             <div
               ref={chopsticksRef}
@@ -1211,7 +1231,7 @@ function ProductSlider({
                         className="card-bg"
                         src={s.src}
                         alt={s.title}
-                        {...(s.src === "/images/DAV01683.png"
+                        {...(s.src === "/images/羊肉爐1.png"
                           ? {
                               "data-aos": "zoom-in",
                               "data-aos-duration": "900",
@@ -1225,7 +1245,7 @@ function ProductSlider({
               </div>
             </div>
 
-            {/* ✅ 功能按鈕：移到 DAV01683.png（第 1 張）下方，只在 current===0 顯示 */}
+            {/* ✅ 功能按鈕：移到 羊肉爐1.png（第 1 張）下方，只在 current===0 顯示 */}
             {idx === 0 && (
               <div className="menu-button-group under-image mt-6 flex gap-6 justify-center">
                 <button
