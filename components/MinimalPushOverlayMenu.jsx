@@ -1042,7 +1042,7 @@ function ProductSlider({
               </div>
 
               <h2 className="info-title text-5xl font-bold">有香餐飲</h2>
-              <h2 className="info-subtitle text-[#db3030] text-[95px] leading-none font-extrabold tracking-tighter">
+              <h2 className="info-subtitle text-[#A18360] text-[95px] leading-none font-extrabold tracking-tighter">
                 MEMORY CORNER
               </h2>
               <div className="infoCard h-[380px] relative mt-10">

@@ -95,7 +95,7 @@ export default function Participation() {
             />
           </div>
         </section>
-        <div className="title mt-[90px] px-6 max-w-[1920px] xl:w-[80%] md:w-[90%] w-full  mx-auto">
+        {/* <div className="title mt-[90px] px-6 max-w-[1920px] xl:w-[80%] md:w-[90%] w-full  mx-auto">
           <h2 className=" lg:text-[50px] text-[40px] 2xl:text-[120px] m-0  p-0  leading-none tracking-normal font-bold text-[#e52727]">
             MEMORY
           </h2>
@@ -130,7 +130,7 @@ export default function Participation() {
           </div>
 
           <Carousel />
-        </div>
+        </div> */}
         <section className="bg-[#c91e1e] py-20 flex flex-col w-full justify-center items-center">
           <div className="flex max-w-[1920px] mx-auto w-[80%]">
             <div className="flex flex-col items-center justify-center w-full">

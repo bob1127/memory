@@ -497,7 +497,7 @@ export default function Home() {
         {/* ======= 零食：各自落入袋口（原尺寸→袋口縮小）＋ 無限循環 ======= */}
         <section
           ref={dingingRef}
-          className="section_Dinging relative bg-[#ebe5df] overflow-x-hidden"
+          className="section_Dinging relative bg-[#F5F0E6] overflow-x-hidden"
         >
           <div className="mx-auto max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
@@ -600,18 +600,18 @@ export default function Home() {
               </div>
 
               {/* 右側：文案區 */}
-              <div className="right w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
+              <div className="right p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
                     <FadeUp>
-                      <h2 className="font-extrabold text-[#ff3c3c] text-4xl sm:text-5xl lg:text-6xl">
+                      <h2 className="font-extrabold text-[#A18360] text-4xl sm:text-5xl lg:text-6xl">
                         Dinging Memory
                       </h2>
                     </FadeUp>
 
-                    <div className="mt-6 sm:mt-8">
+                    <div className="mt-3">
                       <FadeUp delay={0.06}>
-                        <p className="text-[#ff3c3c] font-bold text-lg sm:text-xl tracking-wider">
+                        <p className="text-[#A18360] font-bold text-lg sm:text-2xl tracking-wider">
                           Lorem dolor sit amet consectetur
                         </p>
                       </FadeUp>
@@ -619,39 +619,20 @@ export default function Home() {
 
                     <ul className="mt-2">
                       <FadeUp delay={0.08}>
-                        <li className="mt-4 leading-relaxed">
+                        <li className="mt-4  text-[#333] leading-relaxed">
                           Lorem ipsum dolor sit amet consectetur adipisicing
-                          elit. Ab, eveniet.
-                        </li>
-                      </FadeUp>
-                      <FadeUp delay={0.1}>
-                        <li className="mt-4 leading-relaxed">
-                          Lorem ipsum dolor sit amet consectetur adipisicing
-                          elit. Ab, eveniet.
-                        </li>
-                      </FadeUp>
-                      <FadeUp delay={0.12}>
-                        <li className="mt-4 leading-relaxed">
-                          Lorem ipsum dolor sit amet consectetur adipisicing
-                          elit. Ab, eveniet.
-                        </li>
-                      </FadeUp>
-                      <FadeUp delay={0.14}>
-                        <li className="mt-4 leading-relaxed">
-                          Lorem ipsum dolor sit amet consectetur adipisicing
-                          elit. Ab, eveniet.
+                          elit. Omnis laudantium voluptates fugiat aliquid minus
+                          doloremque natus facilis praesentium, corporis iure
+                          unde minima consectetur provident blanditiis repellat
+                          dolorem earum pariatur. Vel commodi amet rerum?
+                          Voluptatem possimus quasi non neque enim, ipsa ab vel
+                          repellat voluptatum voluptatibus rerum doloribus
+                          porro, ea sed accusantium aspernatur incidunt.
+                          Reiciendis sit nam, ratione minima ab sequi adipisci
+                          officia officiis et vel culpa blanditiis.
                         </li>
                       </FadeUp>
                     </ul>
-
-                    <div className="mt-8 sm:mt-10">
-                      <FadeUp delay={0.16}>
-                        <p className="text-[#ff3c3c] font-bold text-lg sm:text-xl tracking-wider max-w-[28ch]">
-                          Lorem dolor sit amet consectetur Lorem dolor sit amet
-                          consectetur
-                        </p>
-                      </FadeUp>
-                    </div>
                   </div>
                 </FadeUp>
               </div>
@@ -664,7 +645,7 @@ export default function Home() {
             delay={0.02}
             className="side-info absolute rotate-[-90deg] left-[-5%] top-[35%]"
           >
-            <div className="flex justify-center items-center">
+            <div className="flex  justify-center items-center">
               <div className=" ">
                 <Image
                   src="/images/text04.png"
@@ -727,7 +708,7 @@ export default function Home() {
               </div>
             </FadeUp>
           </div>
-          <div className="brand max-w-[1920px] xl:w-[70%] md:w-[90%] gap-5 w-full mx-auto grid grid-cols-3 ">
+          <div className="brand max-w-[1920px] xl:w-[70%] md:w-[90%] gap-5 w-full mx-auto grid  lg:grid-cols-3 ">
             <FadeUp delay={0.04} amount={0.25} className="relative">
               <Link href="main01">
                 <Image
@@ -736,7 +717,7 @@ export default function Home() {
                   placeholder="empty"
                   loading="lazy"
                   height={1500}
-                  className="max-w-[650px] w-[88%] mt-10"
+                  className="max-w-[650px] w-[88%]  mt-10"
                 ></Image>
               </Link>
             </FadeUp>
@@ -765,13 +746,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section_video py-20 bg白 bg-white">
-          <div className="title mx-auto flex justify-center items-center flex-col">
+        <section className="section_video p-10  bg-white">
+          <div className="title mx-auto mb-4 flex justify-center items-center flex-col">
             <FadeUp>
               <h2 className="text-[#1b1b1b] text-6xl font-extrabold">VIDEO</h2>
             </FadeUp>
             <FadeUp delay={0.06}>
-              <h3 className="text-[#f39837] text-2xl font-normal">
+              <h3 className="text-[#f39837] text-center text-2xl font-normal">
                 Lorem ipsum dolor, sit amet consectetur adipisicing.
               </h3>
             </FadeUp>
@@ -834,7 +815,7 @@ export default function Home() {
           </FadeUp>
         </section>
 
-        <section className="section_app_operation py-20 bg-white">
+        <section className="section_app_operation p-10 bg-white">
           <div className="max-w-[1920px] mx-auto xl:w-[85%] md:w-[92%] w-full">
             <div className="top">
               <div className="title mx-auto flex justify-center items-center flex-col">
@@ -844,7 +825,7 @@ export default function Home() {
                   </h2>
                 </FadeUp>
                 <FadeUp delay={0.06}>
-                  <h3 className="text-[#f39837] text-2xl font-normal">
+                  <h3 className="text-[#f39837] text-2xl text-center font-normal">
                     Lorem ipsum dolor, sit amet consectetur adipisicing.
                   </h3>
                 </FadeUp>

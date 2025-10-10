@@ -4,20 +4,18 @@ const path = require("path");
 /** @type {import('next').NextConfig} */
 module.exports = {
   images: {
-    // 只允許實際用到的遠端圖源；"**" 會失敗，需明確主機
+    // ✅ 暫時關閉 Next/Image 最佳化 → 允許任何外部圖片網域
+    unoptimized: true,
+
+    // （保留你原本的 allowlist；unoptimized=true 時不會用到，但留著以後好恢復）
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "inf.fjg.mybluehost.me",
-        pathname: "/**", // 你的 WP 子目錄與 uploads 會被包含
-      },
-      {
-        protocol: "https",
-        hostname: "i0.wp.com", // Jetpack/WordPress.com 圖片 CDN
-        pathname: "/**",
-      },
+      { protocol: "https", hostname: "inf.fjg.mybluehost.me", pathname: "/**" },
+      { protocol: "https", hostname: "i0.wp.com", pathname: "/**" },
+      { protocol: "https", hostname: "image.memorycorner8.com", pathname: "/**" },
+      // 之後要恢復最佳化時，遇到新網域再加這裡即可
     ],
-    formats: ["image/avif", "image/webp"], // 可選：更省流量
+
+    formats: ["image/avif", "image/webp"], // unoptimized=true 時可有可無
   },
 
   trailingSlash: true,
