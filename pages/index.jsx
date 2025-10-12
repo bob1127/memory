@@ -643,21 +643,10 @@ export default function Home() {
         <section className="section_brand_story relative bg-white px-10 py-20">
           <FadeUp
             delay={0.02}
-            className="side-info absolute rotate-[-90deg] left-[-5%] top-[35%]"
+            className="side-info absolute rotate-[40deg] xl:rotate-[-90deg] left-[-5%] top-0 xl:top-[35%]"
           >
-            <div className="flex  justify-center items-center">
-              <div className=" ">
-                <Image
-                  src="/images/text04.png"
-                  alt=""
-                  placeholder="empty"
-                  loading="lazy"
-                  width={200}
-                  height={200}
-                  className="w-[55px]"
-                ></Image>
-              </div>
-              <div className="txt text-xl flex  items-center font-bold rotate-[-90deg] tracking-wider">
+            <div className="flex  pl-[50px] justify-center  py-8  w-full items-center">
+              <div className="txt text-xl flex  items-center font-bold xl:rotate-[-90deg] tracking-wider">
                 <Image
                   src="/images/text04.png"
                   alt=""
@@ -678,22 +667,13 @@ export default function Home() {
                   className="w-[55px]"
                 ></Image>
               </div>
-              <div className=" ">
-                <Image
-                  src="/images/text04.png"
-                  alt=""
-                  placeholder="empty"
-                  loading="lazy"
-                  width={200}
-                  height={200}
-                  className="w-[55px]"
-                ></Image>
-              </div>
             </div>
           </FadeUp>
           <div className="title max-w-[1920px] xl:w-[70%] md:w-[90%] w-full mx-auto">
             <FadeUp>
-              <h2 className="text-4xl font-bold font-stone-800">BARND STORY</h2>
+              <h2 className="text-4xl mt-6 sm:mt-0 font-bold font-stone-800">
+                BARND STORY
+              </h2>
             </FadeUp>
             <FadeUp delay={0.06}>
               <h3 className="text-2xl font-bold">
@@ -717,7 +697,7 @@ export default function Home() {
                   placeholder="empty"
                   loading="lazy"
                   height={1500}
-                  className="max-w-[650px] w-full sm:w-[88%]  mt-10"
+                  className="max-w-[650px] w-full sm:w-[88%]] mt-10"
                 ></Image>
               </Link>
             </FadeUp>
