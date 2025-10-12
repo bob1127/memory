@@ -460,7 +460,7 @@ export default function Home() {
   return (
     <ReactLenis root>
       <Layout>
-        <div className="mt-[-20px] z-10 ">
+        <div className="mt-[-20px]  z-10 ">
           <MinimalPushOverlayMenu />
         </div>
 
@@ -502,7 +502,7 @@ export default function Home() {
           <div className="mx-auto max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
               {/* 左側：動畫區 */}
-              <div className="left w-full lg:w-1/2 overflow-hidden min-h-screen relative">
+              <div className="left w-full lg:w-1/2 overflow-hidden h-[70vh] md:min-h-screen relative">
                 <FadeUp
                   delay={0.05}
                   amount={0.25}
@@ -584,7 +584,7 @@ export default function Home() {
                 <FadeUp
                   delay={0.1}
                   amount={0.2}
-                  className="absolute w-full bottom-[-35%] z-[9999] left-0 -translate-x-1/2"
+                  className="absolute w-full bottom-[-15%] md:bottom-[-35%] z-[9999] left-0 -translate-x-1/2"
                 >
                   <Image
                     src="/images/11998087.png"
@@ -594,13 +594,13 @@ export default function Home() {
                     width={1300}
                     height={1000}
                     // 重要：不要固定 1300px；以視窗為準
-                    className="max-w-[1000px] h-auto"
+                    className="max-w-[1000px] scale-[1.2] h-auto"
                   />
                 </FadeUp>
               </div>
 
               {/* 右側：文案區 */}
-              <div className="right p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
+              <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
                     <FadeUp>
@@ -640,7 +640,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section_brand_story relative bg-white py-20">
+        <section className="section_brand_story relative bg-white px-10 py-20">
           <FadeUp
             delay={0.02}
             className="side-info absolute rotate-[-90deg] left-[-5%] top-[35%]"
@@ -717,7 +717,7 @@ export default function Home() {
                   placeholder="empty"
                   loading="lazy"
                   height={1500}
-                  className="max-w-[650px] w-[88%]  mt-10"
+                  className="max-w-[650px] w-full sm:w-[88%]  mt-10"
                 ></Image>
               </Link>
             </FadeUp>
@@ -729,7 +729,7 @@ export default function Home() {
                   placeholder="empty"
                   loading="lazy"
                   height={1500}
-                  className="max-w-[650px] w-[88%] mt-10"
+                  className="max-w-[650px] w-full sm:w-[88%]] mt-10"
                 ></Image>
               </Link>
             </FadeUp>
@@ -740,7 +740,7 @@ export default function Home() {
                 placeholder="empty"
                 loading="lazy"
                 height={1500}
-                className="max-w-[650px] w-[88%] mt-10"
+                className="max-w-[650px] w-full sm:w-[88%] mt-10"
               ></Image>
             </FadeUp>
           </div>

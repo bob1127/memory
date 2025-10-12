@@ -398,7 +398,7 @@ export default function MinimalPushOverlayMenu({
           top: 0;
           left: 0;
           width: 100vw;
-          height: 100svh;
+          height: auto;
           pointer-events: none;
           overflow: hidden;
           z-index: 2;
@@ -1024,11 +1024,11 @@ function ProductSlider({
 
   return (
     <div className="bg-[#edebeb] h-auto ">
-      <div className="mx-auto py-20 w-[80%] flex justify-center items-center">
+      <div className="mx-auto  w-full xl:w-[80%] flex justify-center items-center">
         <section className="grid w-full bg-[#edebeb] grid-cols-1 lg:grid-cols-2 isolate">
           {/* 左半 */}
-          <div className="left relative z-30 bg-[#edebeb] ">
-            <div className="copy">
+          <div className="left relative pt-10 z-30 sm:px-4 px-0 xl:px-10 bg-[#edebeb] xl:h-[100vh] sm:h-[80vh] h-auto ">
+            <div className="copy ">
               <div className="my-5">
                 <Image
                   src="/images/旗幟.png"
@@ -1041,11 +1041,13 @@ function ProductSlider({
                 />
               </div>
 
-              <h2 className="info-title text-5xl font-bold">有香餐飲</h2>
-              <h2 className="info-subtitle text-[#A18360] text-[95px] leading-none font-extrabold tracking-tighter">
+              <h2 className="info-title text-4xl sm:text-5xl font-bold">
+                有香餐飲
+              </h2>
+              <h2 className="info-subtitle text-[#A18360] sm:text-5xl text-4xl xl:text-7xl leading-none font-extrabold tracking-tighter">
                 MEMORY CORNER
               </h2>
-              <div className="infoCard h-[380px] relative mt-10">
+              <div className="infoCard  relative mt-10">
                 <h3 className="text-2xl font-bold">Lorem ipsum dolor.</h3>
                 <p>
                   Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet
@@ -1427,9 +1429,7 @@ function ProductSlider({
                 order: -1;
                 min-height: 80vh;
               }
-              .left {
-                min-height: 84vh;
-              }
+
               .menu-button-group.under-image {
                 flex-wrap: wrap;
               }
