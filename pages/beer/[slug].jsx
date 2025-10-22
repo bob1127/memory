@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import Image from "next/image";
 import Layout from "../Layout";
@@ -22,9 +24,15 @@ export default function BeerInner({ product }) {
       </Layout>
     );
 
+  /* ---------- 加入購物車 ---------- */
   const addToCart = () => {
     cartStore.add(
-      { id: product.id, name: product.name, img: product.images[0] },
+      {
+        id: product.id,
+        name: product.name,
+        img: product.images[0],
+        price: Number(product.price || product.regular_price || 0), // ✅ 確保不為 0
+      },
       qty
     );
     setToast(true);
@@ -110,11 +118,12 @@ export default function BeerInner({ product }) {
             <p className="text-3xl font-semibold text-black">
               NT$ {product.price}
             </p>
-            {product.regular_price && (
-              <p className="text-gray-400 line-through text-sm mt-1">
-                NT$ {product.regular_price}
-              </p>
-            )}
+            {product.regular_price &&
+              product.regular_price !== product.price && (
+                <p className="text-gray-400 line-through text-sm mt-1">
+                  NT$ {product.regular_price}
+                </p>
+              )}
           </div>
 
           {/* 描述 */}
@@ -209,7 +218,6 @@ export async function getStaticPaths() {
     return { paths, fallback: "blocking" };
   } catch (err) {
     console.error("⚠️ getStaticPaths 無法連線 WooCommerce:", err.message);
-    // fallback 模式下允許手動輸入網址仍可動態生成
     return { paths: [], fallback: "blocking" };
   }
 }
@@ -225,31 +233,32 @@ export async function getStaticProps({ params }) {
       `${WC_URL}/wp-json/wc/v3/products?slug=${slug}&consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
     );
     const data = await res.json();
-
-    if (!data?.length) {
-      // 若沒抓到就顯示假資料
-      return {
-        props: {
-          product: {
-            id: 0,
-            name: "測試啤酒商品",
-            price: "199",
-            regular_price: "250",
-            images: ["/images/beer04.png"],
-            desc: "<p>暫無商品資料，這是範例內容。</p>",
-            tags: ["Local", "Craft"],
-          },
-        },
-        revalidate: 300,
-      };
-    }
+    if (!data?.length) throw new Error("找不到商品");
 
     const p = data[0];
+
+    // 🧩 處理變體商品（variable）
+    let finalPrice = p.price || p.sale_price || p.regular_price || "0";
+
+    if (p.type === "variable" && (!p.price || p.price === "0")) {
+      const varRes = await fetch(
+        `${WC_URL}/wp-json/wc/v3/products/${p.id}/variations?consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
+      );
+      const varData = await varRes.json();
+      if (Array.isArray(varData) && varData.length > 0) {
+        finalPrice =
+          varData[0].price ||
+          varData[0].sale_price ||
+          varData[0].regular_price ||
+          finalPrice;
+      }
+    }
+
     const product = {
       id: p.id,
       name: p.name,
-      price: p.price,
-      regular_price: p.regular_price,
+      price: finalPrice,
+      regular_price: p.regular_price || p.price || "0",
       images: p.images?.map((img) => img.src) || ["/images/beer04.png"],
       desc: p.description || "",
       tags: p.tags?.map((t) => t.name),
@@ -258,7 +267,6 @@ export async function getStaticProps({ params }) {
     return { props: { product }, revalidate: 300 };
   } catch (err) {
     console.error("❌ 讀取商品錯誤:", err);
-    // fallback 假資料
     return {
       props: {
         product: {
