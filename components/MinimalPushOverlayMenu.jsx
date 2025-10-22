@@ -368,13 +368,6 @@ export default function MinimalPushOverlayMenu({
           font-weight: 500;
         }
 
-        a {
-          text-decoration: none;
-          color: var(--fg);
-          font-size: 1.5rem;
-          font-weight: 500;
-        }
-
         .container {
           position: relative;
           transform: translateY(0svh);

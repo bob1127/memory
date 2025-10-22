@@ -466,7 +466,7 @@ export default function Home() {
 
         {/* ====== 你指定要保留的 Section：四等份卡片 ====== */}
         <section className="">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-auto md:h-[80vh]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-auto lg:h-[80vh]">
             <BeerCard
               bg="#cdcdd5"
               title="Title"
@@ -594,7 +594,7 @@ export default function Home() {
                     width={1300}
                     height={1000}
                     // 重要：不要固定 1300px；以視窗為準
-                    className="max-w-[1000px] scale-[1.2] h-auto"
+                    className="max-w-[1000px] xl:scale-[1] scale-[1.2] h-auto"
                   />
                 </FadeUp>
               </div>

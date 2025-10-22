@@ -11,15 +11,15 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 const AREAS = [
   {
     label: "Vancouver City (including…)",
-    value: "Vancouver City",
+    value: "vancouver_city", // ← slug
     fee: 12,
     tax: 5,
     freeThreshold: 120,
   },
-  { label: "Burnaby", value: "Burnaby", fee: 12, tax: 5, freeThreshold: 120 },
+  { label: "Burnaby", value: "burnaby", fee: 12, tax: 5, freeThreshold: 120 },
   {
     label: "White Rock / South Surrey / North Surrey",
-    value: "White Rock / South Surrey / North Surrey",
+    value: "surrey_whiterock", // ← slug
     fee: 14,
     tax: 5,
     freeThreshold: 150,
