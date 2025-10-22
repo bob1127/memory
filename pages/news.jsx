@@ -151,7 +151,7 @@ export default function News() {
     <Layout>
       <LazyMotion features={domAnimation}>
         <MotionConfig transition={spring} reducedMotion="user">
-          <section className="py-[150px] bg-[#e9d9be]">
+          <section className="py-[150px] ">
             <div
               className="mx-auto w-full md:w-[90%] px-5 xl:w-[85%] max-w-[1920px]
                          grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"

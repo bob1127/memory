@@ -80,10 +80,10 @@ export default function Participation() {
     <Layout>
       <ReactLenis root>
         {/* 視覺留白 */}
-        <div className="bg-[#e9d9be] py-14 sm:py-16"></div>
+        <div className=" py-14 sm:py-16"></div>
 
         {/* ============ Why Section ============ */}
-        <section className="section_why bg-[#e9d9be]">
+        <section className="section_why ">
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
             {/* 標題區 */}
             <div className="flex flex-col items-center text-center">
@@ -258,7 +258,7 @@ export default function Participation() {
         </section>
 
         {/* ============ 步驟卡片區 ============ */}
-        <section className="bg-[#e9d9be]">
+        <section className="">
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-6 pb-16">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-8">
               <FadeUp>

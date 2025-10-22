@@ -61,7 +61,7 @@ const TABS = [
 export default function Home() {
   return (
     <Layout>
-      <div className="bg-[#f0cea0]">
+      <div className="">
         <section className="section_brand_menu py-20">
           <div className="grid grid-cols-1 md:grid-cols-3 max-w-[800px] mx-auto">
             <div>
@@ -99,7 +99,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="section_menu_entry pt-20 pb-[400px] bg-[#f8b435]">
+        <section className="section_menu_entry pt-20 pb-[400px] ">
           <div className="flex flex-col  justify-center mx-auto items-center max-w-[1920px] xl:w-[80%] md:w-[90%] w-full">
             <div className="title">
               <h2 className="text-4xl text-[#ea3636] font-bold">

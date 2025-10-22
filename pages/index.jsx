@@ -22,7 +22,6 @@ import {
   useSpring,
   AnimatePresence,
   useScroll,
-  useTransform,
   useReducedMotion,
 } from "framer-motion";
 
@@ -46,11 +45,11 @@ function FadeUp({
         opacity: 1,
         y: 0,
         filter: "blur(0px)",
-        transition: {
-          ease: [0.16, 1, 0.3, 1],
-          duration: 1.05,
-          delay,
-        },
+      }}
+      transition={{
+        ease: [0.16, 1, 0.3, 1],
+        duration: 1.05,
+        delay,
       }}
       viewport={{ once: true, amount, margin: "0px 0px -10% 0px" }}
     >
@@ -59,100 +58,61 @@ function FadeUp({
   );
 }
 
-/* ========== 小元件：從火鍋中心「彈出」到最終位置（無裁切、只設寬度） ========== */
-function VgPop({ containerRef, item, index }) {
-  const ref = useRef(null);
-  const [delta, setDelta] = useState(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    const wrap = containerRef.current;
-    if (!el || !wrap) return;
-
-    const r = el.getBoundingClientRect();
-    const w = wrap.getBoundingClientRect();
-    const centerX = w.left + w.width / 2;
-    const centerY = w.top + w.height / 2;
-    const elemX = r.left + r.width / 2;
-    const elemY = r.top + r.height / 2;
-    setDelta({ x: centerX - elemX, y: centerY - elemY });
-  }, []);
-
+/* ========= 小卡片（四等份）— 支援不同圖片與文案 ========= */
+function BeerCard({
+  image = "/images/0616ala-removebg-preview.png",
+  imageAlt = "Beer",
+  bg = "#cdcdd5",
+  title = "Title",
+  desc = "",
+  delay = 0,
+}) {
   return (
-    <motion.div
-      ref={ref}
-      className="vg01 absolute -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
-      style={{ ...item.final, rotate: `${item.rotate}deg` }}
-      initial={
-        delta
-          ? { x: delta.x, y: delta.y, scale: 0.3, opacity: 0 }
-          : { opacity: 0 }
-      }
-      animate={{ x: 0, y: 0, scale: 1, opacity: 1 }}
-      transition={{
-        type: "spring",
-        stiffness: 100,
-        damping: 22,
-        mass: 1.2,
-        bounce: 0.25,
-        delay: 1.0 + index * 0.28,
-      }}
-    >
-      <motion.img
-        src={item.src}
-        alt="vg"
-        className={`${item.widthClass} h-auto block`}
-        draggable="false"
-        initial={{ filter: "blur(2px)" }}
-        animate={{ filter: "blur(0px)" }}
-        transition={{ duration: 0.45, delay: 1.0 + index * 0.28 }}
-      />
-    </motion.div>
+    <FadeUp delay={delay}>
+      <motion.article
+        className="relative group flex items-center h-full justify-center overflow-hidden"
+        style={{ backgroundColor: bg }}
+        initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
+        whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+        viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay }}
+      >
+        {/* 浮動文字（桌機 hover 顯示；手機常顯示） */}
+        <div className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 w-[72%] text-center z-20">
+          <div className="opacity-100 sm:opacity-0 sm:-translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-700">
+            <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
+            <p className="text-white/90 leading-relaxed text-sm sm:text-base">
+              {desc}
+            </p>
+          </div>
+        </div>
+
+        {/* 大圖：hover 後下移＋放大 */}
+        <div className="relative w-[78%] max-w-[620px] z-10 overflow-hidden sm:group-hover:overflow-visible">
+          <motion.div
+            initial={{ y: 0, scale: 1.1 }}
+            whileHover={{ y: 40, scale: 1.6 }}
+            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            className="origin-top"
+          >
+            {/* 外部圖用 <img>，內部圖可改成 <Image> */}
+            <img
+              src={image}
+              alt={imageAlt}
+              className="w-[180%] mx-auto h-[460px] sm:h-[500px] block object-contain select-none"
+              decoding="async"
+              loading="eager"
+              fetchPriority="high"
+              draggable="false"
+            />
+          </motion.div>
+        </div>
+      </motion.article>
+    </FadeUp>
   );
 }
 
-/* ========= 工具 ========= */
-function useStableDelta(anchorRef, itemRef) {
-  const [delta, setDelta] = useState({ x: 0, y: 0 });
-  const [ready, setReady] = useState(false);
-
-  const measure = () => {
-    const el = itemRef.current;
-    const anchor = anchorRef.current;
-    if (!el || !anchor) return;
-    const r = el.getBoundingClientRect();
-    const a = anchor.getBoundingClientRect();
-    const elCX = r.left + r.width / 2;
-    const elCY = r.top + r.height / 2;
-    const aCX = a.left + a.width / 2;
-    const aCY = a.top + a.height / 2;
-    setDelta({ x: aCX - elCX, y: aCY - elCY });
-    setReady(true);
-  };
-
-  useLayoutEffect(() => {
-    measure();
-    const ro = new ResizeObserver(() => measure());
-    if (anchorRef.current) ro.observe(anchorRef.current);
-    if (itemRef.current) ro.observe(itemRef.current);
-
-    const onResize = () => measure();
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    const raf = requestAnimationFrame(measure);
-
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-      cancelAnimationFrame(raf);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return { delta, ready, remeasure: measure };
-}
-
+/* ========= SnackDropLoop：掉落動畫 ========= */
 function SnackDropLoop({
   anchorRef,
   className,
@@ -166,7 +126,6 @@ function SnackDropLoop({
   scaleStart = 1.0,
   scaleEnd = 0.7,
   duration = 2.2,
-  bounce = 10,
   loopDelay = 0.7,
   delay = 0.0,
   startRot = 0,
@@ -231,7 +190,7 @@ function SnackDropLoop({
         startY,
         startY + Math.abs(spawn) * 0.66,
         startY + Math.abs(spawn) * 0.92,
-        endY + bounce,
+        endY + 10,
         endY,
       ]
     : [startY];
@@ -310,107 +269,7 @@ function SnackDropLoop({
   );
 }
 
-/* ========= 小卡片（四等份） ========= */
-function BeerCard({
-  bg = "#cdcdd5",
-  title = "Title",
-  desc = "",
-  delay = 0,
-  ...rest
-}) {
-  return (
-    <FadeUp delay={delay}>
-      <motion.article
-        className="relative group flex items-center h-full justify-center overflow-hidden"
-        style={{ backgroundColor: bg }}
-        initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
-        whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-        viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
-        transition={{
-          duration: 0.9,
-          ease: [0.22, 1, 0.36, 1],
-          delay,
-        }}
-        {...rest}
-      >
-        <div
-          className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 w-[72%] text-center
-        opacity-0 -translate-y-3
-        transition-all duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)]
-        group-hover:opacity-100 group-hover:translate-y-0 will-change-transform z-20"
-        >
-          <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
-          <p className="text-white/90 leading-relaxed">{desc}</p>
-        </div>
-
-        <div
-          className="relative w-[78%] max-w-[620px]
-        translate-y-0
-        transition-transform duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)]
-        group-hover:translate-y-10 will-change-transform z-10 overflow-hidden group-hover:overflow-visible"
-        >
-          <div
-            className="translate-y-0 scale-[1.1] origin-top
-          transition-transform duration-[1400ms] ease-[cubic-bezier(.22,1,.36,1)]
-          group-hover:scale-[1.6] group-hover:translate-y-[35%] will-change-transform"
-          >
-            <img
-              src="/images/0616ala-removebg-preview.png"
-              alt="Beer"
-              className="w-[180%] mx-auto h-[500px] block"
-              decoding="async"
-              loading="eager"
-              fetchPriority="high"
-              draggable="false"
-            />
-          </div>
-        </div>
-      </motion.article>
-    </FadeUp>
-  );
-}
-
 export default function Home() {
-  // 👉 .vg01 資訊
-  const vgItems = [
-    {
-      src: "/images/vg07.png",
-      final: { right: "10%", top: "70%" },
-      rotate: -40,
-      widthClass: "w-[180px]",
-    },
-    {
-      src: "/images/vg08.png",
-      final: { right: "3%", top: "40%" },
-      rotate: -70,
-      widthClass: "w-[180px]",
-    },
-    {
-      src: "/images/vg04.png",
-      final: { right: "33%", top: "20%" },
-      rotate: -40,
-      widthClass: "w-[120px]",
-    },
-    {
-      src: "/images/vg03.png",
-      final: { left: "33%", top: "20%" },
-      rotate: -40,
-      widthClass: "w-[100px]",
-    },
-    {
-      src: "/images/vg02.png",
-      final: { left: "33%", bottom: "30%" },
-      rotate: -40,
-      widthClass: "w-[80px]",
-    },
-    {
-      src: "/images/vg01.png",
-      final: { right: "33%", bottom: "0%" },
-      rotate: -40,
-      widthClass: "w-[100px]",
-    },
-  ];
-
   const rightRef = useRef(null);
 
   // 中央 hotpot 旋轉
@@ -442,62 +301,218 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [images.length]);
 
-  const [activeTab, setActiveTab] = useState("youshang");
-
   // Dinging 區塊（錨點會被零食使用）
   const dingingRef = useRef(null);
   const anchorRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: dingingRef,
-    offset: ["start 80%", "end 25%"],
-  });
-  const progressSpring = useSpring(scrollYProgress, {
-    stiffness: 180,
-    damping: 24,
-    mass: 0.8,
-  });
+  useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
+
+  /* ===== 這裡定義四張卡片的圖片與文案 ===== */
+  const cards = [
+    {
+      image: "/images/beer/4.金牌ONE-Photoroom.png",
+      bg: "#cdcdd5",
+      title: "金牌啤酒",
+      desc: "嚴選麥芽香與清爽氣泡，回味無窮的在地經典。",
+      delay: 0,
+    },
+    {
+      image: "/images/beer/6.荔枝-Photoroom.png",
+      bg: "#c75285",
+      title: "果香調性",
+      desc: "淡淡果香與細緻泡沫，微醺剛剛好。",
+      delay: 0.15,
+    },
+    {
+      image: "/images/beer/9.蜂蜜-Photoroom.png",
+      bg: "#fcca10",
+      title: "濃厚黑麥",
+      desc: "焦糖與可可的尾韻，征服重口味愛好者。",
+      delay: 0.3,
+    },
+    {
+      image: "/images/beer/12.葡萄-Photoroom.png",
+      bg: "#4426af",
+      title: "清爽拉格",
+      desc: "超順口、耐喝不膩，百搭各式台式料理。",
+      delay: 0.45,
+    },
+  ];
 
   return (
     <ReactLenis root>
       <Layout>
-        <div className="mt-[-20px]  z-10 ">
-          <MinimalPushOverlayMenu />
+        <div className="mt-[-20px] z-10">
+          {/* <MinimalPushOverlayMenu /> */}
         </div>
+        {/* ===== HERO（自適應優化） ===== */}
+        <section className="section-hero h-[80vh] md:h-screen min-h-[560px] overflow-hidden">
+          <div className="relative h-full w-full">
+            {/* 背景大圖（靠右） */}
+            <div className="absolute z-10 right-[-20%] md:right-[-10%] top-[28%] -translate-y-1/2">
+              <Image
+                src="/images/index/bg-02.png"
+                alt=""
+                placeholder="empty"
+                loading="lazy"
+                width={1800}
+                height={1500}
+                sizes="(max-width: 640px) 120vw, (max-width: 1024px) 80vw, 60vw"
+                className="w-[1200px] sm:w-[1300px] lg:w-[1500px] max-w-none object-contain"
+              />
+            </div>
 
-        {/* ====== 你指定要保留的 Section：四等份卡片 ====== */}
-        <section className="">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-auto lg:h-[80vh]">
-            <BeerCard
-              bg="#cdcdd5"
-              title="Title"
-              desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              delay={0}
-            />
-            <BeerCard
-              bg="#cdcdd5"
-              title="Title"
-              desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              delay={0.15}
-            />
-            <BeerCard
-              bg="#e5e563"
-              title="Title"
-              desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              delay={0.3}
-            />
-            <BeerCard
-              bg="#9e9ee5"
-              title="Title"
-              desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta amet molestiae id beatae, facilis ipsum voluptate quo animi. Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta"
-              delay={0.45}
-            />
+            {/* 左側主菜（前景） */}
+            <div className="absolute z-40 left-[-4%] sm:left-[-6%] md:left-[-8%] top-[30%] -translate-y-1/2">
+              <Image
+                src="/images/index/Memory-Cornner-Menu-1059_夾羊肉塊.png"
+                alt="main-dish"
+                placeholder="empty"
+                loading="lazy"
+                width={800}
+                height={500}
+                sizes="(max-width: 640px) 48vw, (max-width: 1024px) 36vw, 28vw"
+                className="w-[44vw] md:w-[34vw] lg:w-[28vw] max-w-[640px] object-contain"
+              />
+            </div>
+
+            {/* 左下裝飾圖 */}
+            <div className="absolute z-20 left-[2%] sm:left-[2%] md:left-0 top-[62%] -translate-y-1/2">
+              <Image
+                src="/images/index/DAV01683.png"
+                alt=""
+                placeholder="empty"
+                loading="lazy"
+                width={800}
+                height={500}
+                sizes="(max-width: 640px) 40vw, (max-width: 1024px) 32vw, 24vw"
+                className="w-[42vw] md:w-[30vw] lg:w-[24vw] max-w-[520px] object-contain"
+              />
+            </div>
+
+            {/* 左下 logo/標章 */}
+            <div className="absolute z-20 left-[18%] sm:left-[14%] md:left-[16%] top-[86%] -translate-y-1/2">
+              <Image
+                src="/images/index/mark-01.png"
+                alt=""
+                placeholder="empty"
+                loading="lazy"
+                width={800}
+                height={500}
+                sizes="(max-width: 640px) 18vw, 12vw"
+                className="w-[18vw] md:w-[12vw] max-w-[180px] object-contain"
+              />
+            </div>
+
+            {/* 中央主標（文字） */}
+            <div className="absolute z-10 left-[8%] sm:left-[14%] md:left-[18%] top-[48%] -translate-y-1/2">
+              <Image
+                src="/images/index/text-01.png"
+                alt="headline"
+                placeholder="empty"
+                loading="lazy"
+                width={800}
+                height={500}
+                sizes="(max-width: 640px) 70vw, (max-width: 1024px) 54vw, 42vw"
+                className="w-[70vw] sm:w-[56vw] md:w-[46vw] lg:w-[42vw] max-w-[820px] object-contain"
+              />
+            </div>
+
+            {/* 右下人物（主視覺前景，手機收斂一點） */}
+            <div className="absolute z-20 left-[42%] sm:left-[48%] md:left-[52%] bottom-[-8%] sm:bottom-[-14%] md:bottom-[-18%]">
+              <Image
+                src="/images/index/hero-01.png"
+                alt="people"
+                placeholder="empty"
+                priority
+                width={800}
+                height={500}
+                sizes="(max-width: 640px) 52vw, (max-width: 1024px) 44vw, 38vw"
+                className="w-[52vw] sm:w-[46vw] md:w-[40vw] lg:w-[38vw] max-w-[880px] object-contain"
+              />
+            </div>
+
+            {/* 右側直排文案（小螢幕合併縮排，避免擁擠） */}
+            <div className="absolute z-10 right-0 top-[54%] -translate-y-1/2 hidden sm:block">
+              <div className="flex flex-col justify-end items-end pr-3 md:pr-6">
+                <div className="bg-black/90 md:bg-black mt-4 rounded-sm">
+                  <Image
+                    src="/images/index/right-txt-01.png"
+                    alt=""
+                    placeholder="empty"
+                    loading="lazy"
+                    width={800}
+                    height={500}
+                    sizes="(max-width: 1024px) 44vw, 28vw"
+                    className="w-[44vw] md:w-[28vw] max-w-[520px] object-contain"
+                  />
+                </div>
+
+                <div className="bg-black/90 md:bg-black w-[60vw] md:w-[38vw] mt-4 flex justify-center rounded-sm">
+                  <Image
+                    src="/images/index/right-txt-02.png"
+                    alt=""
+                    placeholder="empty"
+                    loading="lazy"
+                    width={800}
+                    height={500}
+                    sizes="(max-width: 1024px) 40vw, 26vw"
+                    className="w-[40vw] md:w-[26vw] max-w-[460px] object-contain"
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <Image
+                    src="/images/index/DAV01968.jpg"
+                    alt=""
+                    placeholder="empty"
+                    loading="lazy"
+                    width={800}
+                    height={500}
+                    sizes="(max-width: 1024px) 52vw, 34vw"
+                    className="w-[52vw] md:w-[34vw] max-w-[680px] object-cover rounded-sm"
+                  />
+                </div>
+
+                <div className="bg-black/90 md:bg-black w-[60vw] md:w-[38vw] mt-4 flex justify-center rounded-sm">
+                  <Image
+                    src="/images/index/right-txt-03.png"
+                    alt=""
+                    placeholder="empty"
+                    loading="lazy"
+                    width={800}
+                    height={500}
+                    sizes="(max-width: 1024px) 40vw, 26vw"
+                    className="w-[40vw] md:w-[26vw] max-w-[460px] object-contain"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ======= 零食：各自落入袋口（原尺寸→袋口縮小）＋ 無限循環 ======= */}
+        {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
+        <section>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-auto lg:h-[80vh]">
+            {cards.map((c, i) => (
+              <Link href="/beer" className="h-full flex">
+                <BeerCard
+                  key={i}
+                  image={c.image}
+                  imageAlt={c.title}
+                  bg={c.bg}
+                  title={c.title}
+                  desc={c.desc}
+                  delay={c.delay}
+                />
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* ======= 零食：各自落入袋口（原樣保留） ======= */}
         <section
           ref={dingingRef}
-          className="section_Dinging relative bg-[#F5F0E6] overflow-x-hidden"
+          className="section_Dinging relative  overflow-x-hidden"
         >
           <div className="mx-auto max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
@@ -522,7 +537,6 @@ export default function Home() {
                   className="absolute left-[34%] -translate-x-1/2 bottom-[18%] w-2 h-2"
                 />
 
-                {/* ↓ 連續掉落動畫 */}
                 <SnackDropLoop
                   anchorRef={anchorRef}
                   className="w-[80%] bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
@@ -580,7 +594,6 @@ export default function Home() {
                   xOffset={-280}
                 />
 
-                {/* ✅ bag 圖：正確置中 + 響應式寬度，避免撐寬 */}
                 <FadeUp
                   delay={0.1}
                   amount={0.2}
@@ -593,7 +606,6 @@ export default function Home() {
                     loading="lazy"
                     width={1300}
                     height={1000}
-                    // 重要：不要固定 1300px；以視窗為準
                     className="max-w-[1000px] xl:scale-[1] scale-[1.2] h-auto"
                   />
                 </FadeUp>
@@ -608,7 +620,6 @@ export default function Home() {
                         Dinging Memory
                       </h2>
                     </FadeUp>
-
                     <div className="mt-3">
                       <FadeUp delay={0.06}>
                         <p className="text-[#A18360] font-bold text-lg sm:text-2xl tracking-wider">
@@ -616,20 +627,12 @@ export default function Home() {
                         </p>
                       </FadeUp>
                     </div>
-
                     <ul className="mt-2">
                       <FadeUp delay={0.08}>
                         <li className="mt-4  text-[#333] leading-relaxed">
                           Lorem ipsum dolor sit amet consectetur adipisicing
                           elit. Omnis laudantium voluptates fugiat aliquid minus
-                          doloremque natus facilis praesentium, corporis iure
-                          unde minima consectetur provident blanditiis repellat
-                          dolorem earum pariatur. Vel commodi amet rerum?
-                          Voluptatem possimus quasi non neque enim, ipsa ab vel
-                          repellat voluptatum voluptatibus rerum doloribus
-                          porro, ea sed accusantium aspernatur incidunt.
-                          Reiciendis sit nam, ratione minima ab sequi adipisci
-                          officia officiis et vel culpa blanditiis.
+                          doloremque...
                         </li>
                       </FadeUp>
                     </ul>
@@ -640,7 +643,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section_brand_story relative bg-white px-10 py-20">
+        {/* 其餘段落（品牌故事 / VIDEO / APP INTRO）保持原樣 */}
+        <section className="section_brand_story relative  px-10 py-20">
           <FadeUp
             delay={0.02}
             className="side-info absolute rotate-[40deg] xl:rotate-[-90deg] left-[-5%] top-0 xl:top-[35%]"
@@ -655,7 +659,7 @@ export default function Home() {
                   width={200}
                   height={200}
                   className="w-[55px]"
-                ></Image>
+                />
                 The Memory Taiwan Food
                 <Image
                   src="/images/text05.png"
@@ -665,10 +669,11 @@ export default function Home() {
                   width={200}
                   height={200}
                   className="w-[55px]"
-                ></Image>
+                />
               </div>
             </div>
           </FadeUp>
+
           <div className="title max-w-[1920px] xl:w-[70%] md:w-[90%] w-full mx-auto">
             <FadeUp>
               <h2 className="text-4xl mt-6 sm:mt-0 font-bold font-stone-800">
@@ -683,11 +688,11 @@ export default function Home() {
             <FadeUp delay={0.12}>
               <div className="description mt-8 max-w-[600px]">
                 Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Laudantium obcaecati quis esse id sed ex minima nam incidunt
-                mollitia perferendis?
+                Laudantium obcaecati...
               </div>
             </FadeUp>
           </div>
+
           <div className="brand max-w-[1920px] xl:w-[70%] md:w-[90%] gap-5 w-full mx-auto grid  lg:grid-cols-3 ">
             <FadeUp delay={0.04} amount={0.25} className="relative">
               <Link href="main01">
@@ -698,7 +703,7 @@ export default function Home() {
                   loading="lazy"
                   height={1500}
                   className="max-w-[650px] w-full sm:w-[88%]] mt-10"
-                ></Image>
+                />
               </Link>
             </FadeUp>
             <FadeUp delay={0.08} amount={0.25}>
@@ -710,7 +715,7 @@ export default function Home() {
                   loading="lazy"
                   height={1500}
                   className="max-w-[650px] w-full sm:w-[88%]] mt-10"
-                ></Image>
+                />
               </Link>
             </FadeUp>
             <FadeUp delay={0.12} amount={0.25}>
@@ -721,12 +726,12 @@ export default function Home() {
                 loading="lazy"
                 height={1500}
                 className="max-w-[650px] w-full sm:w-[88%] mt-10"
-              ></Image>
+              />
             </FadeUp>
           </div>
         </section>
 
-        <section className="section_video p-10  bg-white">
+        <section className="section_video p-10">
           <div className="title mx-auto mb-4 flex justify-center items-center flex-col">
             <FadeUp>
               <h2 className="text-[#1b1b1b] text-6xl font-extrabold">VIDEO</h2>
@@ -738,10 +743,7 @@ export default function Home() {
             </FadeUp>
             <FadeUp delay={0.12}>
               <p className="max-w-[600px] text-center font-light">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Laboriosam, porro blanditiis tempore rem, accusamus sed
-                quibusdam, facilis quod eum accusantium aliquid? Labore,
-                dignissimos. Molestiae mollitia esse officia beatae quas quis?
+                Lorem ipsum dolor sit amet consectetur adipisicing elit...
               </p>
             </FadeUp>
           </div>
@@ -795,7 +797,7 @@ export default function Home() {
           </FadeUp>
         </section>
 
-        <section className="section_app_operation p-10 bg-white">
+        <section className="section_app_operation p-10">
           <div className="max-w-[1920px] mx-auto xl:w-[85%] md:w-[92%] w-full">
             <div className="top">
               <div className="title mx-auto flex justify-center items-center flex-col">
@@ -811,11 +813,7 @@ export default function Home() {
                 </FadeUp>
                 <FadeUp delay={0.12}>
                   <p className="max-w-[600px] text-center font-light">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Laboriosam, porro blanditiis tempore rem, accusamus sed
-                    quibusdam, facilis quod eum accusantium aliquid? Labore,
-                    dignissimos. Molestiae mollitia esse officia beatae quas
-                    quis?
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit...
                   </p>
                 </FadeUp>
                 <FadeUp delay={0.18}>
@@ -833,7 +831,7 @@ export default function Home() {
                   width={1000}
                   height={1000}
                   className="w-[950px] mx-auto"
-                ></Image>
+                />
               </FadeUp>
             </div>
           </div>

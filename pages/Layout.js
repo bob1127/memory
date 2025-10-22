@@ -5,6 +5,7 @@ import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import Navbar from "@/components/Navbar/Navbar.jsx";
 import Banner from "@/components/banner";
+import Image from "next/image";
 import Footer from "@/components/ui/footer.jsx";
 import Head from "next/head";
 import Sidebar from "@/components/Sidebar.js"; // 引入側邊欄組件
@@ -60,7 +61,7 @@ export default function RootLayout({ children }) {
       </Head>
 
         
-      <div className=" ">
+      <div className="">
          
 
       <NextUIProvider>
@@ -72,7 +73,7 @@ export default function RootLayout({ children }) {
     </UserProvider>
   </NextThemesProvider>
 </NextUIProvider>
-
+   
         <Banner />
         <Footer />
       </div>
