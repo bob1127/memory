@@ -129,7 +129,7 @@ export default function Participation() {
     <Layout>
       <div className="bg-[#f5f4f0] pt-[150px]">
         <section className="section-hero  max-w-[1920px]  w-full md:w-[85%]  relative flex  mx-auto items-center justify-center overflow-hidden">
-          <div className="beer absolute top-1/2 left-[50px]">
+          <div className="beer z-50 absolute top-1/2 left-[50px]">
             <Image
               src="/images/beer04.png"
               alt="main-img"
@@ -141,7 +141,7 @@ export default function Participation() {
           </div>
 
           <div className="main-top w-full flex">
-            <div className="w-[15%]">
+            <div className="w-[15%]" data-aos="zoom-in">
               <Image
                 src="/images/有香文字.png"
                 alt="main-img"
@@ -152,19 +152,18 @@ export default function Participation() {
               />
             </div>
             <div className="w-[70%] border-3 border-black border-b-transparent">
-              <div className="overflow-hidden aspect-[4/3] rounded-lg">
+              <div className="overflow-hidden relative aspect-[4/3] rounded-lg">
                 <Image
-                  src="https://images.pexels.com/photos/27135599/pexels-photo-27135599.jpeg"
+                  src="/images/index/DAV01968.jpg"
                   alt="main-img"
-                  width={1200}
-                  height={1200} // 1:1
-                  className="w-full h-auto object-cover"
+                  fill
+                  className="w-full  h-auto object-cover"
                   priority
                 />
               </div>
             </div>
 
-            <div className="w-[15%]">
+            <div className="w-[15%]" data-aos="zoom-in">
               {" "}
               <Image
                 src="/images/台灣文字.png"
@@ -191,17 +190,7 @@ export default function Participation() {
         <section className="section-info h-[80vh] max-w-[1920px] w-full md:w-[85%]  relative flex   mx-auto items-center justify-center ">
           <div className=" w-0 md:w-[15%] border-t-3 border-black h-full"></div>
           <div className=" w-full px-6 md:w-[70%] relative  border-3 border-black flex justify-center items-center   h-full">
-            <div className="beer absolute top-[-50%] z-50 left-[25%]">
-              <Image
-                src="/images/hotpot-shadow.png"
-                alt="main-img"
-                width={1200}
-                height={1200}
-                className="max-w-[600px] scale-75 h-auto  object-cover"
-                priority
-              />
-            </div>
-            <div className="txt  flex flex-col justify-center items-center">
+            <div className="txt relative  flex flex-col justify-center items-center">
               <h2 className="font-bold text-4xl">台灣 Ｘ 小吃 Ｘ 火鍋</h2>
               <p className="max-w-[650px] text-center leading-loose -tracking-wider mt-8">
                 隨著歲月流轉，吳爺爺將這獨特的秘方傳給了吳爸爸，餐館逐步成為高雄當地人熟知的經典小館，名聲遠播。
@@ -474,11 +463,11 @@ export default function Participation() {
                     </div>
 
                     <Image
-                      src="/images/hotpot.png"
+                      src="/images/index/DAV01683.png"
                       alt="hotpot"
                       width={900}
                       height={900}
-                      className="w-[320px] h-[320px] absolute top-5 z-20 left-1/2 -translate-x-1/2"
+                      className="w-[280px] h-[280px] absolute top-5 z-20 left-1/2 -translate-x-1/2"
                     />
                     <Image
                       src="/images/花紋01.png"
@@ -543,7 +532,7 @@ export default function Participation() {
                     ease: [0.22, 0.8, 0.2, 1],
                     delay: 0.2,
                   }}
-                  className="brand rounded-tr-full rounded-tl-full absolute max-w-[380px] w-full bottom-0 bg-[#bd162f] origin-bottom overflow-hidden"
+                  className="brand rounded-tr-full rounded-tl-full absolute max-w-[380px] sm:rotate-0 rotate-[90deg] w-full bottom-0 bg-[#bd162f] origin-bottom overflow-hidden"
                 >
                   <div className="w-full h-full relative">
                     <Image

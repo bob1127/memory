@@ -62,15 +62,17 @@ function FadeUp({
 function BeerCard({
   image = "/images/0616ala-removebg-preview.png",
   imageAlt = "Beer",
-  bg = "#cdcdd5",
+  bg = "",
   title = "Title",
   desc = "",
   delay = 0,
 }) {
   return (
-    <FadeUp delay={delay}>
+    // ✅ 讓外層也撐滿
+    <FadeUp delay={delay} className="w-full h-full">
       <motion.article
-        className="relative group flex items-center h-full justify-center overflow-hidden"
+        // ✅ 卡片本體撐滿父層
+        className="relative group flex items-center justify-center overflow-hidden w-full h-full"
         style={{ backgroundColor: bg }}
         initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
@@ -90,8 +92,8 @@ function BeerCard({
         {/* 大圖：hover 後下移＋放大 */}
         <div className="relative w-[78%] max-w-[620px] z-10 overflow-hidden sm:group-hover:overflow-visible">
           <motion.div
-            initial={{ y: 0, scale: 1.1 }}
-            whileHover={{ y: 40, scale: 1.6 }}
+            initial={{ y: 0, scale: 1.005 }}
+            whileHover={{ y: 40, scale: 1.1 }}
             transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
             className="origin-top"
           >
@@ -310,28 +312,28 @@ export default function Home() {
   const cards = [
     {
       image: "/images/beer/4.金牌ONE-Photoroom.png",
-      bg: "#cdcdd5",
+      bg: "",
       title: "金牌啤酒",
       desc: "嚴選麥芽香與清爽氣泡，回味無窮的在地經典。",
       delay: 0,
     },
     {
       image: "/images/beer/6.荔枝-Photoroom.png",
-      bg: "#c75285",
+      bg: "",
       title: "果香調性",
       desc: "淡淡果香與細緻泡沫，微醺剛剛好。",
       delay: 0.15,
     },
     {
       image: "/images/beer/9.蜂蜜-Photoroom.png",
-      bg: "#fcca10",
+      bg: "",
       title: "濃厚黑麥",
       desc: "焦糖與可可的尾韻，征服重口味愛好者。",
       delay: 0.3,
     },
     {
       image: "/images/beer/12.葡萄-Photoroom.png",
-      bg: "#4426af",
+      bg: "",
       title: "清爽拉格",
       desc: "超順口、耐喝不膩，百搭各式台式料理。",
       delay: 0.45,
@@ -341,9 +343,10 @@ export default function Home() {
   return (
     <ReactLenis root>
       <Layout>
-        <div className="mt-[-20px] z-10">
+        <div className="mt-[-20px]  z-10">
           {/* <MinimalPushOverlayMenu /> */}
         </div>
+
         {/* ===== HERO（自適應優化） ===== */}
         <section className="section-hero h-[80vh] md:h-screen min-h-[560px] overflow-hidden">
           <div className="relative h-full w-full">
@@ -491,12 +494,16 @@ export default function Home() {
         </section>
 
         {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
-        <section>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 h-auto lg:h-[80vh]">
+        <section className="py-20">
+          <div className="title">
+            <h2 className="text-5xl text-center">BEER STORE</h2>
+          </div>
+          {/* ✅ auto-rows-fr 讓每列高度一致，子項可 h-full 撐滿 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto lg:h-[80vh]">
             {cards.map((c, i) => (
-              <Link href="/beer" className="h-full flex">
+              // ✅ Link 也撐滿，避免預設 inline 造成寬度不滿
+              <Link key={i} href="/beer" className="flex w-full h-full">
                 <BeerCard
-                  key={i}
                   image={c.image}
                   imageAlt={c.title}
                   bg={c.bg}
@@ -539,7 +546,7 @@ export default function Home() {
 
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%] bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
+                  className="w-[80%]  bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
                   imgSrc="/images/snack/output-onlinegiftools.gif"
                   imgClassName="w-[320px] sm:w-[380px]"
                   spawn={460}

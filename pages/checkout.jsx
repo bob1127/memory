@@ -11,7 +11,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 const AREAS = [
   {
     label: "Vancouver City (including…)",
-    value: "vancouver_city", // ← slug
+    value: "vancouver_city",
     fee: 12,
     tax: 5,
     freeThreshold: 120,
@@ -19,7 +19,7 @@ const AREAS = [
   { label: "Burnaby", value: "burnaby", fee: 12, tax: 5, freeThreshold: 120 },
   {
     label: "White Rock / South Surrey / North Surrey",
-    value: "surrey_whiterock", // ← slug
+    value: "surrey_whiterock",
     fee: 14,
     tax: 5,
     freeThreshold: 150,
@@ -28,6 +28,18 @@ const AREAS = [
 
 export default function CheckoutPage() {
   const router = useRouter();
+
+  // 是否開啟偵錯面板（網址帶 ?debug=1）
+  const DEBUG =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("debug") === "1";
+  const [logs, setLogs] = useState([]);
+  const dlog = (label, obj) => {
+    const item = { ts: new Date().toISOString(), label, data: obj };
+    console.log("[CHECKOUT]", label, obj);
+    setLogs((prev) => [...prev, item]);
+  };
+
   const [cart, setCart] = useState([]);
   const [placing, setPlacing] = useState(false);
 
@@ -60,53 +72,95 @@ export default function CheckoutPage() {
   const selectedArea = AREAS.find((a) => a.value === form.deliveryArea);
   let shippingFee = selectedArea?.fee || 0;
   const taxRate = selectedArea?.tax || 0;
-
-  // 若滿免運門檻則免運
-  if (selectedArea && subtotal >= selectedArea.freeThreshold) {
-    shippingFee = 0;
-  }
+  if (selectedArea && subtotal >= selectedArea.freeThreshold) shippingFee = 0;
 
   const taxAmount = Math.round((subtotal * taxRate) / 100);
   const total = subtotal + shippingFee + taxAmount;
 
+  // onChange
   const onChange = (key) => (e) => {
-    const v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    const v =
+      e?.target?.type === "checkbox"
+        ? !!e.target.checked
+        : e?.target?.value ?? "";
     setForm((prev) => ({ ...prev, [key]: v }));
   };
 
   async function handlePlaceOrder() {
-    if (!cart.length) return alert("購物車為空");
-    if (!form.name || !form.phone || !form.email)
-      return alert("請填寫姓名、電話、Email");
-    if (!form.payment) return alert("請選擇付款方式");
-    if (!form.deliveryArea) return alert("請選擇外送地區");
-    if (!form.deliveryAddress.trim()) return alert("請輸入詳細地址");
-
-    // 🚫 若未達 80 元門檻禁止下單
-    if (subtotal < 80) {
-      alert("訂單必須滿 80 才能運送");
-      return;
-    }
-
-    const fullAddress = `${form.deliveryArea} ${form.deliveryAddress}`.trim();
-
-    setPlacing(true);
     try {
+      // === 前置驗證 ===
+      if (!cart.length) return alert("購物車為空");
+      if (!form.name || !form.phone || !form.email)
+        return alert("請填寫姓名、電話、Email");
+      if (!form.payment) return alert("請選擇付款方式");
+      if (!form.deliveryArea) return alert("請選擇外送地區");
+      if (!form.deliveryAddress.trim()) return alert("請輸入詳細地址");
+      if (subtotal < 80) return alert("訂單必須滿 80 才能運送");
+
+      const areaLabel = selectedArea?.label || form.deliveryArea || "";
+      const fullAddress = `${areaLabel} ${form.deliveryAddress}`.trim();
+
+      setPlacing(true);
+
+      // === 呼叫 create-order（後端會負責送 WhatsApp 範本）===
+      const t0 = performance.now();
+      dlog("create-order.request", {
+        cartCount: cart.length,
+        formPreview: {
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          payment: form.payment,
+          deliveryArea: form.deliveryArea,
+        },
+        shipping_fee: shippingFee,
+        tax: taxAmount,
+      });
+
       const resp = await fetch("/api/wc/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cart,
-          form: { ...form, address: fullAddress },
+          form: { ...form, address: fullAddress, subtotal },
           shipping_fee: shippingFee,
           tax: taxAmount,
         }),
+      }).catch((err) => {
+        dlog("create-order.network-error", String(err));
+        throw err;
       });
 
-      const json = await resp.json();
+      const rawText = await resp.text(); // 先抓 raw 以便除錯
+      let json = {};
+      try {
+        json = rawText ? JSON.parse(rawText) : {};
+      } catch (e) {
+        dlog("create-order.json-parse-failed", { rawText });
+        throw new Error("create-order 回傳非 JSON，請看 console");
+      }
+
+      dlog("create-order.response", {
+        status: resp.status,
+        ok: resp.ok,
+        elapsedMs: Math.round(performance.now() - t0),
+        json,
+      });
+
       if (!resp.ok || !json?.ok) {
-        const msg = json?.detail?.message || json?.message || "Woo 無回應";
-        return alert("下單失敗：" + msg);
+        const msg =
+          json?.detail?.message || json?.message || `HTTP ${resp.status}`;
+        alert("下單失敗：" + msg);
+        return;
+      }
+
+      // === 顯示 WA 發送結果（staff/customer）===
+      if (json.whatsapp) {
+        const report = JSON.stringify(json.whatsapp, null, 2);
+        dlog("whatsapp.results", json.whatsapp);
+        alert("WhatsApp 發送結果：\n" + report);
+      } else {
+        dlog("whatsapp.results", "後端未回傳 whatsapp 欄位");
       }
 
       const order = json.order;
@@ -114,7 +168,8 @@ export default function CheckoutPage() {
       router.push(`/thank-you?id=${order.id}`);
     } catch (e) {
       console.error(e);
-      alert("下單發生錯誤，請稍後再試");
+      dlog("handlePlaceOrder.error", String(e?.message || e));
+      alert("下單發生錯誤：" + (e?.message || e));
     } finally {
       setPlacing(false);
     }
@@ -349,6 +404,25 @@ export default function CheckoutPage() {
             </button>
           </aside>
         </div>
+
+        {/* 偵錯面板：網址加 ?debug=1 才會顯示 */}
+        {DEBUG && (
+          <div className="fixed bottom-2 left-2 right-2 max-h-[40vh] overflow-auto rounded-lg border bg-white/95 shadow-lg text-[12px]">
+            <div className="px-3 py-2 font-semibold border-b bg-gray-50">
+              Debug Logs
+            </div>
+            <pre className="p-3 whitespace-pre-wrap">
+              {logs.map(
+                (l, i) =>
+                  `#${i + 1} [${l.ts}] ${l.label}\n${JSON.stringify(
+                    l.data,
+                    null,
+                    2
+                  )}\n\n`
+              )}
+            </pre>
+          </div>
+        )}
       </main>
     </Layout>
   );

@@ -269,13 +269,6 @@ export default function Home() {
                     </button>
                   </div>
 
-                  <Link
-                    href={`/beer/${p.slug}`}
-                    className="mt-3 text-sm underline underline-offset-4 hover:opacity-80"
-                  >
-                    產品資訊 →
-                  </Link>
-
                   <button
                     onClick={() => addToCart(p)}
                     id={`btn-${p.id}`}
@@ -296,7 +289,7 @@ export default function Home() {
       </section>
 
       {/* ✅ Newsletter 區 & 地圖 跑馬燈區（完全保留） */}
-      <section className="section-newsletter w-full py-16">
+      <section className="section-newsletter bg-white w-full py-16">
         <motion.form
           onSubmit={handleSubscribe}
           initial={{ opacity: 0, y: 12 }}
@@ -342,7 +335,7 @@ export default function Home() {
         </motion.form>
       </section>
 
-      <section className="section-map pt-20 flex flex-col">
+      <section className="section-map  bg-white pt-20 flex flex-col">
         <div>
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2608.125676211783!2d-123.1274940232461!3d49.17920177807608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x548675082541f249%3A0x87d1f92d1d46df5f!2zTWVtb3J5IENvcm5lciDmnInpppk!5e0!3m2!1szh-TW!2stw!4v1759130334759!5m2!1szh-TW!2stw"
@@ -351,7 +344,7 @@ export default function Home() {
             loading="lazy"
           />
         </div>
-        <div>
+        <div className="">
           <Marquee>
             <h2 className="text-[70px] mx-3">MEMORY CORNER</h2>
             <h2 className="text-[70px] mx-3">MEMORY CORNER</h2>
