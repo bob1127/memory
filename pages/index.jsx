@@ -82,8 +82,8 @@ function BeerCard({
         {/* 浮動文字（桌機 hover 顯示；手機常顯示） */}
         <div className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 w-[72%] text-center z-20">
           <div className="opacity-100 sm:opacity-0 sm:-translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-700">
-            <h2 className="text-2xl font-bold text-white mb-2">{title}</h2>
-            <p className="text-white/90 leading-relaxed text-sm sm:text-base">
+            <h2 className="text-2xl font-bold text-black mb-2">{title}</h2>
+            <p className="text-black/90 leading-relaxed text-sm sm:text-base">
               {desc}
             </p>
           </div>
@@ -353,7 +353,7 @@ export default function Home() {
             {/* 背景大圖（靠右） */}
             <div className="absolute z-10 right-[-20%] md:right-[-10%] top-[28%] -translate-y-1/2">
               <Image
-                src="/images/index/bg-02.png"
+                src="/images/index/banner-06-a.png"
                 alt=""
                 placeholder="empty"
                 loading="lazy"
@@ -367,7 +367,7 @@ export default function Home() {
             {/* 左側主菜（前景） */}
             <div className="absolute z-40 left-[-4%] sm:left-[-6%] md:left-[-8%] top-[30%] -translate-y-1/2">
               <Image
-                src="/images/index/Memory-Cornner-Menu-1059_夾羊肉塊.png"
+                src="/images/index/banner-02-a.png"
                 alt="main-dish"
                 placeholder="empty"
                 loading="lazy"
@@ -381,7 +381,7 @@ export default function Home() {
             {/* 左下裝飾圖 */}
             <div className="absolute z-20 left-[2%] sm:left-[2%] md:left-0 top-[62%] -translate-y-1/2">
               <Image
-                src="/images/index/DAV01683.png"
+                src="/images/index/banner-01-a.png"
                 alt=""
                 placeholder="empty"
                 loading="lazy"
@@ -395,7 +395,7 @@ export default function Home() {
             {/* 左下 logo/標章 */}
             <div className="absolute z-20 left-[18%] sm:left-[14%] md:left-[16%] top-[86%] -translate-y-1/2">
               <Image
-                src="/images/index/mark-01.png"
+                src="/images/index/banner-07-a.png"
                 alt=""
                 placeholder="empty"
                 loading="lazy"
@@ -407,9 +407,9 @@ export default function Home() {
             </div>
 
             {/* 中央主標（文字） */}
-            <div className="absolute z-10 left-[8%] sm:left-[14%] md:left-[18%] top-[48%] -translate-y-1/2">
+            <div className="absolute z-10 left-[8%] sm:left-[10%] md:left-[12%] top-[48%] -translate-y-1/2">
               <Image
-                src="/images/index/text-01.png"
+                src="/images/index/banner-03-a.png"
                 alt="headline"
                 placeholder="empty"
                 loading="lazy"
@@ -421,9 +421,9 @@ export default function Home() {
             </div>
 
             {/* 右下人物（主視覺前景，手機收斂一點） */}
-            <div className="absolute z-20 left-[42%] sm:left-[48%] md:left-[52%] bottom-[-8%] sm:bottom-[-14%] md:bottom-[-18%]">
+            <div className="absolute z-20 left-[42%] sm:left-[48%] md:left-[42%] bottom-[-8%] sm:bottom-[-14%] md:bottom-[-18%]">
               <Image
-                src="/images/index/hero-01.png"
+                src="/images/index/banner-04-a.png"
                 alt="people"
                 placeholder="empty"
                 priority
@@ -435,57 +435,18 @@ export default function Home() {
             </div>
 
             {/* 右側直排文案（小螢幕合併縮排，避免擁擠） */}
-            <div className="absolute z-10 right-0 top-[54%] -translate-y-1/2 hidden sm:block">
+            <div className="absolute z-10 right-0 top-[48%] -translate-y-1/2 hidden sm:block">
               <div className="flex flex-col justify-end items-end pr-3 md:pr-6">
-                <div className="bg-black/90 md:bg-black mt-4 rounded-sm">
+                <div className="w-[60vw] md:w-[25vw] mt-4 flex justify-center rounded-sm">
                   <Image
-                    src="/images/index/right-txt-01.png"
+                    src="/images/index/banner-05-a.png"
                     alt=""
                     placeholder="empty"
                     loading="lazy"
                     width={800}
                     height={500}
-                    sizes="(max-width: 1024px) 44vw, 28vw"
-                    className="w-[44vw] md:w-[28vw] max-w-[520px] object-contain"
-                  />
-                </div>
-
-                <div className="bg-black/90 md:bg-black w-[60vw] md:w-[38vw] mt-4 flex justify-center rounded-sm">
-                  <Image
-                    src="/images/index/right-txt-02.png"
-                    alt=""
-                    placeholder="empty"
-                    loading="lazy"
-                    width={800}
-                    height={500}
-                    sizes="(max-width: 1024px) 40vw, 26vw"
-                    className="w-[40vw] md:w-[26vw] max-w-[460px] object-contain"
-                  />
-                </div>
-
-                <div className="mt-4">
-                  <Image
-                    src="/images/index/DAV01968.jpg"
-                    alt=""
-                    placeholder="empty"
-                    loading="lazy"
-                    width={800}
-                    height={500}
-                    sizes="(max-width: 1024px) 52vw, 34vw"
-                    className="w-[52vw] md:w-[34vw] max-w-[680px] object-cover rounded-sm"
-                  />
-                </div>
-
-                <div className="bg-black/90 md:bg-black w-[60vw] md:w-[38vw] mt-4 flex justify-center rounded-sm">
-                  <Image
-                    src="/images/index/right-txt-03.png"
-                    alt=""
-                    placeholder="empty"
-                    loading="lazy"
-                    width={800}
-                    height={500}
-                    sizes="(max-width: 1024px) 40vw, 26vw"
-                    className="w-[40vw] md:w-[26vw] max-w-[460px] object-contain"
+                    sizes="(max-width: 1424px) 40vw, 26vw"
+                    className="w-[40vw] md:w-[30vw] max-w-[1060px] object-contain"
                   />
                 </div>
               </div>
@@ -494,7 +455,7 @@ export default function Home() {
         </section>
 
         {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
-        <section className="py-20">
+        <section className="py-20 bg-white">
           <div className="title">
             <h2 className="text-5xl text-center">BEER STORE</h2>
           </div>
