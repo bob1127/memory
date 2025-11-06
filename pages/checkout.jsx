@@ -8,7 +8,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { cartStore } from "@/lib/cartStore";
 import { authStore } from "@/lib/authStore";
 
-/* === 固定加拿大地區、運費與稅率 (示例) === */
+/* === 固定加拿大地區、運費與稅率 === */
 const AREAS = [
   {
     label: "Vancouver City (including…)",
@@ -29,20 +29,10 @@ const AREAS = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-
-  // debug 面板 (?debug=1)
-  const DEBUG =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("debug") === "1";
-  const [logs, setLogs] = useState([]);
-  const dlog = (label, data) => {
-    const item = { ts: new Date().toISOString(), label, data };
-    console.log("[CHECKOUT]", label, data);
-    setLogs((p) => [...p, item]);
-  };
-
-  // 購物車
   const [cart, setCart] = useState([]);
+  const [placing, setPlacing] = useState(false);
+
+  /* ------------------ 購物車 ------------------ */
   useEffect(() => {
     cartStore.init();
     const unsub = cartStore.subscribe((c) => setCart([...c]));
@@ -54,7 +44,7 @@ export default function CheckoutPage() {
     [cart]
   );
 
-  // 登入會員（從你現有 authStore 取用）
+  /* ------------------ 登入會員 ------------------ */
   const [auth, setAuth] = useState(authStore.get());
   useEffect(() => {
     authStore.init?.();
@@ -62,27 +52,21 @@ export default function CheckoutPage() {
     return unsub;
   }, []);
 
-  // 表單
+  /* ------------------ 表單 ------------------ */
   const [form, setForm] = useState({
     email: "",
-    subscribe: false,
     name: "",
     phone: "",
-    address: "",
-    wechat: "",
-    contactOther: "",
-    payment: "",
     deliveryArea: "",
     deliveryAddress: "",
+    payment: "",
   });
 
-  // 是否使用不同聯絡人（預設 false，登入時鎖住 email）
   const [useDifferentContact, setUseDifferentContact] = useState(false);
 
-  // 登入後自動帶入帳單資訊（可依你後端實際欄位調整）
+  // 登入時自動帶入會員資料
   useEffect(() => {
     if (!auth?.user) return;
-    // 優先取 WooCommerce 帳單欄位；若沒有就用一般檔案欄位
     const firstName =
       auth.user.billing?.first_name ||
       auth.user.first_name ||
@@ -92,17 +76,18 @@ export default function CheckoutPage() {
     const lastName = auth.user.billing?.last_name || auth.user.last_name || "";
     const phone = auth.user.billing?.phone || auth.user.phone || "";
     const email = auth.user.email || auth.user.user_email || "";
+    const address = auth.user.billing?.address_1 || "";
 
     setForm((v) => ({
       ...v,
       name: [firstName, lastName].filter(Boolean).join(" "),
       phone,
       email,
-      address: auth.user.billing?.address_1 || auth.user.address || v.address,
+      deliveryAddress: address || v.deliveryAddress,
     }));
   }, [auth?.user]);
 
-  // 運費 & 稅
+  /* ------------------ 運費與稅 ------------------ */
   const selectedArea = AREAS.find((a) => a.value === form.deliveryArea);
   let shippingFee = selectedArea?.fee || 0;
   const taxRate = selectedArea?.tax || 0;
@@ -118,13 +103,10 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [key]: v }));
   };
 
-  const [placing, setPlacing] = useState(false);
-
+  /* ------------------ 建立訂單 ------------------ */
   async function handlePlaceOrder() {
     try {
       if (!cart.length) return alert("購物車為空");
-
-      // 若已登入：強制用會員 email（避免對帳混亂）
       const emailToUse =
         auth?.user && !useDifferentContact
           ? auth.user.email || auth.user.user_email
@@ -141,27 +123,20 @@ export default function CheckoutPage() {
       const fullAddress = `${areaLabel} ${form.deliveryAddress}`.trim();
 
       setPlacing(true);
+
+      const customerId = auth?.user?.id || auth?.user?.ID || 0;
+
       const payload = {
         cart,
         shipping_fee: shippingFee,
         tax: taxAmount,
         form: {
           ...form,
-          email: emailToUse, // 覆寫
-          address: fullAddress,
-          subtotal,
+          email: emailToUse,
+          deliveryAddress: fullAddress,
         },
-        // ★ 若已登入，帶 customer_id（後端會用它綁定顧客）
-        customer_id: auth?.user?.id || auth?.user?.ID || 0,
+        customerId,
       };
-
-      dlog("create-order.request", {
-        customer_id: payload.customer_id,
-        email: payload.form.email,
-        cartCount: cart.length,
-        shipping_fee: shippingFee,
-        tax: taxAmount,
-      });
 
       const resp = await fetch("/api/wc/create-order", {
         method: "POST",
@@ -169,42 +144,33 @@ export default function CheckoutPage() {
         body: JSON.stringify(payload),
       });
 
-      const raw = await resp.text();
-      let json = {};
-      try {
-        json = raw ? JSON.parse(raw) : {};
-      } catch {
-        dlog("create-order.json-parse-failed", { rawText: raw });
-        throw new Error("create-order 回傳非 JSON");
-      }
-
-      dlog("create-order.response", { status: resp.status, ok: resp.ok, json });
-
-      if (!resp.ok || !json?.ok) {
-        const msg =
-          json?.detail?.message || json?.message || `HTTP ${resp.status}`;
-        alert("下單失敗：" + msg);
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) {
+        const msg = data?.detail?.message || data?.message || "下單失敗";
+        alert(msg);
+        console.error("create-order failed:", data);
         return;
       }
 
+      const orderId = data.order?.id;
+      if (!orderId) throw new Error("未取得 WooCommerce 訂單 ID");
       cartStore.clear?.();
-      const orderId = json.order?.id || json.order_id;
       router.push(`/thank-you?id=${orderId}`);
-    } catch (e) {
-      console.error(e);
-      alert("下單發生錯誤：" + (e?.message || e));
+    } catch (err) {
+      console.error(err);
+      alert("下單發生錯誤：" + (err?.message || err));
     } finally {
       setPlacing(false);
     }
   }
 
+  /* ------------------ UI ------------------ */
   return (
     <Layout>
       <main className="min-h-screen py-10 bg-gray-50 pt-[100px]">
         <div className="mx-auto w-[min(1200px,95vw)] grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 左側：表單 */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            {/* 登入提醒 / 使用不同聯絡人 */}
             {auth?.user && (
               <div className="mb-4 rounded-lg border bg-emerald-50 px-3 py-2 text-sm">
                 以 <b>{auth.user.email || auth.user.user_email}</b> 身份登入。
@@ -222,53 +188,31 @@ export default function CheckoutPage() {
             {/* 聯絡資訊 */}
             <section className="mb-8">
               <h3 className="font-semibold text-lg mb-3">聯絡資訊</h3>
-              <div className="space-y-3">
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={form.email}
-                  onChange={onChange("email")}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-black/10 disabled:opacity-60"
-                  disabled={!!auth?.user && !useDifferentContact}
-                />
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={form.subscribe}
-                    onChange={onChange("subscribe")}
-                  />
-                  訂閱最新優惠與消息
-                </label>
-              </div>
+              <input
+                type="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={onChange("email")}
+                className="w-full border rounded-lg px-3 py-2 mb-2 focus:ring-2 focus:ring-black/10 disabled:opacity-60"
+                disabled={!!auth?.user && !useDifferentContact}
+              />
             </section>
 
             {/* 收件人 */}
             <section className="mb-8">
               <h3 className="font-semibold text-lg mb-3">收件人</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <input
                   placeholder="姓名"
                   value={form.name}
                   onChange={onChange("name")}
-                  className="border rounded-lg px-3 py-2 col-span-2 focus:ring-2 focus:ring-black/10"
+                  className="border rounded-lg px-3 py-2 w-full"
                 />
                 <input
                   placeholder="電話"
                   value={form.phone}
                   onChange={onChange("phone")}
-                  className="border rounded-lg px-3 py-2 col-span-2 focus:ring-2 focus:ring-black/10"
-                />
-                <input
-                  placeholder="WeChat（選填）"
-                  value={form.wechat}
-                  onChange={onChange("wechat")}
-                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-black/10"
-                />
-                <input
-                  placeholder="其他聯絡資訊"
-                  value={form.contactOther}
-                  onChange={onChange("contactOther")}
-                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-black/10"
+                  className="border rounded-lg px-3 py-2 w-full"
                 />
               </div>
             </section>
@@ -280,13 +224,13 @@ export default function CheckoutPage() {
                 {AREAS.map((a) => (
                   <label
                     key={a.value}
-                    className={`flex flex-col sm:flex-row sm:items-center gap-2 p-3 cursor-pointer transition ${
+                    className={`flex justify-between items-center gap-2 p-3 cursor-pointer transition ${
                       form.deliveryArea === a.value
                         ? "bg-yellow-50"
                         : "hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <input
                         type="radio"
                         name="delivery-area"
@@ -295,13 +239,13 @@ export default function CheckoutPage() {
                           setForm((v) => ({ ...v, deliveryArea: a.value }))
                         }
                       />
-                      <span className="text-[15px] font-medium">{a.label}</span>
+                      {a.label}
                     </div>
-                    <div className="ml-auto text-sm text-gray-600">
+                    <div className="text-sm text-gray-600">
                       運費 NT${a.fee} ・ 稅 {a.tax}%
-                      <span className="block text-xs text-gray-500">
+                      <div className="text-xs text-gray-500">
                         滿 NT${a.freeThreshold} 免運
-                      </span>
+                      </div>
                     </div>
                   </label>
                 ))}
@@ -324,7 +268,7 @@ export default function CheckoutPage() {
                 {["貨到付款", "信用卡", "銀行轉帳", "LINE Pay"].map((opt) => (
                   <label
                     key={opt}
-                    className={`flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition ${
+                    className={`flex items-center gap-3 border rounded-lg p-3 cursor-pointer ${
                       form.payment === opt ? "border-black" : "border-gray-300"
                     }`}
                   >
@@ -344,70 +288,31 @@ export default function CheckoutPage() {
           {/* 右側：訂單摘要 */}
           <aside className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-fit">
             <h3 className="font-semibold text-lg mb-4">訂單摘要</h3>
-
             {cart.length === 0 ? (
               <p className="text-gray-500">目前沒有商品</p>
             ) : (
               <ul className="divide-y mb-4">
                 {cart.map((it) => (
-                  <li key={it.id} className="py-3">
+                  <li
+                    key={it.id}
+                    className="py-3 flex justify-between items-center gap-3"
+                  >
                     <div className="flex items-center gap-3">
                       <Image
                         src={it.img}
                         alt={it.name}
-                        width={400}
-                        height={400}
-                        className="rounded max-w-[110px] border object-contain bg-white"
+                        width={80}
+                        height={80}
+                        className="rounded border"
                       />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium line-clamp-2">
-                          {it.name}
-                        </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <button
-                            className="grid h-8 w-8 place-items-center rounded-lg border hover:bg-black/5"
-                            onClick={() =>
-                              cartStore.setQty(
-                                it.id,
-                                Math.max(1, (it.qty || 1) - 1)
-                              )
-                            }
-                          >
-                            <Minus size={16} />
-                          </button>
-                          <input
-                            className="h-8 w-14 rounded-lg border text-center text-sm"
-                            value={it.qty}
-                            onChange={(e) =>
-                              cartStore.setQty(
-                                it.id,
-                                Math.max(1, parseInt(e.target.value || "1", 10))
-                              )
-                            }
-                          />
-                          <button
-                            className="grid h-8 w-8 place-items-center rounded-lg border hover:bg-black/5"
-                            onClick={() =>
-                              cartStore.setQty(it.id, (it.qty || 1) + 1)
-                            }
-                          >
-                            <Plus size={16} />
-                          </button>
-                          <button
-                            className="ml-2 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600"
-                            onClick={() => cartStore.remove(it.id)}
-                          >
-                            <Trash2 size={14} />
-                            刪除
-                          </button>
-                        </div>
+                      <div>
+                        <div className="text-sm font-medium">{it.name}</div>
+                        <div className="text-xs text-gray-500">x {it.qty}</div>
                       </div>
-                      <div className="text-sm font-semibold whitespace-nowrap">
-                        NT{""}$
-                        {(
-                          Number(it.price || 0) * (it.qty || 0)
-                        ).toLocaleString()}
-                      </div>
+                    </div>
+                    <div className="text-sm font-semibold">
+                      NT$
+                      {(Number(it.price || 0) * (it.qty || 0)).toLocaleString()}
                     </div>
                   </li>
                 ))}
@@ -417,49 +322,31 @@ export default function CheckoutPage() {
             <div className="border-t pt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>小計</span>
-                <span>NT$ {subtotal.toLocaleString()}</span>
+                <span>NT${subtotal}</span>
               </div>
               <div className="flex justify-between">
                 <span>運費</span>
-                <span>NT$ {shippingFee.toLocaleString()}</span>
+                <span>NT${shippingFee}</span>
               </div>
               <div className="flex justify-between">
                 <span>稅金</span>
-                <span>NT$ {taxAmount.toLocaleString()}</span>
+                <span>NT${taxAmount}</span>
               </div>
               <div className="flex justify-between font-semibold text-lg pt-2">
                 <span>總計</span>
-                <span>NT$ {total.toLocaleString()}</span>
+                <span>NT${total}</span>
               </div>
             </div>
 
             <button
-              className="mt-6 w-full bg-black text-white py-3 rounded-lg disabled:opacity-60 hover:opacity-90"
               onClick={handlePlaceOrder}
               disabled={placing}
+              className="mt-6 w-full bg-black text-white py-3 rounded-lg disabled:opacity-60 hover:opacity-90"
             >
               {placing ? "建立訂單中…" : "確認下單"}
             </button>
           </aside>
         </div>
-
-        {DEBUG && (
-          <div className="fixed bottom-2 left-2 right-2 max-h-[40vh] overflow-auto rounded-lg border bg-white/95 shadow-lg text-[12px]">
-            <div className="px-3 py-2 font-semibold border-b bg-gray-50">
-              Debug Logs
-            </div>
-            <pre className="p-3 whitespace-pre-wrap">
-              {logs.map(
-                (l, i) =>
-                  `#${i + 1} [${l.ts}] ${l.label}\n${JSON.stringify(
-                    l.data,
-                    null,
-                    2
-                  )}\n\n`
-              )}
-            </pre>
-          </div>
-        )}
       </main>
     </Layout>
   );
