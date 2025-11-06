@@ -4,26 +4,24 @@ const path = require("path");
 /** @type {import('next').NextConfig} */
 module.exports = {
   images: {
-    // ✅ 暫時關閉 Next/Image 最佳化 → 允許任何外部圖片網域
+    // 暫時關閉 Next/Image 最佳化，避免外網域設定不齊造成阻擋
     unoptimized: true,
-
-    // （保留你原本的 allowlist；unoptimized=true 時不會用到，但留著以後好恢復）
     remotePatterns: [
       { protocol: "https", hostname: "inf.fjg.mybluehost.me", pathname: "/**" },
       { protocol: "https", hostname: "i0.wp.com", pathname: "/**" },
       { protocol: "https", hostname: "image.memorycorner8.com", pathname: "/**" },
-      // 之後要恢復最佳化時，遇到新網域再加這裡即可
     ],
-
-    formats: ["image/avif", "image/webp"], // unoptimized=true 時可有可無
+    formats: ["image/avif", "image/webp"],
   },
 
-  trailingSlash: true,
+  // ✅ 關閉尾斜線，避免 /api/.../ 404
+  trailingSlash: false,
 
-  webpackDevMiddleware: (config) => {
-    config.watchOptions = { poll: 1000, aggregateTimeout: 300 };
-    return config;
-  },
+  // ❌ 移除新版不支援的 webpackDevMiddleware
+  // webpackDevMiddleware: (config) => {
+  //   config.watchOptions = { poll: 1000, aggregateTimeout: 300 };
+  //   return config;
+  // },
 
   sassOptions: {
     includePaths: [path.join(__dirname, "styles")],
