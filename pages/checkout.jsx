@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { cartStore } from "@/lib/cartStore";
 import Layout from "./Layout";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { cartStore } from "@/lib/cartStore";
+import { authStore } from "@/lib/authStore";
 
-/* === 固定加拿大地區、運費與稅率 === */
+/* === 固定加拿大地區、運費與稅率 (示例) === */
 const AREAS = [
   {
     label: "Vancouver City (including…)",
@@ -29,20 +30,39 @@ const AREAS = [
 export default function CheckoutPage() {
   const router = useRouter();
 
-  // 是否開啟偵錯面板（網址帶 ?debug=1）
+  // debug 面板 (?debug=1)
   const DEBUG =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("debug") === "1";
   const [logs, setLogs] = useState([]);
-  const dlog = (label, obj) => {
-    const item = { ts: new Date().toISOString(), label, data: obj };
-    console.log("[CHECKOUT]", label, obj);
-    setLogs((prev) => [...prev, item]);
+  const dlog = (label, data) => {
+    const item = { ts: new Date().toISOString(), label, data };
+    console.log("[CHECKOUT]", label, data);
+    setLogs((p) => [...p, item]);
   };
 
+  // 購物車
   const [cart, setCart] = useState([]);
-  const [placing, setPlacing] = useState(false);
+  useEffect(() => {
+    cartStore.init();
+    const unsub = cartStore.subscribe((c) => setCart([...c]));
+    return unsub;
+  }, []);
+  const subtotal = useMemo(
+    () =>
+      cart.reduce((sum, it) => sum + Number(it.price || 0) * (it.qty || 0), 0),
+    [cart]
+  );
 
+  // 登入會員（從你現有 authStore 取用）
+  const [auth, setAuth] = useState(authStore.get());
+  useEffect(() => {
+    authStore.init?.();
+    const unsub = authStore.subscribe((s) => setAuth({ ...s }));
+    return unsub;
+  }, []);
+
+  // 表單
   const [form, setForm] = useState({
     email: "",
     subscribe: false,
@@ -56,28 +76,40 @@ export default function CheckoutPage() {
     deliveryAddress: "",
   });
 
+  // 是否使用不同聯絡人（預設 false，登入時鎖住 email）
+  const [useDifferentContact, setUseDifferentContact] = useState(false);
+
+  // 登入後自動帶入帳單資訊（可依你後端實際欄位調整）
   useEffect(() => {
-    cartStore.init();
-    const unsub = cartStore.subscribe((c) => setCart([...c]));
-    return unsub;
-  }, []);
+    if (!auth?.user) return;
+    // 優先取 WooCommerce 帳單欄位；若沒有就用一般檔案欄位
+    const firstName =
+      auth.user.billing?.first_name ||
+      auth.user.first_name ||
+      auth.user.displayName ||
+      auth.user.name ||
+      "";
+    const lastName = auth.user.billing?.last_name || auth.user.last_name || "";
+    const phone = auth.user.billing?.phone || auth.user.phone || "";
+    const email = auth.user.email || auth.user.user_email || "";
 
-  const subtotal = useMemo(
-    () =>
-      cart.reduce((sum, it) => sum + Number(it.price || 0) * (it.qty || 0), 0),
-    [cart]
-  );
+    setForm((v) => ({
+      ...v,
+      name: [firstName, lastName].filter(Boolean).join(" "),
+      phone,
+      email,
+      address: auth.user.billing?.address_1 || auth.user.address || v.address,
+    }));
+  }, [auth?.user]);
 
-  /* === 根據地區選擇計算運費＋稅金 === */
+  // 運費 & 稅
   const selectedArea = AREAS.find((a) => a.value === form.deliveryArea);
   let shippingFee = selectedArea?.fee || 0;
   const taxRate = selectedArea?.tax || 0;
   if (selectedArea && subtotal >= selectedArea.freeThreshold) shippingFee = 0;
-
   const taxAmount = Math.round((subtotal * taxRate) / 100);
   const total = subtotal + shippingFee + taxAmount;
 
-  // onChange
   const onChange = (key) => (e) => {
     const v =
       e?.target?.type === "checkbox"
@@ -86,12 +118,20 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [key]: v }));
   };
 
+  const [placing, setPlacing] = useState(false);
+
   async function handlePlaceOrder() {
     try {
-      // === 前置驗證 ===
       if (!cart.length) return alert("購物車為空");
-      if (!form.name || !form.phone || !form.email)
-        return alert("請填寫姓名、電話、Email");
+
+      // 若已登入：強制用會員 email（避免對帳混亂）
+      const emailToUse =
+        auth?.user && !useDifferentContact
+          ? auth.user.email || auth.user.user_email
+          : form.email;
+
+      if (!emailToUse) return alert("Email 必填");
+      if (!form.name || !form.phone) return alert("請填寫姓名與電話");
       if (!form.payment) return alert("請選擇付款方式");
       if (!form.deliveryArea) return alert("請選擇外送地區");
       if (!form.deliveryAddress.trim()) return alert("請輸入詳細地址");
@@ -101,18 +141,24 @@ export default function CheckoutPage() {
       const fullAddress = `${areaLabel} ${form.deliveryAddress}`.trim();
 
       setPlacing(true);
-
-      // === 呼叫 create-order（後端會負責送 WhatsApp 範本）===
-      const t0 = performance.now();
-      dlog("create-order.request", {
-        cartCount: cart.length,
-        formPreview: {
-          name: form.name,
-          phone: form.phone,
-          email: form.email,
-          payment: form.payment,
-          deliveryArea: form.deliveryArea,
+      const payload = {
+        cart,
+        shipping_fee: shippingFee,
+        tax: taxAmount,
+        form: {
+          ...form,
+          email: emailToUse, // 覆寫
+          address: fullAddress,
+          subtotal,
         },
+        // ★ 若已登入，帶 customer_id（後端會用它綁定顧客）
+        customer_id: auth?.user?.id || auth?.user?.ID || 0,
+      };
+
+      dlog("create-order.request", {
+        customer_id: payload.customer_id,
+        email: payload.form.email,
+        cartCount: cart.length,
         shipping_fee: shippingFee,
         tax: taxAmount,
       });
@@ -120,32 +166,19 @@ export default function CheckoutPage() {
       const resp = await fetch("/api/wc/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cart,
-          form: { ...form, address: fullAddress, subtotal },
-          shipping_fee: shippingFee,
-          tax: taxAmount,
-        }),
-      }).catch((err) => {
-        dlog("create-order.network-error", String(err));
-        throw err;
+        body: JSON.stringify(payload),
       });
 
-      const rawText = await resp.text(); // 先抓 raw 以便除錯
+      const raw = await resp.text();
       let json = {};
       try {
-        json = rawText ? JSON.parse(rawText) : {};
-      } catch (e) {
-        dlog("create-order.json-parse-failed", { rawText });
-        throw new Error("create-order 回傳非 JSON，請看 console");
+        json = raw ? JSON.parse(raw) : {};
+      } catch {
+        dlog("create-order.json-parse-failed", { rawText: raw });
+        throw new Error("create-order 回傳非 JSON");
       }
 
-      dlog("create-order.response", {
-        status: resp.status,
-        ok: resp.ok,
-        elapsedMs: Math.round(performance.now() - t0),
-        json,
-      });
+      dlog("create-order.response", { status: resp.status, ok: resp.ok, json });
 
       if (!resp.ok || !json?.ok) {
         const msg =
@@ -154,21 +187,11 @@ export default function CheckoutPage() {
         return;
       }
 
-      // === 顯示 WA 發送結果（staff/customer）===
-      if (json.whatsapp) {
-        const report = JSON.stringify(json.whatsapp, null, 2);
-        dlog("whatsapp.results", json.whatsapp);
-        alert("WhatsApp 發送結果：\n" + report);
-      } else {
-        dlog("whatsapp.results", "後端未回傳 whatsapp 欄位");
-      }
-
-      const order = json.order;
       cartStore.clear?.();
-      router.push(`/thank-you?id=${order.id}`);
+      const orderId = json.order?.id || json.order_id;
+      router.push(`/thank-you?id=${orderId}`);
     } catch (e) {
       console.error(e);
-      dlog("handlePlaceOrder.error", String(e?.message || e));
       alert("下單發生錯誤：" + (e?.message || e));
     } finally {
       setPlacing(false);
@@ -181,6 +204,21 @@ export default function CheckoutPage() {
         <div className="mx-auto w-[min(1200px,95vw)] grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 左側：表單 */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            {/* 登入提醒 / 使用不同聯絡人 */}
+            {auth?.user && (
+              <div className="mb-4 rounded-lg border bg-emerald-50 px-3 py-2 text-sm">
+                以 <b>{auth.user.email || auth.user.user_email}</b> 身份登入。
+                <label className="ml-3 inline-flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={useDifferentContact}
+                    onChange={(e) => setUseDifferentContact(e.target.checked)}
+                  />
+                  使用不同聯絡人（允許修改 Email）
+                </label>
+              </div>
+            )}
+
             {/* 聯絡資訊 */}
             <section className="mb-8">
               <h3 className="font-semibold text-lg mb-3">聯絡資訊</h3>
@@ -190,7 +228,8 @@ export default function CheckoutPage() {
                   placeholder="Email"
                   value={form.email}
                   onChange={onChange("email")}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-black/10"
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-black/10 disabled:opacity-60"
+                  disabled={!!auth?.user && !useDifferentContact}
                 />
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input
@@ -342,7 +381,7 @@ export default function CheckoutPage() {
                             onChange={(e) =>
                               cartStore.setQty(
                                 it.id,
-                                Math.max(1, parseInt(e.target.value || "1"))
+                                Math.max(1, parseInt(e.target.value || "1", 10))
                               )
                             }
                           />
@@ -364,7 +403,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                       <div className="text-sm font-semibold whitespace-nowrap">
-                        NT$
+                        NT{""}$
                         {(
                           Number(it.price || 0) * (it.qty || 0)
                         ).toLocaleString()}
@@ -375,7 +414,6 @@ export default function CheckoutPage() {
               </ul>
             )}
 
-            {/* 概覽 */}
             <div className="border-t pt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>小計</span>
@@ -405,7 +443,6 @@ export default function CheckoutPage() {
           </aside>
         </div>
 
-        {/* 偵錯面板：網址加 ?debug=1 才會顯示 */}
         {DEBUG && (
           <div className="fixed bottom-2 left-2 right-2 max-h-[40vh] overflow-auto rounded-lg border bg-white/95 shadow-lg text-[12px]">
             <div className="px-3 py-2 font-semibold border-b bg-gray-50">

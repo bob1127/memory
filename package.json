@@ -50,6 +50,7 @@
     "cloudinary-react": "^1.8.1",
     "cloudinary-video-player": "^1.10.2",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.19",
     "dompurify": "^3.2.4",
     "ecpay_aio_nodejs": "^1.2.2",
     "embla-carousel-autoplay": "^8.6.0",

@@ -90,6 +90,48 @@ const listItem = {
   exit: { opacity: 0, y: 10, transition: { duration: 0.15 } },
 };
 
+/* ====== Login helpers：把使用者輸入規範化、並提供後備嘗試 ====== */
+function normalizeLoginPayload({ username, password }) {
+  const u = String(username || "").trim();
+  const p = String(password || "");
+  const payload = { password: p };
+
+  const isEmail = /\S+@\S+\.\S+/.test(u);
+  const isPhone = /^\+?\d[\d\s-]{6,}$/.test(u);
+
+  if (isEmail) {
+    payload.email = u.toLowerCase(); // 多數後端 email 不分大小寫
+    payload.username = u; // 也一併塞到 username，提升相容性
+  } else if (isPhone) {
+    payload.phone = u.replace(/\s|-/g, "");
+    payload.username = payload.phone; // 有些只吃 username
+  } else {
+    payload.username = u;
+  }
+  return payload;
+}
+
+/** 先用 normalize 遞交；失敗時嘗試換鍵名再登一次（常見於只吃 email 或只吃 username 的後端） */
+async function tryLoginFallback(store, raw) {
+  const first = normalizeLoginPayload(raw);
+  try {
+    return await store.login(first);
+  } catch (e1) {
+    const second = { password: first.password };
+    if (first.email) {
+      second.username = first.email; // 把 email 改丟 username
+    } else if (first.username && first.username.includes("@")) {
+      second.email = first.username.toLowerCase(); // 把 username 改丟 email
+    } else if (first.phone) {
+      second.username = first.phone; // 僅送 username
+    } else {
+      // 最基本的後備
+      second.username = first.username;
+    }
+    return store.login(second);
+  }
+}
+
 /* ------- 簡潔 Hover Flyout（靠左對齊） ------- */
 function FlyoutLink({ label, href = "#", FlyoutContent }) {
   const [open, setOpen] = useState(false);
@@ -158,7 +200,7 @@ const BrandMenuContent = () => (
       <li key={t}>
         <Link
           href={href}
-          className="block text-base text-black rounded-lg px-3 py-2 hover:text白 hover:bg-[#e09437] transition-colors"
+          className="block text-base text-black rounded-lg px-3 py-2 hover:bg-[#e09437] hover:text-white transition-colors"
         >
           {t}
         </Link>
@@ -260,9 +302,9 @@ export const SlideTabsExample = () => {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   useEffect(() => {
-    cartStore.init();
-    const unsub = cartStore.subscribe((c) => setCart([...c]));
-    return unsub;
+    cartStore.init?.();
+    const unsub = cartStore.subscribe?.((c) => setCart([...(c || [])]));
+    return typeof unsub === "function" ? unsub : undefined;
   }, []);
   const cartCount = cart.reduce((n, it) => n + (it.qty || 0), 0);
   const subtotal = cart.reduce(
@@ -271,40 +313,51 @@ export const SlideTabsExample = () => {
   );
 
   // 會員
-  const [auth, setAuth] = useState(authStore.get());
+  const [auth, setAuth] = useState(authStore.get?.() || {});
   const [userOpen, setUserOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState("login");
   const [authLoading, setAuthLoading] = useState(false);
   const [authErr, setAuthErr] = useState("");
 
-  // ✅ 新增：線上點餐彈出框
+  // ✅ 線上點餐彈出框
   const [showOrderPopup, setShowOrderPopup] = useState(false);
 
-  // ✅ 新增：加入購物車成功提示
+  // ✅ 加入購物車成功提示
   const [showAdded, setShowAdded] = useState(false);
   const [addedItem, setAddedItem] = useState(null);
 
+  // 初始化與訂閱 auth 狀態
   useEffect(() => {
-    authStore.init();
-    const unsub = authStore.subscribe((s) => setAuth({ ...s }));
-    return unsub;
+    authStore.init?.();
+    const unsub = authStore.subscribe?.((s) => setAuth({ ...(s || {}) }));
+    return typeof unsub === "function" ? unsub : undefined;
+  }, []);
+
+  // 跨分頁同步（localStorage 變更時重新 init）
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (!e) return;
+      if (!e.key) return;
+      const k = e.key.toLowerCase();
+      if (k.includes("auth") || k.includes("token") || k.includes("user")) {
+        authStore.init?.();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   // 在商品卡片或詳情頁呼叫這個
   const handleAddToCart = (item) => {
-    // 你的 cartStore.add 可能是 add(id, qty, meta)；這裡用常見結構示例
-    cartStore.add({
+    cartStore.add?.({
       id: item.id,
       name: item.name,
       img: item.img,
       price: item.price,
       qty: item.qty || 1,
     });
-    setAddedItem({
-      ...item,
-      qty: item.qty || 1,
-    });
+    setAddedItem({ ...item, qty: item.qty || 1 });
     setShowAdded(true);
   };
 
@@ -403,7 +456,7 @@ export const SlideTabsExample = () => {
                 線上點餐
               </button>
 
-              {/* 會員 icon */}
+              {/* 會員 icon（顯示「已登入」徽章 + 快速進入帳戶） */}
               <div className="relative">
                 <button
                   aria-label="user"
@@ -411,15 +464,20 @@ export const SlideTabsExample = () => {
                   className="relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
                 >
                   <User2 size={18} />
+                  {auth?.user && (
+                    <span className="absolute -right-1 -top-1 rounded-full bg-emerald-500 px-1.5 py-[1px] text-[10px] text-white shadow">
+                      已登入
+                    </span>
+                  )}
                 </button>
 
                 <AnimatePresence>
                   {userOpen && (
                     <motion.div
                       {...fadeUp}
-                      className="absolute right-0 mt-2 w-60 rounded-xl border border-white/15 bg黑/80 text-white shadow-xl backdrop-blur-md"
+                      className="absolute right-0 mt-2 w-72 rounded-xl border border-white/15 bg-black/80 text-white shadow-xl backdrop-blur-md"
                     >
-                      {!auth.user ? (
+                      {!auth?.user ? (
                         <div className="p-2">
                           <button
                             onClick={() => {
@@ -445,10 +503,17 @@ export const SlideTabsExample = () => {
                       ) : (
                         <div className="p-2 text-sm">
                           <div className="px-3 py-2">
-                            嗨，
-                            {auth.user.displayName ||
-                              auth.user.name ||
-                              auth.user.email}
+                            <div className="text-white/80">已登入</div>
+                            <div className="truncate font-medium">
+                              {auth.user.displayName ||
+                                auth.user.name ||
+                                auth.user.email}
+                            </div>
+                            {auth.user.email && (
+                              <div className="truncate text-xs text-white/60">
+                                {auth.user.email}
+                              </div>
+                            )}
                           </div>
                           <Link
                             href="/account"
@@ -458,9 +523,18 @@ export const SlideTabsExample = () => {
                             我的帳戶 / 訂單
                           </Link>
                           <button
-                            onClick={() => {
-                              authStore.logout();
-                              setUserOpen(false);
+                            onClick={async () => {
+                              try {
+                                await authStore.logout?.();
+                              } finally {
+                                setUserOpen(false);
+                                if (typeof window !== "undefined") {
+                                  setTimeout(
+                                    () => window.location.reload(),
+                                    120
+                                  );
+                                }
+                              }
                             }}
                             className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-red-200 hover:bg-red-500/10 transition-colors"
                           >
@@ -523,7 +597,7 @@ export const SlideTabsExample = () => {
             placeholder="empty"
             width={1920}
             height={600}
-          ></Image>
+          />
           <div className="grid grid-cols-2">
             <Link
               href="https:google.com"
@@ -537,9 +611,8 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
-
             <Link
               href="https:google.com"
               target="_blank"
@@ -552,7 +625,7 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
             <Link
               href="https:google.com"
@@ -566,7 +639,7 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
             <Link
               href="https:google.com"
@@ -580,7 +653,7 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
           </div>
           <Image
@@ -590,7 +663,7 @@ export const SlideTabsExample = () => {
             placeholder="empty"
             width={1920}
             height={600}
-          ></Image>
+          />
           <Image
             src="/images/online-store/desktop-07.png"
             alt=""
@@ -598,7 +671,7 @@ export const SlideTabsExample = () => {
             placeholder="empty"
             width={1920}
             height={600}
-          ></Image>
+          />
         </div>
         <div className="w-full sm:block hidden">
           <Image
@@ -608,7 +681,7 @@ export const SlideTabsExample = () => {
             placeholder="empty"
             width={1920}
             height={600}
-          ></Image>
+          />
           <div className="grid grid-cols-4">
             <Link
               href="https:google.com"
@@ -622,9 +695,8 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
-
             <Link
               href="https:google.com"
               target="_blank"
@@ -637,7 +709,7 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
             <Link
               href="https:google.com"
@@ -651,7 +723,7 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
             <Link
               href="https:google.com"
@@ -665,7 +737,7 @@ export const SlideTabsExample = () => {
                 placeholder="empty"
                 width={1920}
                 height={600}
-              ></Image>
+              />
             </Link>
           </div>
           <Image
@@ -675,7 +747,7 @@ export const SlideTabsExample = () => {
             placeholder="empty"
             width={1920}
             height={600}
-          ></Image>
+          />
           <Image
             src="/images/online-store/desktop-07.png"
             alt=""
@@ -683,7 +755,7 @@ export const SlideTabsExample = () => {
             placeholder="empty"
             width={1920}
             height={600}
-          ></Image>
+          />
         </div>
       </OrderPopup>
 
@@ -783,11 +855,11 @@ export const SlideTabsExample = () => {
                                   {it.name || ""}
                                 </div>
 
-                                <div className="mt-2 flex items-center gap-2">
+                                <div className="mt-2 flex items中心 gap-2">
                                   <button
                                     className="grid h-7 w-7 place-items-center rounded-lg border border黑/10 hover:bg黑/5 active:scale-95 transition"
                                     onClick={() =>
-                                      cartStore.setQty(
+                                      cartStore.setQty?.(
                                         it.id,
                                         Math.max(1, (it.qty || 1) - 1)
                                       )
@@ -799,7 +871,7 @@ export const SlideTabsExample = () => {
                                     className="h-7 w-12 rounded-lg border border黑/10 text-center text-sm"
                                     value={it.qty}
                                     onChange={(e) =>
-                                      cartStore.setQty(
+                                      cartStore.setQty?.(
                                         it.id,
                                         Math.max(
                                           1,
@@ -811,7 +883,10 @@ export const SlideTabsExample = () => {
                                   <button
                                     className="grid h-7 w-7 place-items-center rounded-lg border border黑/10 hover:bg黑/5 active:scale-95 transition"
                                     onClick={() =>
-                                      cartStore.setQty(it.id, (it.qty || 1) + 1)
+                                      cartStore.setQty?.(
+                                        it.id,
+                                        (it.qty || 1) + 1
+                                      )
                                     }
                                   >
                                     <Plus size={14} />
@@ -828,7 +903,7 @@ export const SlideTabsExample = () => {
                                 </div>
                                 <button
                                   className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 active:scale-95 transition"
-                                  onClick={() => cartStore.remove(it.id)}
+                                  onClick={() => cartStore.remove?.(it.id)}
                                 >
                                   <Trash2 size={14} />
                                   刪除
@@ -870,7 +945,7 @@ export const SlideTabsExample = () => {
 
                       <div className="mt-4 grid gap-2">
                         <button
-                          className="rounded-xl bg-black px-4 py-3 text-white shadow-sm hover:opacity-90 active:scale-[0.99] transition"
+                          className="rounded-xl bg黑 px-4 py-3 text白 shadow-sm hover:opacity-90 active:scale-[0.99] transition"
                           onClick={() => {
                             setCartOpen(false);
                             router.push("/checkout");
@@ -880,7 +955,7 @@ export const SlideTabsExample = () => {
                           前往結帳 ({cartCount})
                         </button>
                         <button
-                          className="rounded-xl border border黑/15 bg-white px-4 py-3 text-black hover:bg黑/5 active:scale-[0.99] transition"
+                          className="rounded-xl border border黑/15 bg白 px-4 py-3 text黑 hover:bg黑/5 active:scale-[0.99] transition"
                           onClick={() => setCartOpen(false)}
                         >
                           繼續購物
@@ -909,14 +984,20 @@ export const SlideTabsExample = () => {
           try {
             setAuthErr("");
             setAuthLoading(true);
+
             if (authMode === "login") {
-              await authStore.login(payload);
+              await tryLoginFallback(authStore, payload);
             } else {
-              await authStore.register(payload);
+              await authStore.register?.(payload);
+              await tryLoginFallback(authStore, {
+                username: payload.email || payload.phone || payload.name,
+                password: payload.password,
+              });
             }
+
             setShowAuthModal(false);
           } catch (e) {
-            setAuthErr(String(e?.message || e));
+            setAuthErr(String(e?.message || e || "登入失敗，請確認帳號密碼"));
           } finally {
             setAuthLoading(false);
           }
@@ -1059,7 +1140,10 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
       onSubmit={(e) => {
         e.preventDefault();
         if (mode === "login") {
-          onSubmit({ username: f.username.trim(), password: f.password });
+          onSubmit({
+            username: f.username.trim(), // 讓外層 helper 規範化
+            password: f.password,
+          });
         } else {
           if (
             !f.email.trim() ||

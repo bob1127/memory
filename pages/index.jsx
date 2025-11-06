@@ -680,7 +680,7 @@ export default function Home() {
               <h2 className="text-[#1b1b1b] text-6xl font-extrabold">VIDEO</h2>
             </FadeUp>
             <FadeUp delay={0.06}>
-              <h3 className="text-[#f39837] text-center text-2xl font-normal">
+              <h3 className="text-white text-center text-2xl font-normal">
                 Lorem ipsum dolor, sit amet consectetur adipisicing.
               </h3>
             </FadeUp>
@@ -750,7 +750,7 @@ export default function Home() {
                   </h2>
                 </FadeUp>
                 <FadeUp delay={0.06}>
-                  <h3 className="text-[#f39837] text-2xl text-center font-normal">
+                  <h3 className="text-white text-2xl text-center font-normal">
                     Lorem ipsum dolor, sit amet consectetur adipisicing.
                   </h3>
                 </FadeUp>
