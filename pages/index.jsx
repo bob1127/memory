@@ -270,7 +270,27 @@ function SnackDropLoop({
     </motion.div>
   );
 }
-
+function RotatingMark({ className = "", sizeVW = 10 }) {
+  return (
+    <motion.div
+      className={`absolute ${className}`}
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, ease: "linear", duration: 16 }}
+      style={{ width: `${sizeVW}vw`, minWidth: 56 }} // 行動裝置保底尺寸
+    >
+      <Image
+        src="/images/index/banner-07-a.png"
+        alt="mark"
+        width={800}
+        height={500}
+        loading="lazy"
+        placeholder="empty"
+        className="w-full h-auto"
+        sizes="(max-width: 640px) 64px, 10vw"
+      />
+    </motion.div>
+  );
+}
 export default function Home() {
   const rightRef = useRef(null);
 
@@ -348,114 +368,69 @@ export default function Home() {
         </div>
 
         {/* ===== HERO（自適應優化） ===== */}
-        <section className="section-hero h-[80vh] md:h-screen min-h-[560px] overflow-hidden">
+        <section className="section-hero  mt-[65px] md:mt-0 aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
-            {/* 背景大圖（靠右） */}
-            <div className="absolute z-10 right-[-20%] md:right-[-10%] top-[28%] -translate-y-1/2">
+            {/* 中央主標（文字） */}
+            <div className="absolute z-10 right-[0%] top-[-10%]">
               <Image
                 src="/images/index/banner-06-a.png"
-                alt=""
+                alt="background"
                 placeholder="empty"
                 loading="lazy"
-                width={1800}
-                height={1500}
-                sizes="(max-width: 640px) 120vw, (max-width: 1024px) 80vw, 60vw"
-                className="w-[1200px] sm:w-[1300px] lg:w-[1500px] max-w-none object-contain"
+                width={800}
+                height={500}
+                className="w-[80vw] "
               />
             </div>
-
-            {/* 左側主菜（前景） */}
-            <div className="absolute z-40 left-[-4%] sm:left-[-6%] md:left-[-8%] top-[30%] -translate-y-1/2">
+            <div className="absolute z-20 right-[0%] bottom-0">
+              <Image
+                src="/images/index/banner-05-a.png"
+                alt="charactor"
+                placeholder="empty"
+                loading="lazy"
+                width={800}
+                height={500}
+                className="w-[60vw] "
+              />
+            </div>
+            <div className="absolute z-10 left-[-10%] top-[14%]">
               <Image
                 src="/images/index/banner-02-a.png"
-                alt="main-dish"
+                alt="chopsticks"
                 placeholder="empty"
                 loading="lazy"
                 width={800}
                 height={500}
-                sizes="(max-width: 640px) 48vw, (max-width: 1024px) 36vw, 28vw"
-                className="w-[44vw] md:w-[34vw] lg:w-[28vw] max-w-[640px] object-contain"
+                className="w-[30vw] "
               />
             </div>
-
-            {/* 左下裝飾圖 */}
-            <div className="absolute z-20 left-[2%] sm:left-[2%] md:left-0 top-[62%] -translate-y-1/2">
-              <Image
-                src="/images/index/banner-01-a.png"
-                alt=""
-                placeholder="empty"
-                loading="lazy"
-                width={800}
-                height={500}
-                sizes="(max-width: 640px) 40vw, (max-width: 1024px) 32vw, 24vw"
-                className="w-[42vw] md:w-[30vw] lg:w-[24vw] max-w-[520px] object-contain"
-              />
-            </div>
-
-            {/* 左下 logo/標章 */}
-            <div className="absolute z-20 left-[18%] sm:left-[14%] md:left-[16%] top-[86%] -translate-y-1/2">
+            <div className="absolute z-30 left-[20%] bottom-[20%] xl:bottom-[7%]">
               <Image
                 src="/images/index/banner-07-a.png"
-                alt=""
+                alt="mark"
                 placeholder="empty"
                 loading="lazy"
                 width={800}
                 height={500}
-                sizes="(max-width: 640px) 18vw, 12vw"
-                className="w-[18vw] md:w-[12vw] max-w-[180px] object-contain"
+                className="w-[10vw] "
               />
             </div>
-
-            {/* 中央主標（文字） */}
-            <div className="absolute z-10 left-[8%] sm:left-[10%] md:left-[12%] top-[48%] -translate-y-1/2">
+            <div className="absolute z-10 left-[2%]  top-1/2 -translate-y-1/2">
               <Image
-                src="/images/index/banner-03-a.png"
-                alt="headline"
+                src="/images/index/banner-01-a.png"
+                alt="hotpot"
                 placeholder="empty"
                 loading="lazy"
                 width={800}
                 height={500}
-                sizes="(max-width: 640px) 70vw, (max-width: 1024px) 54vw, 42vw"
-                className="w-[70vw] sm:w-[56vw] md:w-[46vw] lg:w-[42vw] max-w-[820px] object-contain"
+                className="w-[57vw] "
               />
-            </div>
-
-            {/* 右下人物（主視覺前景，手機收斂一點） */}
-            <div className="absolute z-20 left-[42%] sm:left-[48%] md:left-[42%] bottom-[-8%] sm:bottom-[-14%] md:bottom-[-18%]">
-              <Image
-                src="/images/index/banner-04-a.png"
-                alt="people"
-                placeholder="empty"
-                priority
-                width={800}
-                height={500}
-                sizes="(max-width: 640px) 52vw, (max-width: 1024px) 44vw, 38vw"
-                className="w-[52vw] sm:w-[46vw] md:w-[40vw] lg:w-[38vw] max-w-[880px] object-contain"
-              />
-            </div>
-
-            {/* 右側直排文案（小螢幕合併縮排，避免擁擠） */}
-            <div className="absolute z-10 right-0 top-[48%] -translate-y-1/2 hidden sm:block">
-              <div className="flex flex-col justify-end items-end pr-3 md:pr-6">
-                <div className="w-[60vw] md:w-[25vw] mt-4 flex justify-center rounded-sm">
-                  <Image
-                    src="/images/index/banner-05-a.png"
-                    alt=""
-                    placeholder="empty"
-                    loading="lazy"
-                    width={800}
-                    height={500}
-                    sizes="(max-width: 1424px) 40vw, 26vw"
-                    className="w-[40vw] md:w-[30vw] max-w-[1060px] object-contain"
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </section>
 
         {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
-        <section className="py-20 bg-white">
+        <section className="py-20 bg-[#f9f3e0]">
           <div className="title">
             <h2 className="text-5xl text-center">BEER STORE</h2>
           </div>
