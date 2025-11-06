@@ -303,7 +303,7 @@ export default function CheckoutPage() {
                         alt={it.name}
                         width={80}
                         height={80}
-                        className="rounded border"
+                        className="rounded border border max-w-[150px]"
                       />
                       <div>
                         <div className="text-sm font-medium">{it.name}</div>
