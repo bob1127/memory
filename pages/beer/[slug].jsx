@@ -41,135 +41,183 @@ export default function BeerInner({ product }) {
 
   return (
     <Layout>
-      {/* ---------- 主內容 ---------- */}
-      <section className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
-        {/* ---------- 左側圖片區 ---------- */}
-        <div className="relative w-full">
-          {/* 主圖 */}
-          <Swiper
-            modules={[Thumbs]}
-            spaceBetween={10}
-            thumbs={{ swiper: thumbsSwiper }}
-            className="mb-4 rounded-2xl overflow-hidden shadow-md"
-          >
-            {product.images.map((img, idx) => (
-              <SwiperSlide key={idx}>
-                <Image
-                  src={img}
-                  alt={product.name}
-                  width={900}
-                  height={900}
-                  className="w-full h-auto object-cover"
-                  priority={idx === 0}
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-
-          {/* 縮圖 */}
-          <Swiper
-            onSwiper={setThumbsSwiper}
-            spaceBetween={10}
-            slidesPerView={4}
-            breakpoints={{
-              640: { slidesPerView: 5 },
-              1024: { slidesPerView: 6 },
-            }}
-            modules={[Thumbs]}
-            className="cursor-pointer"
-          >
-            {product.images.map((img, idx) => (
-              <SwiperSlide key={idx}>
-                <Image
-                  src={img}
-                  alt={`thumb-${idx}`}
-                  width={100}
-                  height={100}
-                  className="rounded-lg aspect-square object-cover border hover:border-black transition-all duration-200"
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </div>
-
-        {/* ---------- 右側商品資訊 ---------- */}
-        <div className="flex flex-col gap-5">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-wide leading-snug">
-            <span className="text-gray-400 mr-2">BEER</span>
-            {product.name}
-          </h1>
-
-          {/* Tag 標籤 */}
-          {product.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {product.tags.map((t) => (
-                <span
-                  key={t}
-                  className="text-xs sm:text-sm border border-gray-300 px-3 py-1 rounded-full"
-                >
-                  {t}
-                </span>
-              ))}
+      <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8  pt-[100px]">
+        <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
+          {/* ---------- 左：圖片區（桌機 sticky） ---------- */}
+          <div className="lg:sticky lg:top-24 self-start">
+            {/* 主圖 */}
+            {/* 主圖（1:1 正方形，自適應） */}
+            <div className="aspect-square rounded-2xl overflow-hidden shadow-sm bg-neutral-50">
+              <Swiper
+                modules={[Thumbs]}
+                spaceBetween={12}
+                thumbs={{ swiper: thumbsSwiper }}
+                className="w-full h-full"
+              >
+                {(product.images?.length
+                  ? product.images
+                  : ["/images/beer04.png"]
+                ).map((img, idx) => (
+                  <SwiperSlide key={idx}>
+                    <div className="relative w-full h-full">
+                      {/* 用 fill + object-contain，維持 1:1 內完整置中顯示 */}
+                      <Image
+                        src={img}
+                        alt={`${product.name} - 圖片 ${idx + 1}`}
+                        fill
+                        priority={idx === 0}
+                        className="object-contain"
+                        sizes="(max-width: 1024px) 100vw, 600px"
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </div>
-          )}
 
-          {/* 價格區 */}
-          <div className="mt-3">
-            <p className="text-3xl font-semibold text-black">
-              NT$ {product.price}
-            </p>
-            {product.regular_price &&
-              product.regular_price !== product.price && (
-                <p className="text-gray-400 line-through text-sm mt-1">
-                  NT$ {product.regular_price}
-                </p>
+            {/* 縮圖 */}
+            <Swiper
+              onSwiper={setThumbsSwiper}
+              spaceBetween={10}
+              slidesPerView={5}
+              breakpoints={{
+                480: { slidesPerView: 5 },
+                768: { slidesPerView: 6 },
+                1024: { slidesPerView: 7 },
+              }}
+              modules={[Thumbs]}
+              className="mt-3"
+            >
+              {(product.images?.length
+                ? product.images
+                : ["/images/beer04.png"]
+              ).map((img, idx) => (
+                <SwiperSlide key={idx}>
+                  <Image
+                    src={img}
+                    alt={`thumb-${idx}`}
+                    width={140}
+                    height={140}
+                    className="rounded-xl aspect-square object-cover border  transition-all duration-200"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
+
+          {/* ---------- 右：商品資訊 ---------- */}
+          <div className="flex flex-col gap-6">
+            {/* 標題 + 標籤 */}
+            <header className="space-y-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight tracking-tight">
+                {product.name}
+              </h1>
+              {product.tags?.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {product.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-xs sm:text-sm border border-neutral-300 px-3 py-1 rounded-full text-neutral-700"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
               )}
+            </header>
+
+            {/* 價格 */}
+            <div className="flex items-end gap-3">
+              <p className="text-3xl font-semibold tracking-tight">
+                NT$ {product.price}
+              </p>
+              {product.regular_price &&
+                product.regular_price !== product.price && (
+                  <p className="text-neutral-400 line-through">
+                    NT$ {product.regular_price}
+                  </p>
+                )}
+            </div>
+
+            {/* 描述（WordPress HTML） */}
+            {product.desc && (
+              <div
+                className="prose prose-neutral max-w-none prose-img:rounded-xl"
+                dangerouslySetInnerHTML={{ __html: product.desc }}
+              />
+            )}
+
+            {/* 數量 + 購物車 */}
+            <div className="mt-2 flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setQty(Math.max(1, qty - 1))}
+                  className="w-10 h-10 rounded-full border flex items-center justify-center text-xl hover:bg-neutral-50 transition"
+                  aria-label="減少數量"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  value={qty}
+                  onChange={(e) =>
+                    setQty(Math.max(1, parseInt(e.target.value || "1", 10)))
+                  }
+                  className="w-16 text-center border rounded-lg py-2 text-base"
+                  aria-label="數量"
+                />
+                <button
+                  onClick={() => setQty(qty + 1)}
+                  className="w-10 h-10 rounded-full border flex items-center justify-center text-xl hover:bg-neutral-50 transition"
+                  aria-label="增加數量"
+                >
+                  +
+                </button>
+              </div>
+
+              <motion.button
+                onClick={addToCart}
+                whileTap={{ scale: 0.97 }}
+                className="rounded-full bg-black text-white py-3 px-8 font-medium hover:bg-neutral-800 transition shadow-sm"
+              >
+                加入購物車
+              </motion.button>
+            </div>
+
+            {/* 伸縮說明（純視覺，不碰資料） */}
+            <div className="divide-y border rounded-xl overflow-hidden">
+              <details className="group open:bg-neutral-50">
+                <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
+                  <span>成分 / 風味</span>
+                  <span className="transition group-open:rotate-180">⌄</span>
+                </summary>
+                <div className="px-4 pb-4 text-sm text-neutral-700">
+                  麥芽、水、啤酒花。清爽收尾與淡淡麥香。
+                </div>
+              </details>
+              <details className="group open:bg-neutral-50">
+                <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
+                  <span>運送說明</span>
+                  <span className="transition group-open:rotate-180">⌄</span>
+                </summary>
+                <div className="px-4 pb-4 text-sm text-neutral-700">
+                  常溫/低溫配送（依品項而定）；下單後 1–2 個工作天出貨。
+                </div>
+              </details>
+              <details className="group open:bg-neutral-50">
+                <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
+                  <span>退換政策</span>
+                  <span className="transition group-open:rotate-180">⌄</span>
+                </summary>
+                <div className="px-4 pb-4 text-sm text-neutral-700">
+                  收到商品 7 天內未開封可申請退換；詳見網站退換貨說明。
+                </div>
+              </details>
+            </div>
           </div>
-
-          {/* 描述 */}
-          {product.desc && (
-            <div
-              className="prose prose-sm sm:prose-base text-gray-700 mt-4 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: product.desc }}
-            />
-          )}
-
-          {/* 數量控制 */}
-          <div className="flex items-center gap-4 mt-6">
-            <button
-              onClick={() => setQty(Math.max(1, qty - 1))}
-              className="w-10 h-10 rounded-full border flex items-center justify-center text-xl hover:bg-gray-100 transition"
-            >
-              −
-            </button>
-            <input
-              type="number"
-              min={1}
-              value={qty}
-              onChange={(e) =>
-                setQty(Math.max(1, parseInt(e.target.value || "1", 10)))
-              }
-              className="w-16 text-center border rounded-lg py-2 text-base"
-            />
-            <button
-              onClick={() => setQty(qty + 1)}
-              className="w-10 h-10 rounded-full border flex items-center justify-center text-xl hover:bg-gray-100 transition"
-            >
-              +
-            </button>
-          </div>
-
-          {/* 加入購物車按鈕 */}
-          <motion.button
-            onClick={addToCart}
-            whileTap={{ scale: 0.95 }}
-            className="mt-6 w-full sm:w-auto rounded-full bg-black text-white py-3 px-10 text-center font-medium hover:bg-neutral-800 transition"
-          >
-            加入購物車
-          </motion.button>
         </div>
       </section>
-
       {/* ---------- Toast 通知（下方淡入淡出） ---------- */}
       <AnimatePresence>
         {toast && (

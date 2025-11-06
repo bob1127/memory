@@ -11,9 +11,9 @@ export default function FloatingSidebar() {
   // ❗ 完全用 inline style，避免任意 class 影響
   const wrapStyle = {
     position: "fixed",
-    zIndex: 9999,
-    top: "50%",
-    right: "24px", // ← 固定靠右 24px
+    zIndex: 99,
+    top: "80%",
+    right: "14px", // ← 固定靠右 24px
     left: "auto", // ← 明確關閉 left
     transform: "translateY(-50%)", // ← 只做垂直置中
     pointerEvents: "auto",

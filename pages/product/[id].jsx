@@ -121,7 +121,7 @@ export default function ProductDetail() {
         }
       `}</style>
 
-      <main className="max-w-6xl mx-auto pb-20 pt-[140px] px-10">
+      <main className="max-w-6xl  mx-auto pb-20 pt-[140px] px-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* 左：主圖 + 縮圖 */}
           <div className="w-full flex flex-col items-center gap-4">

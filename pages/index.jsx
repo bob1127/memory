@@ -69,10 +69,10 @@ function BeerCard({
 }) {
   return (
     // ✅ 讓外層也撐滿
-    <FadeUp delay={delay} className="w-full h-full">
+    <FadeUp delay={delay} className="w-full ">
       <motion.article
         // ✅ 卡片本體撐滿父層
-        className="relative group flex items-center justify-center overflow-hidden w-full h-full"
+        className="relative group flex items-center justify-center overflow-hidden  py-10 w-full"
         style={{ backgroundColor: bg }}
         initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
@@ -101,7 +101,7 @@ function BeerCard({
             <img
               src={image}
               alt={imageAlt}
-              className="w-[180%] mx-auto h-[460px] sm:h-[500px] block object-contain select-none"
+              className="w-[180%] mx-auto mt-8 h-[460px] sm:h-[500px] block object-contain select-none"
               decoding="async"
               loading="eager"
               fetchPriority="high"
@@ -368,10 +368,10 @@ export default function Home() {
         </div>
 
         {/* ===== HERO（自適應優化） ===== */}
-        <section className="section-hero  mt-[65px] md:mt-0 aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
+        <section className="section-hero z-[9] relative  mt-[65px] md:mt-0  aspect-[16/18] md:aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
             {/* 中央主標（文字） */}
-            <div className="absolute z-10 right-[0%] top-[-10%]">
+            <div className="absolute z-10 right-[-3%] top-[10%] md:top-[-10%]">
               <Image
                 src="/images/index/banner-06-a.png"
                 alt="background"
@@ -390,10 +390,10 @@ export default function Home() {
                 loading="lazy"
                 width={800}
                 height={500}
-                className="w-[60vw] "
+                className=" w-[80vw] md:w-[60vw] "
               />
             </div>
-            <div className="absolute z-10 left-[-10%] top-[14%]">
+            <div className="absolute z-10 left-[-10%] top-[5%] rotate-[25deg] md:rotate-0 md:top-[14%]">
               <Image
                 src="/images/index/banner-02-a.png"
                 alt="chopsticks"
@@ -401,10 +401,10 @@ export default function Home() {
                 loading="lazy"
                 width={800}
                 height={500}
-                className="w-[30vw] "
+                className=" w-[45vw] md:w-[30vw] "
               />
             </div>
-            <div className="absolute z-30 left-[20%] bottom-[20%] xl:bottom-[7%]">
+            <div className="absolute z-30  left-[10%] md:left-[20%] bottom-[43%] md:bottom-[20%] xl:bottom-[7%]">
               <Image
                 src="/images/index/banner-07-a.png"
                 alt="mark"
@@ -415,7 +415,7 @@ export default function Home() {
                 className="w-[10vw] "
               />
             </div>
-            <div className="absolute z-10 left-[2%]  top-1/2 -translate-y-1/2">
+            <div className="absolute z-10 left-[4%] md:left-[2%]  top-[34%] md:top-1/2 -translate-y-1/2">
               <Image
                 src="/images/index/banner-01-a.png"
                 alt="hotpot"
@@ -423,7 +423,7 @@ export default function Home() {
                 loading="lazy"
                 width={800}
                 height={500}
-                className="w-[57vw] "
+                className=" w-[75vw] md:w-[57vw] "
               />
             </div>
           </div>
@@ -435,10 +435,10 @@ export default function Home() {
             <h2 className="text-5xl text-center">BEER STORE</h2>
           </div>
           {/* ✅ auto-rows-fr 讓每列高度一致，子項可 h-full 撐滿 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto lg:h-[80vh]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto ">
             {cards.map((c, i) => (
               // ✅ Link 也撐滿，避免預設 inline 造成寬度不滿
-              <Link key={i} href="/beer" className="flex w-full h-full">
+              <Link key={i} href="/beer" className="flex w-full">
                 <BeerCard
                   image={c.image}
                   imageAlt={c.title}
