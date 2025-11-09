@@ -72,7 +72,7 @@ function BeerCard({
     <FadeUp delay={delay} className="w-full ">
       <motion.article
         // ✅ 卡片本體撐滿父層
-        className="relative group flex items-center justify-center overflow-hidden  py-10 w-full"
+        className="relative group flex items-center justify-center overflow-hidden  py-0 lg:py-10 w-full"
         style={{ backgroundColor: bg }}
         initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
@@ -83,7 +83,7 @@ function BeerCard({
         <div className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 w-[72%] text-center z-20">
           <div className="opacity-100 sm:opacity-0 sm:-translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-700">
             <h2 className="text-2xl font-bold text-black mb-2">{title}</h2>
-            <p className="text-black/90 leading-relaxed text-sm sm:text-base">
+            <p className="text-black/90 leading-relaxed  text-[14px] sm:text-base">
               {desc}
             </p>
           </div>
@@ -101,7 +101,7 @@ function BeerCard({
             <img
               src={image}
               alt={imageAlt}
-              className="w-[180%] mx-auto mt-8 h-[460px] sm:h-[500px] block object-contain select-none"
+              className="w-[180%] mx-auto mt-8 h-[390px] sm:h-[500px] block object-contain select-none"
               decoding="async"
               loading="eager"
               fetchPriority="high"
@@ -430,12 +430,12 @@ export default function Home() {
         </section>
 
         {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
-        <section className="py-20 bg-[#f9f3e0]">
+        <section className="py-10 lg:py-20 bg-[#f9f3e0]">
           <div className="title">
             <h2 className="text-5xl text-center">BEER STORE</h2>
           </div>
           {/* ✅ auto-rows-fr 讓每列高度一致，子項可 h-full 撐滿 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto ">
+          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto ">
             {cards.map((c, i) => (
               // ✅ Link 也撐滿，避免預設 inline 造成寬度不滿
               <Link key={i} href="/beer" className="flex w-full">
@@ -460,7 +460,7 @@ export default function Home() {
           <div className="mx-auto max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
               {/* 左側：動畫區 */}
-              <div className="left w-full lg:w-1/2 overflow-hidden h-[70vh] md:min-h-screen relative">
+              <div className="left w-full lg:w-1/2 overflow-hidden h-[85vh] xl:h-[70vh] md:min-h-screen relative">
                 <FadeUp
                   delay={0.05}
                   amount={0.25}
@@ -479,15 +479,71 @@ export default function Home() {
                   ref={anchorRef}
                   className="absolute left-[34%] -translate-x-1/2 bottom-[18%] w-2 h-2"
                 />
-
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%]  bottom-[30%] -translate-x-1/2 left-[40%] z-[9]"
+                  imgSrc="/images/灶腳商品圖/DSC05055.png"
+                  imgClassName="w-[320px] sm:w-[220px]"
+                  spawn={260}
+                  sway={90}
+                  spin={18}
+                  alt="藍色作業本"
+                  scaleStart={1.0}
+                  scaleEnd={0.7}
+                  duration={2.2}
+                  delay={0.0}
+                />
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%]  bottom-[40%] -translate-x-1/2 left-[10%] z-[9]"
+                  imgSrc="/images/灶腳商品圖/DSC05082.png"
+                  imgClassName="w-[300px] sm:w-[320px]"
+                  spawn={260}
+                  sway={90}
+                  spin={18}
+                  alt="義美小泡芙"
+                  scaleStart={1.0}
+                  scaleEnd={0.7}
+                  duration={2.2}
+                  delay={0.0}
+                />
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%]  bottom-[30%] -translate-x-1/2 left-[50%] z-[9]"
+                  imgSrc="/images/灶腳商品圖/DSC05035.png"
+                  imgClassName="w-[320px] sm:w-[220px]"
+                  spawn={260}
+                  sway={90}
+                  spin={18}
+                  alt="Q果酥"
+                  scaleStart={1.0}
+                  scaleEnd={0.7}
+                  duration={2.2}
+                  delay={0.0}
+                />
+                <SnackDropLoop
+                  anchorRef={anchorRef}
+                  className="w-[80%]  bottom-[20%] -translate-x-1/2 left-[60%] z-[9]"
+                  imgSrc="/images/灶腳商品圖/DSC05051.png"
+                  imgClassName="w-[320px] sm:w-[220px]"
+                  spawn={260}
+                  sway={90}
+                  spin={18}
+                  alt="花色作業本"
+                  scaleStart={1.0}
+                  scaleEnd={0.7}
+                  duration={2.2}
+                  delay={0.0}
+                />
                 <SnackDropLoop
                   anchorRef={anchorRef}
                   className="w-[80%]  bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
-                  imgSrc="/images/snack/output-onlinegiftools.gif"
-                  imgClassName="w-[320px] sm:w-[380px]"
+                  imgSrc="/images/灶腳商品圖/DSC05021.png"
+                  imgClassName="w-[320px] sm:w-[220px]"
                   spawn={460}
                   sway={-90}
                   spin={18}
+                  alt="牛奶糖"
                   scaleStart={1.0}
                   scaleEnd={0.7}
                   duration={2.2}
@@ -496,11 +552,12 @@ export default function Home() {
                 <SnackDropLoop
                   anchorRef={anchorRef}
                   className="w-[80%] bottom-[0%] -translate-x-1/2 left-[35%] z-[9]"
-                  imgSrc="/images/snack/output-onlinegiftools (1).gif"
-                  imgClassName="w-[340px] sm:w-[400px]"
+                  imgSrc="/images/灶腳商品圖/葡萄維他命.png"
+                  imgClassName="w-[140px] sm:w-[170px]"
                   spawn={480}
                   sway={-120}
                   spin={-14}
+                  alt="葡萄維他命"
                   scaleStart={1.0}
                   scaleEnd={0.68}
                   duration={2.35}
@@ -509,10 +566,11 @@ export default function Home() {
                 <SnackDropLoop
                   anchorRef={anchorRef}
                   className="w-[80%] bottom-[2%] -translate-x-1/2 left-[25%] z-[60]"
-                  imgSrc="/images/snack/output-onlinegiftools (2).gif"
+                  imgSrc="/images/灶腳商品圖/DSC05007-3.png"
                   imgClassName="w-[300px] sm:w-[350px]"
                   spawn={520}
                   sway={0}
+                  alt="黑色巧克力"
                   spin={10}
                   scaleStart={1.0}
                   scaleEnd={0.66}
@@ -524,10 +582,11 @@ export default function Home() {
                 <SnackDropLoop
                   anchorRef={anchorRef}
                   className="w-[80%] bottom-[10%] -translate-x-1/2 left-[18%] z-[60]"
-                  imgSrc="/images/snack/output-onlinegiftools (3).gif"
-                  imgClassName="w-[320px] sm:w-[400px]"
+                  imgSrc="/images/灶腳商品圖/DSC05033.png"
+                  imgClassName="w-[170px] sm:w-[220px]"
                   spawn={500}
                   sway={0}
+                  alt="風味糖"
                   spin={-16}
                   scaleStart={1.0}
                   scaleEnd={0.64}
@@ -540,11 +599,11 @@ export default function Home() {
                 <FadeUp
                   delay={0.1}
                   amount={0.2}
-                  className="absolute w-full bottom-[-15%] md:bottom-[-35%] z-[9999] left-0 -translate-x-1/2"
+                  className="absolute w-full bottom-[-15%] md:bottom-[-35%] z-[99] left-0 -translate-x-1/2"
                 >
                   <Image
-                    src="/images/11998087.png"
-                    alt="bag"
+                    src="/images/灶腳商品圖/DSC05114.png"
+                    alt="包包"
                     placeholder="empty"
                     loading="lazy"
                     width={1300}
@@ -559,7 +618,7 @@ export default function Home() {
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
                     <FadeUp>
-                      <h2 className="font-extrabold text-[#A18360] text-4xl sm:text-5xl lg:text-6xl">
+                      <h2 className="font-extrabold text-[#f6f5f3] text-4xl sm:text-5xl lg:text-6xl">
                         Dinging Memory
                       </h2>
                     </FadeUp>

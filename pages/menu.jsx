@@ -62,8 +62,8 @@ export default function Home() {
   return (
     <Layout>
       <div className="">
-        <section className="section_brand_menu py-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 max-w-[800px] mx-auto">
+        <section className="section_brand_menu px-5 py-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 max-w-[1500px] mt-20 mx-auto">
             <div>
               <Image
                 className=""
@@ -99,7 +99,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-        <section className="section_menu_entry pt-20 pb-[400px] ">
+        <section className="section_menu_entry pt-20 px-5 pb-[400px] ">
           <div className="flex flex-col  justify-center mx-auto items-center max-w-[1920px] xl:w-[80%] md:w-[90%] w-full">
             <div className="title">
               <h2 className="text-4xl text-[#ea3636] font-bold">
@@ -107,8 +107,8 @@ export default function Home() {
               </h2>
             </div>
             <div className="items grid sm:grid-cols-2 grid-cols-1 xl:grid-cols-3 gap-[100px] mt-10">
-              <div className="brand-item relative">
-                <div className="info absolute z-40 left-[-50px] bottom-[-200px] w-[90%]">
+              <div className="brand-item relative mt-[150px]  xl:mt-0">
+                <div className="info absolute z-40 left-[0%] xl:left-[-50px] top-[70%] w-[90%]">
                   <div className="flex p-10 flex-col justify-center items-center border-2 border-red-500 bg-[#f8b435]">
                     <div className="title">
                       <img
@@ -117,10 +117,9 @@ export default function Home() {
                         alt=""
                       />
                     </div>
-                    <div className="description font-bold text-[#ea3636] text-[14px] text-center">
-                      Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                      Cumque eos vel neque voluptates omnis provident dolor
-                      natus. Dignissimos iste omnis consectetur, voluptates
+                    <div className="description font-bold text-[#252525] text-[14px] text-center">
+                      有香 (Memory Corner)
+                      歷經祖孫三代四十年傳承，2013年在溫哥華落地生根，期望將正港的台灣料理－祖傳當歸羊肉鍋、小火鍋、台式簡餐、熱炒料理、炸物小吃和台灣啤酒於有香呈現給您。
                     </div>
                     <Link
                       href="/menu01"
@@ -141,8 +140,8 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="brand-item relative">
-                <div className="info absolute z-40 left-[-50px] bottom-[-200px] w-[90%]">
+              <div className="brand-item relative mt-[150px]  xl:mt-0">
+                <div className="info absolute z-40 left-[0%] xl:left-[-50px] top-[70%] w-[90%]">
                   <div className="flex p-10 flex-col justify-center items-center border-2 border-red-500 bg-[#f8b435]">
                     <div className="title">
                       <img
@@ -151,10 +150,10 @@ export default function Home() {
                         alt=""
                       />
                     </div>
-                    <div className="description font-bold text-[#ea3636] text-[14px] text-center">
-                      Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                      Cumque eos vel neque voluptates omnis provident dolor
-                      natus. Dignissimos iste omnis consectetur, voluptates
+                    <div className="description font-bold text-[#252525] text-[14px] text-center">
+                      憶點點 (Sweet Memory) 匯聚台灣北中南美食，提供古早味甜品
+                      (手工嫩豆花、仙草凍、台式剉冰…) 以及經典小吃
+                      (肉圓、火雞肉飯、大腸麵線、多種可搭配台灣啤酒的下酒菜…)，無法抗拒的好滋味，等您來細細品嚐。
                     </div>
                     <Link
                       href="/menu01"
@@ -175,8 +174,8 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="brand-item relative">
-                <div className="info absolute z-40 left-[-50px] bottom-[-200px] w-[90%]">
+              <div className="brand-item relative mt-[150px]  xl:mt-0">
+                <div className="info absolute z-40 left-[0%] xl:left-[-50px] top-[70%] w-[90%]">
                   <div className="flex p-10 flex-col justify-center items-center border-2 border-red-500 bg-[#f8b435]">
                     <div className="title">
                       <img
@@ -185,11 +184,9 @@ export default function Home() {
                         alt=""
                       />
                     </div>
-                    <div className="description font-bold text-[#ea3636] text-[14px] text-center">
-                      Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                      Cumque eos vel neque voluptates omnis provident dolor
-                      natus. Dignissimos iste omnis consectetur, voluptates
-                      Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+                    <div className="description font-bold text-[#252525] text-[14px] text-center">
+                      有香中央廚房(Old Memory
+                      Kitchen)是有香餐飲集團為了嚴格控管產品製程、追求極致品質，於2022年成立，提供和總店口味一致的冷凍料理食品，讓客人在家也能輕鬆料理。除此之外，購物區域以懷舊復古風打造成古早台灣雜貨店，讓大家有機會購買古早味零食糖果和生活用品，回味純真時光、溫習童年小確幸。
                     </div>
                     <Link
                       href="/menu01"
