@@ -572,7 +572,7 @@ export default function Home() {
                 <FadeUp
                   delay={0.05}
                   amount={0.25}
-                  className="absolute left-[30%] -translate-x-1/2 top-[5%]"
+                  className="absolute left-[14%] -translate-x-1/2 top-[5%]"
                 >
                   <Image
                     src="/images/snack/buynow.png"
@@ -589,9 +589,9 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[30%] -translate-x-1/2 left-[40%] z-[9]"
+                  className="w-[80%]  bottom-[10%] sm:bottom-[30%] -translate-x-1/2 left-[-5%] sm:left-[40%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05055.png"
-                  imgClassName="w-[320px] sm:w-[220px]"
+                  imgClassName="w-[180px] sm:w-[220px]"
                   spawn={260}
                   sway={90}
                   spin={18}
@@ -603,9 +603,9 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[40%] -translate-x-1/2 left-[10%] z-[9]"
+                  className="w-[80%]  bottom-[7%] sm:bottom-[40%] -translate-x-1/2 left-[10%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05082.png"
-                  imgClassName="w-[300px] sm:w-[320px]"
+                  imgClassName="w-[270px] sm:w-[320px]"
                   spawn={260}
                   sway={90}
                   spin={18}
@@ -617,9 +617,9 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[30%] -translate-x-1/2 left-[50%] z-[9]"
+                  className="w-[80%]  bottom-[15%] sm:bottom-[30%] -translate-x-1/2 left-[35%] sm:left-[50%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05035.png"
-                  imgClassName="w-[320px] sm:w-[220px]"
+                  imgClassName="w-[200px] sm:w-[220px]"
                   spawn={260}
                   sway={90}
                   spin={18}
@@ -631,9 +631,9 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[20%] -translate-x-1/2 left-[60%] z-[9]"
+                  className="w-[80%]  bottom-0 sm:bottom-[20%] -translate-x-1/2 left-[30%] sm:left-[60%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05051.png"
-                  imgClassName="w-[320px] sm:w-[220px]"
+                  imgClassName="w-[220px] sm:w-[220px]"
                   spawn={260}
                   sway={90}
                   spin={18}
@@ -645,9 +645,9 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
+                  className="w-[80%]  bottom-[-10%] sm:bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05021.png"
-                  imgClassName="w-[320px] sm:w-[220px]"
+                  imgClassName="w-[160px] sm:w-[220px]"
                   spawn={460}
                   sway={-90}
                   spin={18}
@@ -659,9 +659,9 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%] bottom-[0%] -translate-x-1/2 left-[35%] z-[9]"
+                  className="w-[80%] bottom-[0%] -translate-x-1/2 left-[15%] sm:left-[35%] z-[9]"
                   imgSrc="/images/灶腳商品圖/葡萄維他命.png"
-                  imgClassName="w-[140px] sm:w-[170px]"
+                  imgClassName="w-[70px] sm:w-[120px]"
                   spawn={480}
                   sway={-120}
                   spin={-14}
@@ -673,7 +673,7 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%] bottom-[2%] -translate-x-1/2 left-[25%] z-[60]"
+                  className="w-[80%] bottom-[2%] -translate-x-1/2 left-[30%] sm:left-[25%] z-[60]"
                   imgSrc="/images/灶腳商品圖/DSC05007-3.png"
                   imgClassName="w-[300px] sm:w-[350px]"
                   spawn={520}
