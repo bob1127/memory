@@ -41,7 +41,7 @@ export default function BeerInner({ product }) {
 
   return (
     <Layout>
-      <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8  pt-[100px]">
+      <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8  py-[100px]">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
           {/* ---------- 左：圖片區（桌機 sticky） ---------- */}
           <div className="lg:sticky lg:top-24 self-start">

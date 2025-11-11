@@ -209,7 +209,7 @@ function FlyoutLink({ label, href = "#", FlyoutContent }) {
     >
       <Link
         href={href}
-        className="relative text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+        className="relative text-base  font-[14px] lg:font-medium text-black/80 hover:text-[#eda240] transition-colors"
       >
         {label}
         <span
@@ -558,7 +558,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
   );
 }
 
-/* ======= 手機抽屜選單元件 ======= */
+/* ======= 手機抽屜選單元件（加會員 + 購物車） ======= */
 function MobileNavSheet({
   open,
   onClose,
@@ -579,11 +579,15 @@ function MobileNavSheet({
     groupBuy: { text: "團購商城", href: "https://corner-rouge.vercel.app/" },
     order: { text: "線上點餐", href: "#" },
   },
+  auth, // ← 新增：登入狀態
+  cartCount = 0, // ← 新增：購物車數量
+  onLoginClick, // ← 新增：點擊登入/註冊時呼叫
+  onLogoutClick, // ← 新增：登出 callback
+  onCartClick, // ← 新增：點擊購物車
 }) {
   const panelRef = useRef(null);
   const [brandOpen, setBrandOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const canPortal = typeof window !== "undefined" && !!document?.body;
 
   useEffect(() => {
     if (!open) return;
@@ -625,19 +629,21 @@ function MobileNavSheet({
             animate="animate"
             exit="exit"
             ref={panelRef}
-            className="fixed right-0 top-0 z-[3010] h-full w-[min(92vw,420px)] bg-white shadow-2xl"
+            className="fixed right-0 top-0 z-[3010] h-full w-full bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
               <Link href="/" onClick={onClose} aria-label="Home">
-                <Image
-                  src="/images/logo/有香餐飲集團-logo.png"
-                  alt="有香餐飲集團"
-                  width={150}
-                  height={48}
-                  priority
-                />
+                <div className="w-[140px]">
+                  <Image
+                    src="/images/logo/有香餐飲集團-logo.png"
+                    alt="有香餐飲集團"
+                    width={150}
+                    height={48}
+                    priority
+                  />
+                </div>
               </Link>
               <button
                 aria-label="close"
@@ -651,10 +657,10 @@ function MobileNavSheet({
             {/* Body */}
             <div className="flex h-[calc(100%-64px)] flex-col">
               <nav className="flex-1 overflow-y-auto px-2 py-2 text-[15px]">
-                {/* 品牌門店 (二層) */}
+                {/* 品牌門店 */}
                 <button
                   onClick={() => setBrandOpen((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left font-medium hover:bg-black/5"
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left font-medium "
                 >
                   <span>品牌門店</span>
                   <ChevronDown
@@ -685,7 +691,7 @@ function MobileNavSheet({
                   </ul>
                 </motion.div>
 
-                {/* 品牌菜單 (二層) */}
+                {/* 品牌菜單 */}
                 <button
                   onClick={() => setMenuOpen((v) => !v)}
                   className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-3 text-left font-medium hover:bg-black/5"
@@ -735,6 +741,63 @@ function MobileNavSheet({
                   加盟合作
                 </Link>
               </nav>
+
+              {/* 新增：會員與購物車區 */}
+              <div className="border-t border-black/10 p-3 space-y-2">
+                {/* 會員區 */}
+                {!auth?.user ? (
+                  <button
+                    onClick={() => {
+                      onLoginClick?.();
+                      onClose?.();
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-black px-4 py-2 text-white hover:opacity-90 active:scale-[0.99] transition"
+                  >
+                    <User2 size={18} /> 會員登入 / 註冊
+                  </button>
+                ) : (
+                  <div className="rounded-2xl border border-black/10 bg-gray-50 p-3 text-center">
+                    <div className="text-sm text-black/70 mb-1">
+                      您好，{auth.user.displayName || auth.user.name || "會員"}
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      <Link
+                        href="/account"
+                        className="rounded-xl bg-black text-white px-3 py-1 text-sm hover:opacity-90"
+                        onClick={onClose}
+                      >
+                        我的帳戶
+                      </Link>
+                      <button
+                        className="rounded-xl border border-black/15 px-3 py-1 text-sm hover:bg-black/5"
+                        onClick={() => {
+                          onLogoutClick?.();
+                          onClose?.();
+                        }}
+                      >
+                        登出
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 購物車按鈕 */}
+                <button
+                  onClick={() => {
+                    onCartClick?.();
+                    onClose?.();
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-black/15 bg-white px-4 py-2 hover:bg-black/5 active:scale-[0.99] transition"
+                >
+                  <ShoppingCart size={18} />
+                  購物車
+                  {cartCount > 0 && (
+                    <span className="ml-1 rounded-full bg-red-500 px-2 py-[1px] text-[12px] text-white">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              </div>
 
               {/* CTA 區 */}
               <div className="border-t border-black/10 p-3">
@@ -846,12 +909,29 @@ export const SlideTabsExample = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: easeOut }}
-        className="fixed left-0 top-0 z-[1000] bg-white sm:bg-transparent w-full"
+        className="fixed left-0 top-0 z-[1000] bg-white md:bg-transparent w-full"
       >
-        <div className="mx-auto w-full mt-0 sm:mt-5 py-2 sm:py-0 px-2 text-white">
+        <div className="mx-auto lg:px-10 w-full mt-0 md:mt-5 py-2 md:py-0 px-2 text-white">
           <div className="flex items-center">
+            <div className="w-[20%] md:flex   hidden ">
+              <Link
+                href="https://corner-rouge.vercel.app/"
+                target="_blank"
+                className="flex mr-4"
+              >
+                <p className="rounded-[30px]   border border-white/30 bg-[#9c2121] px-4 py-2 text-[14px] text-white hover:bg-[#881b1b]  transition-colors">
+                  團購商城
+                </p>
+              </Link>
+              <button
+                onClick={() => setShowOrderPopup(true)}
+                className="rounded-[30px] hidden md:block border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white hover:bg-[#881b1b] transition-colors"
+              >
+                線上點餐
+              </button>
+            </div>
             {/* 左：手機 Logo */}
-            <div className="w-1/3 md:w-1/3">
+            <div className="w-1/3 md:hidden block md:w-1/3">
               <div className="md:hidden">
                 <Link href="/" aria-label="Home">
                   <div className="w-[160px] p-2">
@@ -868,7 +948,7 @@ export const SlideTabsExample = () => {
             </div>
 
             {/* 中：桌機選單 */}
-            <div className="hidden md:flex w-[60%] lg:w-[80%] items-center justify-center gap-8">
+            <div className="hidden md:flex  w-[60%] lg:w-[60%] items-center justify-center gap-8">
               <FlyoutLink
                 href="/"
                 label="品牌門店"
@@ -907,27 +987,13 @@ export const SlideTabsExample = () => {
             </div>
 
             {/* 右：訂購 / 會員 / 購物車 / 漢堡 */}
-            <div className="flex w-2/3 md:w-1/3 items-center justify-end gap-3">
-              <Link
-                href="https://corner-rouge.vercel.app/"
-                target="_blank"
-                className="rounded-[30px] hidden sm:block border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white hover:bg-[#881b1b] transition-colors"
-              >
-                團購商城
-              </Link>
-              <button
-                onClick={() => setShowOrderPopup(true)}
-                className="rounded-[30px] hidden sm:block border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white hover:bg-[#881b1b] transition-colors"
-              >
-                線上點餐
-              </button>
-
+            <div className="flex pr-6 w-2/3 md:w-[20%]  items-center justify-end gap-3">
               {/* 會員 icon（顯示「已登入」徽章 + 快速進入帳戶） */}
               <div className="relative">
                 <button
                   aria-label="user"
                   onClick={() => setUserOpen((v) => !v)}
-                  className="relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
+                  className=" hidden relative md:grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
                 >
                   <User2 size={18} />
                   {auth?.user && (
@@ -1017,7 +1083,7 @@ export const SlideTabsExample = () => {
               <button
                 aria-label="cart"
                 onClick={() => setCartOpen((v) => !v)}
-                className="relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
+                className=" hidden relative md:grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
               >
                 <ShoppingCart size={18} />
                 {cartCount > 0 && (
@@ -1066,7 +1132,7 @@ export const SlideTabsExample = () => {
           />
           <div className="grid grid-cols-2">
             <Link
-              href="https://google.com"
+              href="https://h5.posking.ca/#/shop?id=598"
               target="_blank"
               className="hover:scale-105 duration-400"
             >
@@ -1094,7 +1160,7 @@ export const SlideTabsExample = () => {
               />
             </Link>
             <Link
-              href="https://google.com"
+              href="https://h5.posking.ca/#/shop?id=609"
               target="_blank"
               className="hover:scale-105 duration-400"
             >
@@ -1108,7 +1174,7 @@ export const SlideTabsExample = () => {
               />
             </Link>
             <Link
-              href="https://google.com"
+              href="https://h5.posking.ca/#/shop?form=OW&id=624&lid=20&mid=27"
               target="_blank"
               className="hover:scale-105 duration-400"
             >
@@ -1150,14 +1216,14 @@ export const SlideTabsExample = () => {
           />
           <div className="grid grid-cols-4">
             <Link
-              href="https://google.com"
+              href="https://h5.posking.ca/#/shop?id=598"
               target="_blank"
-              className="hover:scale-105 duration-400"
+              className=" group overflow-hidden  duration-400"
             >
               <Image
                 src="/images/online-store/desktop-02.png"
                 alt=""
-                className="w-full"
+                className="w-full duration-500 group-hover:scale-100 scale-90"
                 placeholder="empty"
                 width={1920}
                 height={600}
@@ -1166,40 +1232,40 @@ export const SlideTabsExample = () => {
             <Link
               href="https://google.com"
               target="_blank"
-              className="hover:scale-105 duration-400"
+              className="group overflow-hidden  duration-400"
             >
               <Image
                 src="/images/online-store/desktop-03.png"
                 alt=""
-                className="w-full"
+                className="w-full duration-500 group-hover:scale-100 scale-90"
                 placeholder="empty"
                 width={1920}
                 height={600}
               />
             </Link>
             <Link
-              href="https://google.com"
+              href="https://h5.posking.ca/#/shop?id=609"
               target="_blank"
-              className="hover:scale-105 duration-400"
+              className="group overflow-hidden  duration-400"
             >
               <Image
                 src="/images/online-store/desktop-04.png"
                 alt=""
-                className="w-full"
+                className="w-full duration-500 group-hover:scale-100 scale-90"
                 placeholder="empty"
                 width={1920}
                 height={600}
               />
             </Link>
             <Link
-              href="https://google.com"
+              href="https://h5.posking.ca/#/shop?form=OW&id=624&lid=20&mid=27"
               target="_blank"
-              className="hover:scale-105 duration-400"
+              className="group overflow-hidden   duration-400"
             >
               <Image
                 src="/images/online-store/desktop-05.png"
                 alt=""
-                className="w-full"
+                className="w-full duration-500 group-hover:scale-100 scale-90"
                 placeholder="empty"
                 width={1920}
                 height={600}
@@ -1224,24 +1290,6 @@ export const SlideTabsExample = () => {
           />
         </div>
       </OrderPopup>
-
-      {/* ====== Demo：測試加入購物車（實際請移到商品卡片/詳情頁） ====== */}
-      <div className="fixed bottom-6 left-6 z-[5]">
-        <button
-          className="rounded-xl bg-black px-4 py-2 text-white shadow hover:opacity-90"
-          onClick={() =>
-            handleAddToCart({
-              id: "demo-1",
-              name: "示範商品 Demo",
-              img: "/images/online-store/desktop-02.png",
-              price: 120,
-              qty: 1,
-            })
-          }
-        >
-          測試：加入購物車
-        </button>
-      </div>
 
       {/* ===== 加入購物車成功 Toast ===== */}
       <AddToCartPopup
@@ -1469,17 +1517,20 @@ export const SlideTabsExample = () => {
           }
         }}
       />
-
-      {/* ======= 手機抽屜選單渲染 ======= */}
       <MobileNavSheet
         open={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
-        onSelect={(href) => {
-          // 已用 <Link> 處理導頁；如需強制路由：
-          // router.push(href);
-          setIsMenuOpen(false);
+        auth={auth}
+        cartCount={cartCount}
+        onLoginClick={() => {
+          setShowAuthModal(true);
+          setAuthMode("login");
         }}
-        // 可傳入 brandStores / brandMenus / cta 自訂
+        onLogoutClick={async () => {
+          await authStore.logout?.();
+          window.location.reload();
+        }}
+        onCartClick={() => setCartOpen(true)}
       />
     </div>
   );
