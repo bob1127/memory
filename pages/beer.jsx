@@ -19,6 +19,32 @@ const MARQUEE_ITEMS = [
   { src: "/images/gif/output-onlinegiftools-5.gif", alt: "beer anim 5" },
 ];
 
+/** 將各種來源欄位轉成 number，並處理 Woo Store API 以「分」為單位的情況 */
+const priceFromItem = (p) => {
+  if (!p) return 0;
+  const raw =
+    p.price ??
+    p.sale_price ??
+    p.regular_price ??
+    p.prices?.price ??
+    p.prices?.regular_price ??
+    0;
+
+  // Store API（以分為單位）
+  if (
+    typeof p.prices?.price !== "undefined" ||
+    typeof p.prices?.regular_price !== "undefined"
+  ) {
+    return Number(raw) / 100;
+  }
+
+  if (typeof raw === "string") {
+    const n = Number(raw.replace(/[^\d.]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  }
+  return Number(raw) || 0;
+};
+
 export default function Home() {
   /* ---------- 狀態 ---------- */
   const [products, setProducts] = useState([]);
@@ -53,10 +79,9 @@ export default function Home() {
     setToast({ id, text });
     toastTimerRef.current = setTimeout(() => setToast(null), 1600);
   };
-  useEffect(
-    () => () => toastTimerRef.current && clearTimeout(toastTimerRef.current),
-    []
-  );
+  useEffect(() => {
+    return () => toastTimerRef.current && clearTimeout(toastTimerRef.current);
+  }, []);
 
   /* ---------- 數量控制 ---------- */
   const setQty = (id, next) =>
@@ -70,12 +95,19 @@ export default function Home() {
     if (raw <= 0) return;
     const safeQty = Math.max(1, raw);
 
+    const price = priceFromItem(product); // 取得正確價格
+
     cartStore.add(
-      { id: product.id, name: product.name, img: product.img },
+      {
+        id: product.id,
+        name: product.name,
+        img: product.img,
+        price, // 必須帶上價格
+      },
       safeQty
     );
 
-    // 動畫回饋
+    // 按鈕回饋動畫
     const btn = document.getElementById(`btn-${product.id}`);
     if (btn) {
       btn.animate(
@@ -125,7 +157,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: -8, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -24, filter: "blur(6px)" }}
                 transition={{ duration: 0.36, ease: [0.2, 0.8, 0.2, 1] }}
-                className="mb-8 rounded-xl bg-black text-white px-4 py-2 shadow-lg"
+                className="mb-8 rounded-xl bg-[#c1a46f] text-white px-4 py-2 shadow-lg"
               >
                 {toast.text}
               </motion.div>
@@ -172,7 +204,7 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-        {/* ✅ Hero 區塊（保持原樣） */}
+        {/* ✅ Hero 區塊 */}
         <section className="section_hero relative h-screen overflow-hidden">
           <motion.div
             className="absolute right-20 top-20 z-20"
@@ -207,8 +239,8 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* ✅ 商品清單區（改成 WooCommerce） */}
-        <section className="section-content min-h-screen pb-24">
+        {/* ✅ 商品清單區（WooCommerce） */}
+        <section className="section-content bg-white min-h-screen pb-24">
           <div className="title flex justify-center pt-20 items-center">
             <h4 className="text-[22px] font-bold">ORDER</h4>
           </div>
@@ -219,6 +251,7 @@ export default function Home() {
             <div className="grid max-w-[1600px] mx-auto w-[80%] grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 my-8">
               {products.map((p) => {
                 const q = qtyMap[p.id] ?? 0;
+                const displayPrice = priceFromItem(p);
                 return (
                   <div
                     key={p.id}
@@ -226,8 +259,10 @@ export default function Home() {
                   >
                     <div className="item-info mb-2 text-center">
                       <b>{p.name}</b>
-                      {p.price && (
-                        <p className="text-gray-500 text-sm mt-1">${p.price}</p>
+                      {displayPrice > 0 && (
+                        <p className="text-gray-500 text-sm mt-1">
+                          ${displayPrice}
+                        </p>
                       )}
                     </div>
 
@@ -292,7 +327,7 @@ export default function Home() {
           )}
         </section>
 
-        {/* ✅ Newsletter 區 & 地圖 跑馬燈區（完全保留） */}
+        {/* ✅ Newsletter 區 */}
         <section className="section-newsletter bg-white w-full py-16">
           <motion.form
             onSubmit={handleSubscribe}
@@ -341,6 +376,7 @@ export default function Home() {
           </motion.form>
         </section>
 
+        {/* ✅ 地圖 + 跑馬燈 */}
         <section className="section-map  bg-white pt-20 flex flex-col">
           <div>
             <iframe

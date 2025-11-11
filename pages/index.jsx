@@ -291,6 +291,102 @@ function RotatingMark({ className = "", sizeVW = 10 }) {
     </motion.div>
   );
 }
+/* ========= AutoSwapImage：兩張 A/B 自動輪播（可選左右進場/無位移、支援旋轉） ========= */
+function AutoSwapImage({
+  base, // 例如 "/images/index/banner-05"
+  alt = "",
+  className = "",
+  positionClass = "", // 維持絕對定位與位置
+  width = 800,
+  height = 500,
+  interval = 6000, // 輪播間隔
+  initialDelay = 0, // 首次切換延遲
+  enterFrom = "none", // "left" | "right" | "none"
+  offset = 40, // 位移距離（px）
+  rotateInfinite = false, // 360 無限旋轉
+  rotateDuration = 16, // 旋轉一圈秒數
+}) {
+  const prefersReduced = useReducedMotion?.();
+  const [showB, setShowB] = useState(false);
+
+  useEffect(() => {
+    if (prefersReduced) return;
+    const first = setTimeout(
+      () => setShowB((v) => !v),
+      initialDelay || interval
+    );
+    const timer = setInterval(() => setShowB((v) => !v), interval);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
+  }, [interval, initialDelay, prefersReduced]);
+
+  const srcA = `${base}-a.png`;
+  const srcB = `${base}-b.png`;
+
+  // 位移方向
+  const dxIn =
+    enterFrom === "left" ? -offset : enterFrom === "right" ? offset : 0;
+  const dxOut =
+    enterFrom === "left" ? offset : enterFrom === "right" ? -offset : 0;
+
+  const content = (
+    <AnimatePresence initial={false} mode="wait">
+      <motion.div
+        key={showB ? "B" : "A"}
+        initial={{
+          opacity: 0,
+          x: dxIn,
+          filter: dxIn ? "blur(6px)" : "blur(0px)",
+        }}
+        animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+        exit={{
+          opacity: 0,
+          x: dxOut,
+          filter: dxOut ? "blur(6px)" : "blur(0px)",
+        }}
+        transition={{ duration: 1.05, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          willChange: "transform, opacity",
+          backfaceVisibility: "hidden",
+        }}
+      >
+        <Image
+          src={showB ? srcB : srcA}
+          alt={alt}
+          width={width}
+          height={height}
+          loading="lazy"
+          placeholder="empty"
+          className={className}
+          sizes="(max-width: 1024px) 80vw, 50vw"
+        />
+      </motion.div>
+    </AnimatePresence>
+  );
+
+  // 需要無限旋轉時，用外層包一層旋轉容器（不受 key 影響）
+  if (rotateInfinite) {
+    return (
+      <motion.div
+        className={`absolute ${positionClass}`}
+        animate={{ rotate: 360 }}
+        transition={{
+          repeat: Infinity,
+          ease: "linear",
+          duration: rotateDuration,
+        }}
+        style={{ willChange: "transform", transformOrigin: "50% 50%" }}
+      >
+        {content}
+      </motion.div>
+    );
+  }
+
+  return <div className={`absolute ${positionClass}`}>{content}</div>;
+}
+
 export default function Home() {
   const rightRef = useRef(null);
 
@@ -366,66 +462,78 @@ export default function Home() {
         <div className="mt-[-20px]  z-10">
           {/* <MinimalPushOverlayMenu /> */}
         </div>
-
-        {/* ===== HERO（自適應優化） ===== */}
-        <section className="section-hero z-[9] relative  mt-[65px] md:mt-0  aspect-[16/18] md:aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
+        {/* ===== HERO（自適應優化 + 自動輪播） ===== */}
+        <section className="section-hero z-[9] relative mt-[65px] md:mt-0 aspect-[16/18] md:aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
-            {/* 中央主標（文字） */}
-            <div className="absolute z-10 right-[-3%] top-[10%] md:top-[-10%]">
-              <Image
-                src="/images/index/banner-06-a.png"
-                alt="background"
-                placeholder="empty"
-                loading="lazy"
-                width={800}
-                height={500}
-                className="w-[80vw] "
-              />
-            </div>
-            <div className="absolute z-20 right-[0%] bottom-0">
-              <Image
-                src="/images/index/banner-05-a.png"
-                alt="charactor"
-                placeholder="empty"
-                loading="lazy"
-                width={800}
-                height={500}
-                className=" w-[80vw] md:w-[60vw] "
-              />
-            </div>
-            <div className="absolute z-10 left-[-10%] top-[5%] rotate-[25deg] md:rotate-0 md:top-[14%]">
-              <Image
-                src="/images/index/banner-02-a.png"
-                alt="chopsticks"
-                placeholder="empty"
-                loading="lazy"
-                width={800}
-                height={500}
-                className=" w-[45vw] md:w-[30vw] "
-              />
-            </div>
-            <div className="absolute z-30  left-[10%] md:left-[20%] bottom-[43%] md:bottom-[20%] xl:bottom-[7%]">
-              <Image
-                src="/images/index/banner-07-a.png"
-                alt="mark"
-                placeholder="empty"
-                loading="lazy"
-                width={800}
-                height={500}
-                className="w-[10vw] "
-              />
-            </div>
-            <div className="absolute z-10 left-[4%] md:left-[2%]  top-[34%] md:top-1/2 -translate-y-1/2">
-              <Image
-                src="/images/index/banner-01-a.png"
-                alt="hotpot"
-                placeholder="empty"
-                loading="lazy"
-                width={800}
-                height={500}
-                className=" w-[75vw] md:w-[57vw] "
-              />
-            </div>
+            {/* 中央主標（只替換，不位移） */}
+            <AutoSwapImage
+              base="/images/index/banner-06"
+              alt="background"
+              positionClass="z-10 right-[-3%] top-[10%] md:top-[-10%]"
+              className="w-[80vw]"
+              width={800}
+              height={500}
+              interval={7000}
+              enterFrom="none" // ✅ 不做位移
+            />
+
+            {/* 角色（右側 → 從右邊進入） */}
+            <AutoSwapImage
+              base="/images/index/banner-05"
+              alt="charactor"
+              positionClass="z-20 right-[0%] bottom-0"
+              className="w-[80vw] md:w-[50vw]"
+              width={800}
+              height={500}
+              interval={7000}
+              initialDelay={1200}
+              enterFrom="right" // ✅ 從右邊進來
+              offset={36}
+            />
+
+            {/* 筷子（左側 → 從左邊進入，過度「稍晚」） */}
+            <AutoSwapImage
+              base="/images/index/banner-02"
+              alt="chopsticks"
+              positionClass="z-50 left-[-10%] top-[5%] rotate-[25deg] md:rotate-0 md:top-[14%]"
+              className="w-[45vw] md:w-[30vw]"
+              width={800}
+              height={500}
+              interval={7000}
+              initialDelay={2400} // ✅ 再晚一點
+              enterFrom="left" // ✅ 從左邊進來
+              offset={28}
+            />
+
+            {/* 轉動標誌（左側 → 持續 360° 旋轉 + A/B 替換 + 左邊進入） */}
+            <AutoSwapImage
+              base="/images/index/banner-07"
+              alt="mark"
+              positionClass="z-30 left-[10%] md:left-[20%] bottom-[43%] md:bottom-[20%] xl:bottom-[7%]"
+              className="w-[10vw]"
+              width={800}
+              height={500}
+              interval={7000}
+              initialDelay={3600}
+              enterFrom="left"
+              offset={24}
+              rotateInfinite // ✅ 無限旋轉
+              rotateDuration={16} // 一圈 16 秒
+            />
+
+            {/* 火鍋（左側 → 從左邊進入） */}
+            <AutoSwapImage
+              base="/images/index/banner-01"
+              alt="hotpot"
+              positionClass="z-10 left-[4%] md:left-[2%] top-[34%] md:top-1/2 -translate-y-1/2"
+              className="w-[75vw] md:w-[64vw]"
+              width={800}
+              height={500}
+              interval={7000}
+              initialDelay={4800}
+              enterFrom="left" // ✅ 從左邊進來
+              offset={32}
+            />
           </div>
         </section>
 

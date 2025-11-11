@@ -31,11 +31,12 @@ export default function BeerInner({ product }) {
         id: product.id,
         name: product.name,
         img: product.images[0],
-        price: Number(product.price || product.regular_price || 0), // ✅ 確保不為 0
+        price: Number(product.price || product.regular_price || 0),
       },
       qty
     );
     setToast(true);
+    setQty(1); // ✅ 加入購物車後重置數量
     setTimeout(() => setToast(false), 2000);
   };
 
@@ -43,10 +44,8 @@ export default function BeerInner({ product }) {
     <Layout>
       <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8  py-[100px]">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
-          {/* ---------- 左：圖片區（桌機 sticky） ---------- */}
+          {/* ---------- 左：圖片區 ---------- */}
           <div className="lg:sticky lg:top-24 self-start">
-            {/* 主圖 */}
-            {/* 主圖（1:1 正方形，自適應） */}
             <div className="aspect-square rounded-2xl overflow-hidden shadow-sm bg-neutral-50">
               <Swiper
                 modules={[Thumbs]}
@@ -60,7 +59,6 @@ export default function BeerInner({ product }) {
                 ).map((img, idx) => (
                   <SwiperSlide key={idx}>
                     <div className="relative w-full h-full">
-                      {/* 用 fill + object-contain，維持 1:1 內完整置中顯示 */}
                       <Image
                         src={img}
                         alt={`${product.name} - 圖片 ${idx + 1}`}
@@ -75,7 +73,6 @@ export default function BeerInner({ product }) {
               </Swiper>
             </div>
 
-            {/* 縮圖 */}
             <Swiper
               onSwiper={setThumbsSwiper}
               spaceBetween={10}
@@ -98,7 +95,7 @@ export default function BeerInner({ product }) {
                     alt={`thumb-${idx}`}
                     width={140}
                     height={140}
-                    className="rounded-xl aspect-square object-cover border  transition-all duration-200"
+                    className="rounded-xl aspect-square object-cover border transition-all duration-200"
                   />
                 </SwiperSlide>
               ))}
@@ -107,7 +104,6 @@ export default function BeerInner({ product }) {
 
           {/* ---------- 右：商品資訊 ---------- */}
           <div className="flex flex-col gap-6">
-            {/* 標題 + 標籤 */}
             <header className="space-y-3">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight tracking-tight">
                 {product.name}
@@ -126,7 +122,6 @@ export default function BeerInner({ product }) {
               )}
             </header>
 
-            {/* 價格 */}
             <div className="flex items-end gap-3">
               <p className="text-3xl font-semibold tracking-tight">
                 NT$ {product.price}
@@ -139,7 +134,6 @@ export default function BeerInner({ product }) {
                 )}
             </div>
 
-            {/* 描述（WordPress HTML） */}
             {product.desc && (
               <div
                 className="prose prose-neutral max-w-none prose-img:rounded-xl"
@@ -147,30 +141,19 @@ export default function BeerInner({ product }) {
               />
             )}
 
-            {/* 數量 + 購物車 */}
+            {/* ✅ 數量 + 加入購物車 */}
             <div className="mt-2 flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 border border-gray-600 rounded-[10px]">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="w-10 h-10 rounded-full border flex items-center justify-center text-xl hover:bg-neutral-50 transition"
-                  aria-label="減少數量"
+                  className="w-10 h-10 rounded-full  flex items-center justify-center text-xl hover:bg-neutral-50 transition"
                 >
                   −
                 </button>
-                <input
-                  type="number"
-                  min={1}
-                  value={qty}
-                  onChange={(e) =>
-                    setQty(Math.max(1, parseInt(e.target.value || "1", 10)))
-                  }
-                  className="w-16 text-center border rounded-lg py-2 text-base"
-                  aria-label="數量"
-                />
+                <span className="text-lg w-10 text-center">{qty}</span>
                 <button
                   onClick={() => setQty(qty + 1)}
-                  className="w-10 h-10 rounded-full border flex items-center justify-center text-xl hover:bg-neutral-50 transition"
-                  aria-label="增加數量"
+                  className="w-10 h-10 rounded-full  flex items-center justify-center text-xl hover:bg-neutral-50 transition"
                 >
                   +
                 </button>
@@ -185,7 +168,7 @@ export default function BeerInner({ product }) {
               </motion.button>
             </div>
 
-            {/* 伸縮說明（純視覺，不碰資料） */}
+            {/* ---------- 詳細說明 ---------- */}
             <div className="divide-y border rounded-xl overflow-hidden">
               <details className="group open:bg-neutral-50">
                 <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
@@ -218,7 +201,8 @@ export default function BeerInner({ product }) {
           </div>
         </div>
       </section>
-      {/* ---------- Toast 通知（下方淡入淡出） ---------- */}
+
+      {/* ✅ Toast 通知 */}
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -229,22 +213,7 @@ export default function BeerInner({ product }) {
             transition={{ duration: 0.4, ease: [0.45, 0, 0.1, 1] }}
             className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-50"
           >
-            <div className="bg-black text-white text-sm sm:text-base px-6 py-3 rounded-full shadow-lg flex items-center gap-2 backdrop-blur-sm">
-              <svg
-                width="20"
-                height="20"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="text-green-400"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+            <div className="bg-[#c1a46f] text-white text-sm sm:text-base px-6 py-3 rounded-full shadow-lg flex items-center gap-2 backdrop-blur-sm">
               已加入購物車：{product.name}
             </div>
           </motion.div>
@@ -284,8 +253,6 @@ export async function getStaticProps({ params }) {
     if (!data?.length) throw new Error("找不到商品");
 
     const p = data[0];
-
-    // 🧩 處理變體商品（variable）
     let finalPrice = p.price || p.sale_price || p.regular_price || "0";
 
     if (p.type === "variable" && (!p.price || p.price === "0")) {

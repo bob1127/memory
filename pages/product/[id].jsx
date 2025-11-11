@@ -300,7 +300,7 @@ export default function ProductDetail({ product, seo }) {
 
                 <button
                   onClick={addToCart}
-                  className="inline-flex items-center justify-center rounded-full bg-black text-white px-6 py-3 text-[15px] font-semibold shadow-sm hover:opacity-90 active:scale-[0.99] transition"
+                  className="inline-flex items-center justify-center rounded-full bg-[#c1a46f] text-white px-6 py-3 text-[15px] font-semibold shadow-sm hover:opacity-90 active:scale-[0.99] transition"
                 >
                   加入購物車
                 </button>
