@@ -310,7 +310,7 @@ export default function Participation() {
             <FadeUp delay={0.24}>
               <div className="flex justify-center">
                 <a
-                  href="#"
+                  href="/participation-form"
                   className="
                     mt-8 inline-block bg-[#fe3232] text-white px-6 py-2 font-semibold 
                     border-2 border-[#b51d1d]

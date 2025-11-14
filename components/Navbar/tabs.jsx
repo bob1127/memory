@@ -740,6 +740,13 @@ function MobileNavSheet({
                 >
                   加盟合作
                 </Link>
+                <Link
+                  href="/contact"
+                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg-black/5"
+                  onClick={() => handleSelect("/participation")}
+                >
+                  聯絡我們
+                </Link>
               </nav>
 
               {/* 新增：會員與購物車區 */}
@@ -909,7 +916,7 @@ export const SlideTabsExample = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: easeOut }}
-        className="fixed left-0 top-0 z-[1000] bg-white md:bg-transparent w-full"
+        className="fixed left-0 top-0 z-[999999999] bg-white md:bg-transparent w-full"
       >
         <div className="mx-auto lg:px-10 w-full mt-0 md:mt-5 py-2 md:py-0 px-2 text-white">
           <div className="flex items-center">
@@ -983,6 +990,12 @@ export const SlideTabsExample = () => {
                 className="text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
               >
                 加盟合作
+              </Link>
+              <Link
+                href="/contact"
+                className="text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+              >
+                聯絡我們
               </Link>
             </div>
 

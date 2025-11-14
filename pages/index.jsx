@@ -459,11 +459,7 @@ export default function Home() {
   return (
     <ReactLenis root>
       <Layout>
-        <div className="mt-[-20px]  z-10">
-          {/* <MinimalPushOverlayMenu /> */}
-        </div>
-        {/* ===== HERO（自適應優化 + 自動輪播） ===== */}
-        <section className="section-hero z-[9] relative mt-[65px] md:mt-0 aspect-[16/18] md:aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
+        <section className="section-hero z-[9] pt-[0px] sm:pt-[90px] lg:pt-[100px] relative mt-[65px] md:mt-0 aspect-[16/18] md:aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
             {/* 中央主標（只替換，不位移） */}
             <AutoSwapImage
@@ -543,7 +539,7 @@ export default function Home() {
             <h2 className="text-5xl text-center">BEER STORE</h2>
           </div>
           {/* ✅ auto-rows-fr 讓每列高度一致，子項可 h-full 撐滿 */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto ">
+          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto  max-w-[1800px] mx-auto">
             {cards.map((c, i) => (
               // ✅ Link 也撐滿，避免預設 inline 造成寬度不滿
               <Link key={i} href="/beer" className="flex w-full">
@@ -565,23 +561,21 @@ export default function Home() {
           ref={dingingRef}
           className="section_Dinging relative  overflow-x-hidden"
         >
-          <div className="mx-auto max-w-[1920px] px-4 sm:px-6">
+          <div className="mx-auto  py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
               {/* 左側：動畫區 */}
-              <div className="left w-full lg:w-1/2 overflow-hidden h-[85vh] xl:h-[70vh] md:min-h-screen relative">
-                <FadeUp
-                  delay={0.05}
-                  amount={0.25}
-                  className="absolute left-[14%] -translate-x-1/2 top-[5%]"
-                >
-                  <Image
-                    src="/images/snack/buynow.png"
-                    width={500}
-                    height={300}
-                    className="w-[260px] sm:w-[320px] h-auto"
-                    alt="buy now"
-                  />
-                </FadeUp>
+              <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
+                <div className="flex justify-center">
+                  <FadeUp delay={0.05} amount={0.25} className="absolute ">
+                    <Image
+                      src="/images/snack/buynow.png"
+                      width={500}
+                      height={300}
+                      className="w-[260px] sm:w-[320px] h-auto"
+                      alt="buy now"
+                    />
+                  </FadeUp>
+                </div>
 
                 <div
                   ref={anchorRef}
@@ -707,7 +701,7 @@ export default function Home() {
                 <FadeUp
                   delay={0.1}
                   amount={0.2}
-                  className="absolute w-full bottom-[-15%] md:bottom-[-35%] z-[99] left-0 -translate-x-1/2"
+                  className="absolute w-full bottom-[-5%] sm:bottom-[-40%] xl:bottom-[-30%] 2xl:bottom-[-20%] md:bottom-[-35%] z-[99] left-0 -translate-x-1/2"
                 >
                   <Image
                     src="/images/灶腳商品圖/DSC05114.png"
@@ -716,7 +710,7 @@ export default function Home() {
                     loading="lazy"
                     width={1300}
                     height={1000}
-                    className="max-w-[1000px] xl:scale-[1] scale-[1.2] h-auto"
+                    className="max-w-[1000px] w-full xl:scale-[1] scale-[1.05] h-auto"
                   />
                 </FadeUp>
               </div>
