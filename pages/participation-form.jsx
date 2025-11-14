@@ -65,7 +65,7 @@ export default function FranchiseInquiryPage() {
           <section className="card mt-20">
             <div className="flex flex-col justify-center items-center">
               {" "}
-              <h1 className="title text-center">
+              <h1 className="text-xl font-bold mb-4 md:text-2xl">
                 加盟資訊表單 (Franchise Inquiry)
               </h1>
               <p className="description">
@@ -296,26 +296,38 @@ export default function FranchiseInquiryPage() {
         <style jsx>{`
           .page {
             min-height: 100vh;
+            width: 100%;
+            box-sizing: border-box;
             background: radial-gradient(circle at top, #f5f7ff, #f0f2f5);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
+            padding: 24px 16px;
+            overflow-x: hidden; /* 避免橫向捲動 */
           }
 
           .container {
             width: 100%;
-            max-width: 960px;
+            max-width: 600px; /* ✅ 手機版最多 600px 寬 */
+            margin: 0 auto;
           }
 
           .card {
+            width: 100%; /* ✅ 卡片一定塞在 container 裡 */
             background: #ffffff;
             border-radius: 24px;
-            padding: 32px 28px;
+            padding: 28px 20px;
             box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
             border: 1px solid rgba(148, 163, 184, 0.25);
           }
 
+          @media (min-width: 768px) {
+            .card {
+              padding: 40px 40px;
+            }
+          }
+
+          /* 平板以上再恢復原本比較大的內距 */
           @media (min-width: 768px) {
             .card {
               padding: 40px 40px;
@@ -371,6 +383,9 @@ export default function FranchiseInquiryPage() {
           }
 
           .input {
+            width: 100%; /* ✅ 滿版但不超出 */
+            max-width: 100%;
+            box-sizing: border-box;
             border-radius: 12px;
             border: 1px solid #cbd5f5;
             padding: 10px 12px;
@@ -380,7 +395,11 @@ export default function FranchiseInquiryPage() {
               background-color 0.18s ease, transform 0.05s ease;
             background-color: #f8fafc;
           }
-
+          .field,
+          .form {
+            width: 100%;
+            max-width: 100%;
+          }
           .input:focus {
             border-color: #6366f1;
             box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2);
