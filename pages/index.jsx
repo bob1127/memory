@@ -459,7 +459,7 @@ export default function Home() {
   return (
     <ReactLenis root>
       <Layout>
-        <section className="section-hero z-[9] pt-[0px] sm:pt-[90px] lg:pt-[100px] relative mt-[65px] md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
+        <section className="section-hero z-[9] pt-[0px] sm:pt-[90px] lg:pt-[100px] relative mt-[65px] md:mt-0 aspect-[16/16] md:aspect-[16/12]  xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
             {/* 中央主標（只替換，不位移） */}
             <AutoSwapImage
@@ -477,8 +477,8 @@ export default function Home() {
             <AutoSwapImage
               base="/images/index/banner-05"
               alt="charactor"
-              positionClass="z-20 right-[0%]  bottom-0 sm:bottom-[11%] lg:bottom-[-4%] "
-              className="w-[70vw] sm:w-[55vw]  lg:w-[50vw]"
+              positionClass="z-20 right-[0%]  bottom-0 sm:bottom-[11%] md:bottom-[9%]  xl:bottom-[9%]"
+              className="w-[70vw] sm:w-[55vw]  lg:w-[50vw] xl:w-[52vw]"
               width={800}
               height={500}
               interval={7000}
