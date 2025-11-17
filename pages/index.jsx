@@ -459,7 +459,7 @@ export default function Home() {
   return (
     <ReactLenis root>
       <Layout>
-        <section className="section-hero z-[9] pt-[0px] sm:pt-[90px] lg:pt-[100px] relative mt-[65px] md:mt-0 aspect-[16/18] md:aspect-[16/11] xl:aspect-[16/7.6] overflow-hidden">
+        <section className="section-hero z-[9] pt-[0px] sm:pt-[90px] lg:pt-[100px] relative mt-[65px] md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
             {/* 中央主標（只替換，不位移） */}
             <AutoSwapImage
@@ -477,8 +477,8 @@ export default function Home() {
             <AutoSwapImage
               base="/images/index/banner-05"
               alt="charactor"
-              positionClass="z-20 right-[0%] bottom-0"
-              className="w-[80vw] md:w-[50vw]"
+              positionClass="z-20 right-[0%]  bottom-0 sm:bottom-[11%] lg:bottom-[-4%] "
+              className="w-[70vw] sm:w-[55vw]  lg:w-[50vw]"
               width={800}
               height={500}
               interval={7000}
@@ -505,7 +505,7 @@ export default function Home() {
             <AutoSwapImage
               base="/images/index/banner-07"
               alt="mark"
-              positionClass="z-30 left-[10%] md:left-[20%] bottom-[43%] md:bottom-[20%] xl:bottom-[7%]"
+              positionClass="z-30 left-[10%] md:left-[20%] bottom-[43%] md:bottom-[20%] xl:bottom-[17%]"
               className="w-[10vw]"
               width={800}
               height={500}
@@ -521,8 +521,8 @@ export default function Home() {
             <AutoSwapImage
               base="/images/index/banner-01"
               alt="hotpot"
-              positionClass="z-10 left-[4%] md:left-[2%] top-[34%] md:top-1/2 -translate-y-1/2"
-              className="w-[75vw] md:w-[64vw]"
+              positionClass="z-10 left-[4%] md:left-[2%] top-[34%] sm:top-[25%] md:top-[40%] 2xl:top-[48%] -translate-y-1/2"
+              className="w-[75vw] md:w-[60vw]"
               width={800}
               height={500}
               interval={7000}
