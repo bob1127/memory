@@ -26,6 +26,13 @@
     --color-card-1:#ef4023;
       --color-card-2:#2382ef;
 }
+.title-large {
+  font-size: clamp(3.5rem,7vw,9.5rem);
+}
+.sub_title {
+  font-size: clamp(2rem,4vw,3rem);
+}
+
 
 .wp-block-image{
   margin-top: 50px;

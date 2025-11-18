@@ -58,50 +58,86 @@ function FadeUp({
   );
 }
 
-/* ========= 小卡片（四等份）— 支援不同圖片與文案 ========= */
 function BeerCard({
   image = "/images/0616ala-removebg-preview.png",
   imageAlt = "Beer",
   bg = "",
+  bgImage,
   title = "Title",
   desc = "",
   delay = 0,
 }) {
   return (
-    // ✅ 讓外層也撐滿
-    <FadeUp delay={delay} className="w-full ">
+    <FadeUp delay={delay} className="w-full h-full">
       <motion.article
-        // ✅ 卡片本體撐滿父層
-        className="relative group flex items-center justify-center overflow-hidden  py-0 lg:py-10 w-full"
-        style={{ backgroundColor: bg }}
+        className="
+          relative group flex items-center justify-center 
+          overflow-hidden w-full h-[350px] sm:h-[500px] xl:h-full
+          py-6 sm:py-10
+        "
+        style={{
+          backgroundColor: bg,
+          backgroundImage: bgImage ? `url(${bgImage})` : "",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
         initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
         whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-        viewport={{ once: true, amount: 0.35, margin: "0px 0px -10% 0px" }}
+        viewport={{ once: true, amount: 0.35 }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay }}
       >
-        {/* 浮動文字（桌機 hover 顯示；手機常顯示） */}
-        <div className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 w-[72%] text-center z-20">
-          <div className="opacity-100 sm:opacity-0 sm:-translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0 transition-all duration-700">
-            <h2 className="text-2xl font-bold text-black mb-2">{title}</h2>
-            <p className="text-black/90 leading-relaxed  text-[14px] sm:text-base">
+        {/* ===== 浮動文字 ===== */}
+        <div
+          className="
+          pointer-events-none absolute top-6 sm:top-8
+          left-1/2 -translate-x-1/2
+          w-[80%] text-center z-20
+        "
+        >
+          <div
+            className="
+              opacity-100 sm:opacity-0
+              sm:-translate-y-3
+              sm:group-hover:opacity-100 sm:group-hover:translate-y-0
+              transition-all duration-700
+            "
+          >
+            <h2 className="text-xl sm:text-2xl font-bold text-black mb-1 sm:mb-2">
+              {title}
+            </h2>
+            <p className="text-black/90 leading-relaxed text-sm sm:text-base">
               {desc}
             </p>
           </div>
         </div>
 
-        {/* 大圖：hover 後下移＋放大 */}
-        <div className="relative w-[78%] max-w-[620px] z-10 overflow-hidden sm:group-hover:overflow-visible">
+        {/* ===== 啤酒圖片 ===== */}
+        <div
+          className="
+            relative 
+            w-[65%] sm:w-[78%] 
+            max-w-[460px] mt-20 sm:mt-0 sm:max-w-[620px]
+            z-10
+            overflow-visible
+            flex justify-center
+          "
+        >
           <motion.div
             initial={{ y: 0, scale: 1.005 }}
-            whileHover={{ y: 40, scale: 1.1 }}
+            whileHover={{ y: 40, scale: 1.08 }}
             transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
             className="origin-top"
           >
-            {/* 外部圖用 <img>，內部圖可改成 <Image> */}
             <img
               src={image}
               alt={imageAlt}
-              className="w-[180%] mx-auto mt-8 h-[390px] sm:h-[500px] block object-contain select-none"
+              className="
+                w-full 
+                max-h-[420px] sm:max-h-[500px]
+                object-contain mx-auto 
+                select-none
+              "
               decoding="async"
               loading="eager"
               fetchPriority="high"
@@ -424,32 +460,31 @@ export default function Home() {
   const anchorRef = useRef(null);
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
-  /* ===== 這裡定義四張卡片的圖片與文案 ===== */
   const cards = [
     {
       image: "/images/beer/4.金牌ONE-Photoroom.png",
-      bg: "",
+      bgImage: "/images/index/beer/beer-bg-green.png", // ✅ 綠色背景
       title: "金牌啤酒",
       desc: "嚴選麥芽香與清爽氣泡，回味無窮的在地經典。",
       delay: 0,
     },
     {
       image: "/images/beer/6.荔枝-Photoroom.png",
-      bg: "",
+      bgImage: "/images/index/beer/beer-bg-peach.png", // ✅ 桃色背景
       title: "果香調性",
       desc: "淡淡果香與細緻泡沫，微醺剛剛好。",
       delay: 0.15,
     },
     {
       image: "/images/beer/9.蜂蜜-Photoroom.png",
-      bg: "",
+      bgImage: "/images/index/beer/beer-bg-yellow.png", // ✅ 黃色背景
       title: "濃厚黑麥",
       desc: "焦糖與可可的尾韻，征服重口味愛好者。",
       delay: 0.3,
     },
     {
       image: "/images/beer/12.葡萄-Photoroom.png",
-      bg: "",
+      bgImage: "/images/index/beer/beer-bg-pink.png", // ✅ 粉色背景
       title: "清爽拉格",
       desc: "超順口、耐喝不膩，百搭各式台式料理。",
       delay: 0.45,
@@ -459,7 +494,7 @@ export default function Home() {
   return (
     <ReactLenis root>
       <Layout>
-        <section className="section-hero z-[9] pt-[0px] sm:pt-[90px] lg:pt-[100px] relative mt-[65px] md:mt-0 aspect-[16/16] md:aspect-[16/12]  xl:aspect-[16/7.6] overflow-hidden">
+        <section className="section-hero z-[9] pt-[0px] relative  md:mt-0 aspect-[16/16] md:aspect-[16/12]  xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
             {/* 中央主標（只替換，不位移） */}
             <AutoSwapImage
@@ -477,7 +512,7 @@ export default function Home() {
             <AutoSwapImage
               base="/images/index/banner-05"
               alt="charactor"
-              positionClass="z-20 right-[0%]  bottom-0 sm:bottom-[11%] md:bottom-[9%]  xl:bottom-[9%]"
+              positionClass="z-20 right-[0%]  bottom-[-2%]   "
               className="w-[70vw] sm:w-[55vw]  lg:w-[50vw] xl:w-[52vw]"
               width={800}
               height={500}
@@ -491,7 +526,7 @@ export default function Home() {
             <AutoSwapImage
               base="/images/index/banner-02"
               alt="chopsticks"
-              positionClass="z-50 left-[-10%] top-[5%] rotate-[25deg] md:rotate-0 md:top-[14%]"
+              positionClass="z-50 left-[-10%] top-[15%] rotate-[25deg] md:rotate-0 md:top-[24%]"
               className="w-[45vw] md:w-[30vw]"
               width={800}
               height={500}
@@ -521,7 +556,7 @@ export default function Home() {
             <AutoSwapImage
               base="/images/index/banner-01"
               alt="hotpot"
-              positionClass="z-10 left-[4%] md:left-[2%] top-[34%] sm:top-[25%] md:top-[40%] 2xl:top-[48%] -translate-y-1/2"
+              positionClass="z-10 left-[4%] md:left-[2%] top-[44%] sm:top-[25%] md:top-[50%] 2xl:top-[55%] -translate-y-1/2"
               className="w-[75vw] md:w-[60vw]"
               width={800}
               height={500}
@@ -534,19 +569,15 @@ export default function Home() {
         </section>
 
         {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
-        <section className="py-10 lg:py-20 bg-[#f9f3e0]">
-          <div className="title">
-            <h2 className="text-5xl text-center">BEER STORE</h2>
-          </div>
+        <section className=" ">
           {/* ✅ auto-rows-fr 讓每列高度一致，子項可 h-full 撐滿 */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto  max-w-[1800px] mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto w-full mx-auto">
             {cards.map((c, i) => (
-              // ✅ Link 也撐滿，避免預設 inline 造成寬度不滿
               <Link key={i} href="/beer" className="flex w-full">
                 <BeerCard
                   image={c.image}
                   imageAlt={c.title}
-                  bg={c.bg}
+                  bgImage={c.bgImage} // ✅ 新增這行
                   title={c.title}
                   desc={c.desc}
                   delay={c.delay}
@@ -719,27 +750,37 @@ export default function Home() {
               <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
+                    {/* 大標：VARIETY */}
                     <FadeUp>
-                      <h2 className="font-extrabold text-[#f6f5f3] text-4xl sm:text-5xl lg:text-6xl">
-                        Dinging Memory
+                      <h2 className="title-large font-bold m-0 p-0 leading-none">
+                        VARIETY
                       </h2>
                     </FadeUp>
-                    <div className="mt-3">
+
+                    {/* 英文小標：Traditional grocery shop */}
+                    <div className="">
                       <FadeUp delay={0.06}>
-                        <p className="text-[#A18360] font-bold text-lg sm:text-2xl tracking-wider">
-                          Lorem dolor sit amet consectetur
+                        <p className="sub_title m-0 p-0">
+                          Traditional grocery shop
                         </p>
                       </FadeUp>
                     </div>
-                    <ul className="mt-2">
+
+                    {/* 中文說明文字 */}
+                    <div className="mt-3 sm:mt-4">
                       <FadeUp delay={0.08}>
-                        <li className="mt-4  text-[#333] leading-relaxed">
-                          Lorem ipsum dolor sit amet consectetur adipisicing
-                          elit. Omnis laudantium voluptates fugiat aliquid minus
-                          doloremque...
-                        </li>
+                        <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
+                          販售各式台灣經典零食、懷舊童玩，
+                          以及方便好料理的台灣小吃冷凍包。
+                        </p>
+                        <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
+                          帶你重溫最經典的台灣味。
+                        </p>
+                        <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
+                          喜歡台味的朋友，能線上輕鬆訂購， 也歡迎到店逛逛！
+                        </p>
                       </FadeUp>
-                    </ul>
+                    </div>
                   </div>
                 </FadeUp>
               </div>
@@ -747,94 +788,157 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 其餘段落（品牌故事 / VIDEO / APP INTRO）保持原樣 */}
-        <section className="section_brand_story relative  px-10 py-20">
-          <FadeUp
-            delay={0.02}
-            className="side-info absolute rotate-[40deg] xl:rotate-[-90deg] left-[-5%] top-0 xl:top-[35%]"
-          >
-            <div className="flex  pl-[50px] justify-center  py-8  w-full items-center">
-              <div className="txt text-xl flex  items-center font-bold xl:rotate-[-90deg] tracking-wider">
-                <Image
-                  src="/images/text04.png"
-                  alt=""
-                  placeholder="empty"
-                  loading="lazy"
-                  width={200}
-                  height={200}
-                  className="w-[55px]"
-                />
-                The Memory Taiwan Food
-                <Image
-                  src="/images/text05.png"
-                  alt=""
-                  placeholder="empty"
-                  loading="lazy"
-                  width={200}
-                  height={200}
-                  className="w-[55px]"
-                />
-              </div>
-            </div>
-          </FadeUp>
-
-          <div className="title max-w-[1920px] xl:w-[70%] md:w-[90%] w-full mx-auto">
+        <section className="section_brand_story relative ">
+          <div className="pointer-events-none absolute top-[7%] sm:top-[15%] left-[10%]  md:translate-x-0 z-20">
             <FadeUp>
-              <h2 className="text-4xl mt-6 sm:mt-0 font-bold font-stone-800">
-                BARND STORY
+              <h2
+                className="
+        font-extrabold tracking-[0.18em]
+        text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)]
+        text-[clamp(2.4rem,7vw,8.5rem)]
+        leading-none
+      "
+              >
+                ABOUT&nbsp;US
               </h2>
-            </FadeUp>
-            <FadeUp delay={0.06}>
-              <h3 className="text-2xl font-bold">
-                consectetur adipisicing elit. Modi, aliquid!
-              </h3>
-            </FadeUp>
-            <FadeUp delay={0.12}>
-              <div className="description mt-8 max-w-[600px]">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Laudantium obcaecati...
-              </div>
             </FadeUp>
           </div>
 
-          <div className="brand max-w-[1920px] xl:w-[70%] md:w-[90%] gap-5 w-full mx-auto grid  lg:grid-cols-3 ">
-            <FadeUp delay={0.04} amount={0.25} className="relative">
-              <Link href="main01">
+          <div className="max-w-[1920px] mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
+            <FadeUp delay={0.02} amount={0.25} className="relative">
+              <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/室內.png"
-                  width={1000}
-                  placeholder="empty"
-                  loading="lazy"
-                  height={1500}
-                  className="max-w-[650px] w-full sm:w-[88%]] mt-10"
+                  src="/images/index/about/有香集團.png"
+                  alt="有香集團"
+                  fill
+                  priority={false}
+                  className="object-cover"
                 />
-              </Link>
+
+                <div className="absolute inset-0 bg-black/35" />
+
+                <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+                  <div
+                    className="
+              transform transition-transform duration-500 ease-out
+              group-hover:-translate-y-2
+            "
+                  >
+                    <Image
+                      src="/images/index/about/有香集團-logo.png"
+                      alt="有香集團 logo"
+                      width={260}
+                      height={120}
+                      className="w-[160px] md:w-[190px] lg:w-[210px] h-auto"
+                    />
+                  </div>
+
+                  <div
+                    className="
+              mt-3 opacity-0 translate-y-3
+              group-hover:opacity-100 group-hover:translate-y-0
+              transition-all duration-500 ease-out delay-75
+            "
+                  >
+                    <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
+                      集結台灣經典風味與回憶，開發多元餐飲品牌，<br></br>
+                      把「有香」的味道帶進每一個日常。
+                    </p>
+                  </div>
+                </div>
+              </div>
             </FadeUp>
-            <FadeUp delay={0.08} amount={0.25}>
-              <Link href="/main02">
+
+            <FadeUp delay={0.06} amount={0.25} className="relative">
+              <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/室內.png"
-                  width={1000}
-                  placeholder="empty"
-                  loading="lazy"
-                  height={1500}
-                  className="max-w-[650px] w-full sm:w-[88%]] mt-10"
+                  src="/images/index/about/有香.png"
+                  alt="有香 Memory Corner"
+                  fill
+                  className="object-cover"
                 />
-              </Link>
+                <div className="absolute inset-0 bg-black/35" />
+                <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+                  <div
+                    className="
+              transform transition-transform duration-500 ease-out
+              group-hover:-translate-y-2
+            "
+                  >
+                    <Image
+                      src="/images/index/about/有香-logo.png"
+                      alt="有香 logo"
+                      width={260}
+                      height={120}
+                      className="w-[150px] md:w-[180px] lg:w-[200px] h-auto"
+                    />
+                  </div>
+                  <div
+                    className="
+              mt-3 opacity-0 translate-y-3
+              group-hover:opacity-100 group-hover:translate-y-0
+              transition-all duration-500 ease-out delay-75
+            "
+                  >
+                    <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
+                      一碗熱騰騰的牛肉麵、一桌家常菜，<br></br>
+                      把巷口記憶與人情味一起端上桌。
+                    </p>
+                  </div>
+                </div>
+              </div>
             </FadeUp>
-            <FadeUp delay={0.12} amount={0.25}>
-              <Image
-                src="/images/室內.png"
-                width={1000}
-                placeholder="empty"
-                loading="lazy"
-                height={1500}
-                className="max-w-[650px] w-full sm:w-[88%] mt-10"
-              />
+
+            <FadeUp delay={0.1} amount={0.25} className="relative">
+              <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
+                <Image
+                  src="/images/index/about/億點點.png"
+                  alt="億點點 Sweet Memory"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-black/35" />
+                <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+                  <div
+                    className="
+              transform transition-transform duration-500 ease-out
+              group-hover:-translate-y-2
+            "
+                  >
+                    <Image
+                      src="/images/index/about/億點點-logo.png"
+                      alt="億點點 logo"
+                      width={260}
+                      height={120}
+                      className="w-[150px] md:w-[180px] lg:w-[200px] h-auto"
+                    />
+                  </div>
+                  <div
+                    className="
+              mt-3 opacity-0 translate-y-3
+              group-hover:opacity-100 group-hover:translate-y-0
+              transition-all duration-500 ease-out delay-75
+            "
+                  >
+                    <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
+                      手作甜點與飲品，蒐集生活裡那些 <br></br>
+                      一點點卻很重要的甜美記憶。
+                    </p>
+                  </div>
+                </div>
+              </div>
             </FadeUp>
           </div>
         </section>
-
+        <section className="h-full w-full section-video">
+          <img
+            src="/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg"
+            alt=""
+            className="w-full "
+          />
+        </section>
+        <section></section>
+        {/* 
         <section className="section_video p-10">
           <div className="title mx-auto mb-4 flex justify-center items-center flex-col">
             <FadeUp>
@@ -892,50 +996,67 @@ export default function Home() {
               ]}
               onItemClick={(i, item) => {
                 if (Number.isInteger(item?.toIndex)) {
-                  // goTo(item.toIndex);
+
                 } else {
-                  // handleNext();
+            
                 }
               }}
             />
           </FadeUp>
-        </section>
+        </section> */}
+        <section className="section_app_operation bg-[url('/images/index/app/bg.png')]   bg-cover bg-no-repeat relative py-16 sm:py-20 px-6 sm:px-10">
+          <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center md:items-stretch gap-10 md:gap-16">
+            {/* 左側文字區 */}
+            <div className="w-full md:w-[50%] flex items-center">
+              <FadeUp amount={0.35} className="w-full">
+                <div className="flex flex-col">
+                  {/* 大標：REWARDS APP */}
+                  <FadeUp>
+                    <h2
+                      className="
+            title-large 
+            font-bold
+                text-[#3b2619]
+              
+                leading-none
+              "
+                    >
+                      REWARDS APP
+                    </h2>
+                  </FadeUp>
 
-        <section className="section_app_operation p-10">
-          <div className="max-w-[1920px] mx-auto xl:w-[85%] md:w-[92%] w-full">
-            <div className="top">
-              <div className="title mx-auto flex justify-center items-center flex-col">
-                <FadeUp>
-                  <h2 className="text-[#1b1b1b] text-6xl font-extrabold">
-                    APP INTRO
-                  </h2>
-                </FadeUp>
-                <FadeUp delay={0.06}>
-                  <h3 className="text-white text-2xl text-center font-normal">
-                    Lorem ipsum dolor, sit amet consectetur adipisicing.
-                  </h3>
-                </FadeUp>
-                <FadeUp delay={0.12}>
-                  <p className="max-w-[600px] text-center font-light">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit...
-                  </p>
-                </FadeUp>
-                <FadeUp delay={0.18}>
-                  <button className="border text-white bg-[#f2893e] border-black mt-4 mb-8 px-6 py-2">
-                    Go App
-                  </button>
-                </FadeUp>
-              </div>
-              <FadeUp delay={0.1} amount={0.25}>
-                <Image
-                  src="/images/mobile-top.png"
-                  alt=""
-                  placeholder="empty"
-                  loading="lazy"
-                  width={1000}
-                  height={1000}
-                  className="w-[950px] mx-auto"
-                />
+                  {/* 英文小標：Earn Points with Every Purchase */}
+                  <div className="mt-4">
+                    <FadeUp delay={0.06}>
+                      <p
+                        className="
+                  text-[#3b2619]
+                  font-normal
+                   sub_title
+                  leading-relaxed
+                "
+                      >
+                        Earn Points with Every Purchase
+                      </p>
+                    </FadeUp>
+                  </div>
+                </div>
+              </FadeUp>
+            </div>
+
+            {/* 右側 APP 示意圖 */}
+            <div className="w-full md:w-[50%] flex justify-center md:justify-end">
+              <FadeUp delay={0.1} amount={0.3} className="w-full max-w-[820px]">
+                <div className="relative flex justify-center">
+                  <Image
+                    src="/images/index/app/hand.png"
+                    alt="Rewards App Mockup"
+                    width={1700}
+                    height={1700}
+                    loading="lazy"
+                    className="w-full h-auto"
+                  />
+                </div>
               </FadeUp>
             </div>
           </div>

@@ -154,46 +154,60 @@ async function tryLoginFallback(store, raw) {
     return store.login(second);
   }
 }
-
-/* ------------ 二層內容（桌機：純文字連結） ------------ */
+/* ------------ 二層內容（桌機：品牌門店） ------------ */
 const BrandStoresContent = () => (
-  <ul className="min-w-56 text-sm">
-    {[
-      ["關於有香餐飲集團", "/main01"],
-      ["有香", "/brand01"],
-      ["憶點點", "/brand02"],
-      ["有香ㄟ灶腳", "/brand03"],
-    ].map(([t, href]) => (
-      <li key={t}>
+  <div className="w-[230px] text-center text-[15px] leading-none">
+    <div className="flex flex-col">
+      {[
+        ["關於有香餐飲集團", "/brand-story?tab=group"],
+        ["關於有香", "/brand-story?tab=youxiang"],
+        ["關於憶點點", "/brand-story?tab=memory"],
+        ["關於有香ㄟ灶腳", "/brand-story?tab=corner"],
+      ].map(([t, href], idx) => (
         <Link
+          key={t}
           href={href}
-          className="block text-base text-black rounded-lg px-3 py-2 hover:text-white hover:bg-[#e09437] transition-colors"
+          className={`
+            px-4 py-2.5 text-[15px] text-white
+            bg-[#b87938] hover:bg-[#c5853d]
+            border border-[#c59b63]
+            ${idx > 0 ? "border-t-0" : ""}
+            transition-colors
+          `}
         >
           {t}
         </Link>
-      </li>
-    ))}
-  </ul>
+      ))}
+    </div>
+  </div>
 );
 
+/* ------------ 二層內容（桌機：品牌菜單） ------------ */
 const BrandMenuContent = () => (
-  <ul className="min-w-56 text-sm">
-    {[
-      ["菜單總覽", "/menu"],
-      ["有香", "/menu01"],
-      ["憶點點", "/menu02"],
-      ["有香ㄟ灶腳", "/menu03"],
-    ].map(([t, href]) => (
-      <li key={t}>
+  <div className="w-[230px] text-center text-[15px] leading-none">
+    <div className="flex flex-col">
+      {[
+        ["菜單總覽", "/menu"],
+        ["有香", "/menu01"],
+        ["憶點點", "/menu02"],
+        ["有香ㄟ灶腳", "/menu03"],
+      ].map(([t, href], idx) => (
         <Link
+          key={t}
           href={href}
-          className="block text-base text-black rounded-lg px-3 py-2 hover:bg-[#e09437] hover:text-white transition-colors"
+          className={`
+            px-4 py-2.5 text-[15px] text-white
+            bg-[#b87938] hover:bg-[#c5853d]
+            border border-[#c59b63]
+            ${idx > 0 ? "border-t-0" : ""}
+            transition-colors
+          `}
         >
           {t}
         </Link>
-      </li>
-    ))}
-  </ul>
+      ))}
+    </div>
+  </div>
 );
 
 /* ------- 簡潔 Hover Flyout（靠左對齊，桌機） ------- */
@@ -205,26 +219,43 @@ function FlyoutLink({ label, href = "#", FlyoutContent }) {
     <div
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      className="relative w-fit h-fit"
+      className="relative w-fit h-fit group"
     >
+      {/* 上方主選單文字 */}
       <Link
         href={href}
-        className="relative text-base  font-[14px] lg:font-medium text-black/80 hover:text-[#eda240] transition-colors"
+        className={`
+          relative inline-flex items-center 
+          px-5 py-2.5
+        
+          border border-transparent
+          text-[18px] font-medium
+          text-[#3c2514]
+          transition-colors duration-200
+          group-hover:border-[#b57a3c]
+          group-hover:bg-[#f5dfc0]
+          group-hover:text-[#b57a3c]
+        `}
       >
         {label}
-        <span
-          style={{ transform: showFlyout ? "scaleX(1)" : "scaleX(0)" }}
-          className="absolute -bottom-1 left-0 right-0 h-[2px] origin-left scale-x-0 bg-black/20 transition-transform duration-300 ease-out"
-        />
       </Link>
-
+      {/* 下拉浮層 */}
       <AnimatePresence>
         {showFlyout && (
           <motion.div
             {...fadeUp}
-            className="absolute left-0 top-8 z-[1200] rounded-xl border border-black/10 bg-white/95 shadow-lg backdrop-blur-md"
+            className="
+        absolute left-0 top-[100%]
+        z-[1200]
+        rounded-b-[8px]
+        border border-t-0 border-[#b57a3c]
+        bg-transparent
+        shadow-lg
+        backdrop-blur-[2px]
+        min-w-[220px]
+      "
           >
-            <div className="p-3">{FlyoutContent && <FlyoutContent />}</div>
+            <div className="p-0">{FlyoutContent && <FlyoutContent />}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -564,10 +595,10 @@ function MobileNavSheet({
   onClose,
   onSelect,
   brandStores = [
-    { t: "關於有香餐飲集團", href: "/main01" },
-    { t: "有香", href: "/brand01" },
-    { t: "憶點點", href: "/brand02" },
-    { t: "有香ㄟ灶腳", href: "/brand03" },
+    { t: "關於有香餐飲集團", href: "/brand-story?tab=group" },
+    { t: "關於有香", href: "/brand-story?tab=youxiang" },
+    { t: "憶點點", href: "/brand-story?tab=memory" },
+    { t: "有香ㄟ灶腳", href: "/brand-story?tab=corner" },
   ],
   brandMenus = [
     { t: "菜單總覽", href: "/menu" },
@@ -981,19 +1012,19 @@ export const SlideTabsExample = () => {
 
               <Link
                 href="/news"
-                className="text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+                className="text-[18px] font-medium text-black/80  transition-colors"
               >
                 品牌動態
               </Link>
               <Link
                 href="/participation"
-                className="text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+                className="text-[18px] font-medium text-black/80  transition-colors"
               >
                 加盟合作
               </Link>
               <Link
                 href="/contact"
-                className="text-base font-medium text-black/80 hover:text-[#eda240] transition-colors"
+                className="text-[18px] font-medium text-black/80  transition-colors"
               >
                 聯絡我們
               </Link>

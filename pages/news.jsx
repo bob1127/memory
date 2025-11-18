@@ -153,8 +153,8 @@ export default function News() {
         <MotionConfig transition={spring} reducedMotion="user">
           <section className="py-[150px] ">
             <div
-              className="mx-auto w-full md:w-[90%] px-5 xl:w-[85%] max-w-[1920px]
-                         grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+              className="mx-auto w-full md:w-[90%] px-5 xl:w-[85%] max-w-[1520px]
+                         grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {/* 父層用 stagger 控制所有卡片依序 fade-up */}
               <AnimatePresence mode="wait">
