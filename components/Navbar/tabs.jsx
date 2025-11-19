@@ -196,7 +196,7 @@ const BrandMenuContent = () => (
           key={t}
           href={href}
           className={`
-            px-4 py-2.5 text-[15px] text-white
+            px-4 py-2.5 text-[15px] text白
             bg-[#b87938] hover:bg-[#c5853d]
             border border-[#c59b63]
             ${idx > 0 ? "border-t-0" : ""}
@@ -317,7 +317,7 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
             )}
 
             <div className="mt-3 flex items-center justify-between border-t border-dashed border-black/10 pt-3">
-              <span className="text-sm text-black/70">小計</span>
+              <span className="text-sm text黑/70">小計</span>
               <span className="text-lg font-bold">
                 CA$ {Number(subtotal || 0).toLocaleString()}
               </span>
@@ -741,12 +741,12 @@ function MobileNavSheet({
                   animate={menuOpen ? "expanded" : "collapsed"}
                   className="overflow-hidden pl-1"
                 >
-                  <ul className="mb-1 space-y-1 rounded-xl bg-black/[0.03] p-1">
+                  <ul className="mb-1 space-y-1 rounded-xl bg黑/[0.03] p-1">
                     {brandMenus.map((it) => (
                       <li key={it.href}>
                         <Link
                           href={it.href}
-                          className="block rounded-lg px-3 py-2 hover:bg-white"
+                          className="block rounded-lg px-3 py-2 hover:bg白"
                           onClick={() => handleSelect(it.href)}
                         >
                           {it.t}
@@ -759,21 +759,21 @@ function MobileNavSheet({
                 {/* 一層連結 */}
                 <Link
                   href="/news"
-                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg-black/5"
+                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg黑/5"
                   onClick={() => handleSelect("/news")}
                 >
                   品牌動態
                 </Link>
                 <Link
                   href="/participation"
-                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg-black/5"
+                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg黑/5"
                   onClick={() => handleSelect("/participation")}
                 >
                   加盟合作
                 </Link>
                 <Link
                   href="/contact"
-                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg-black/5"
+                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg黑/5"
                   onClick={() => handleSelect("/participation")}
                 >
                   聯絡我們
@@ -789,25 +789,25 @@ function MobileNavSheet({
                       onLoginClick?.();
                       onClose?.();
                     }}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-black px-4 py-2 text-white hover:opacity-90 active:scale-[0.99] transition"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg黑 px-4 py-2 text白 hover:opacity-90 active:scale-[0.99] transition"
                   >
                     <User2 size={18} /> 會員登入 / 註冊
                   </button>
                 ) : (
-                  <div className="rounded-2xl border border-black/10 bg-gray-50 p-3 text-center">
-                    <div className="text-sm text-black/70 mb-1">
+                  <div className="rounded-2xl border border黑/10 bg-gray-50 p-3 text-center">
+                    <div className="text-sm text黑/70 mb-1">
                       您好，{auth.user.displayName || auth.user.name || "會員"}
                     </div>
                     <div className="flex justify-center gap-2">
                       <Link
                         href="/account"
-                        className="rounded-xl bg-black text-white px-3 py-1 text-sm hover:opacity-90"
+                        className="rounded-xl bg黑 text白 px-3 py-1 text-sm hover:opacity-90"
                         onClick={onClose}
                       >
                         我的帳戶
                       </Link>
                       <button
-                        className="rounded-xl border border-black/15 px-3 py-1 text-sm hover:bg-black/5"
+                        className="rounded-xl border border黑/15 px-3 py-1 text-sm hover:bg黑/5"
                         onClick={() => {
                           onLogoutClick?.();
                           onClose?.();
@@ -825,12 +825,12 @@ function MobileNavSheet({
                     onCartClick?.();
                     onClose?.();
                   }}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-black/15 bg-white px-4 py-2 hover:bg-black/5 active:scale-[0.99] transition"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border黑/15 bg白 px-4 py-2 hover:bg黑/5 active:scale-[0.99] transition"
                 >
                   <ShoppingCart size={18} />
                   購物車
                   {cartCount > 0 && (
-                    <span className="ml-1 rounded-full bg-red-500 px-2 py-[1px] text-[12px] text-white">
+                    <span className="ml-1 rounded-full bg-red-500 px-2 py-[1px] text-[12px] text白">
                       {cartCount}
                     </span>
                   )}
@@ -838,25 +838,25 @@ function MobileNavSheet({
               </div>
 
               {/* CTA 區 */}
-              <div className="border-t border-black/10 p-3">
+              <div className="border-t border黑/10 p-3">
                 <div className="grid grid-cols-2 gap-2">
                   <Link
                     href={cta.groupBuy.href}
                     target="_blank"
-                    className="rounded-2xl bg-[#9c2121] px-4 py-2 text-center text-white hover:opacity-90 active:scale-[0.99] transition"
+                    className="rounded-2xl bg-[#9c2121] px-4 py-2 text-center text白 hover:opacity-90 active:scale-[0.99] transition"
                     onClick={onClose}
                   >
                     {cta.groupBuy.text}
                   </Link>
                   <Link
                     href={cta.order.href}
-                    className="rounded-2xl border border-black/15 bg-white px-4 py-2 text-center hover:bg-black/5 active:scale-[0.99] transition"
+                    className="rounded-2xl border border黑/15 bg白 px-4 py-2 text-center hover:bg黑/5 active:scale-[0.99] transition"
                     onClick={onClose}
                   >
                     {cta.order.text}
                   </Link>
                 </div>
-                <div className="mt-2 text-center text-xs text-black/50">
+                <div className="mt-2 text-center text-xs text黑/50">
                   © {new Date().getFullYear()} 有香餐飲集團
                 </div>
               </div>
@@ -871,6 +871,20 @@ function MobileNavSheet({
 /* =================== 主元件 =================== */
 export const SlideTabsExample = () => {
   const router = useRouter();
+
+  // ✅ 監聽是否有往下捲動
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window === "undefined") return;
+      setIsScrolled(window.scrollY > 0); // 往下捲動就變 true
+    };
+
+    handleScroll(); // 進頁面時先跑一次
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // 手機選單
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -947,9 +961,13 @@ export const SlideTabsExample = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: easeOut }}
-        className="fixed left-0 top-0 z-[999999999] bg-white md:bg-transparent w-full"
+        className={`
+          fixed left-0 top-0 z-[999999999] w-full
+          transition-colors duration-300
+          ${isScrolled ? "bg-white shadow-md" : "bg-white md:bg-transparent"}
+        `}
       >
-        <div className="mx-auto lg:px-10 w-full mt-0 md:mt-5 py-2 md:py-0 px-2 text-white">
+        <div className="mx-auto lg:px-10 w-full mt-0  py-2 md:py-4 px-2 text-white">
           <div className="flex items-center">
             <div className="w-[20%] md:flex   hidden ">
               <Link
@@ -957,13 +975,13 @@ export const SlideTabsExample = () => {
                 target="_blank"
                 className="flex mr-4"
               >
-                <p className="rounded-[30px]   border border-white/30 bg-[#9c2121] px-4 py-2 text-[14px] text-white hover:bg-[#881b1b]  transition-colors">
+                <p className="rounded-[30px]   border border-white/30 bg-[#9c2121] px-4 py-2 text-[14px] text白 hover:bg-[#881b1b]  transition-colors">
                   團購商城
                 </p>
               </Link>
               <button
                 onClick={() => setShowOrderPopup(true)}
-                className="rounded-[30px] hidden md:block border border-white/30 bg-[#9c2121] px-3 py-1 text-[14px] text-white hover:bg-[#881b1b] transition-colors"
+                className="rounded-[30px] hidden md:block border border白/30 bg-[#9c2121] px-3 py-1 text-[14px] text白 hover:bg-[#881b1b] transition-colors"
               >
                 線上點餐
               </button>
@@ -1041,7 +1059,7 @@ export const SlideTabsExample = () => {
                 >
                   <User2 size={18} />
                   {auth?.user && (
-                    <span className="absolute -right-1 -top-1 rounded-full bg-emerald-500 px-1.5 py-[1px] text-[10px] text-white shadow">
+                    <span className="absolute -right-1 -top-1 rounded-full bg-emerald-500 px-1.5 py-[1px] text-[10px] text白 shadow">
                       已登入
                     </span>
                   )}
@@ -1051,7 +1069,7 @@ export const SlideTabsExample = () => {
                   {userOpen && (
                     <motion.div
                       {...fadeUp}
-                      className="absolute right-0 mt-2 w-72 rounded-xl border border-white/15 bg-black/80 text-white shadow-xl backdrop-blur-md"
+                      className="absolute right-0 mt-2 w-72 rounded-xl border border-white/15 bg-black/80 text白 shadow-xl backdrop-blur-md"
                     >
                       {!auth?.user ? (
                         <div className="p-2">
@@ -1061,7 +1079,7 @@ export const SlideTabsExample = () => {
                               setAuthMode("login");
                               setUserOpen(false);
                             }}
-                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg白/10 transition-colors"
                           >
                             <LogIn size={16} /> 登入
                           </button>
@@ -1071,7 +1089,7 @@ export const SlideTabsExample = () => {
                               setAuthMode("register");
                               setUserOpen(false);
                             }}
-                            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg白/10 transition-colors"
                           >
                             <User2 size={16} /> 註冊
                           </button>
@@ -1079,21 +1097,21 @@ export const SlideTabsExample = () => {
                       ) : (
                         <div className="p-2 text-sm">
                           <div className="px-3 py-2">
-                            <div className="text-white/80">已登入</div>
+                            <div className="text白/80">已登入</div>
                             <div className="truncate font-medium">
                               {auth.user.displayName ||
                                 auth.user.name ||
                                 auth.user.email}
                             </div>
                             {auth.user.email && (
-                              <div className="truncate text-xs text-white/60">
+                              <div className="truncate text-xs text白/60">
                                 {auth.user.email}
                               </div>
                             )}
                           </div>
                           <Link
                             href="/account"
-                            className="block rounded-lg px-3 py-2 hover:bg-white/10 transition-colors"
+                            className="block rounded-lg px-3 py-2 hover:bg白/10 transition-colors"
                             onClick={() => setUserOpen(false)}
                           >
                             我的帳戶 / 訂單
@@ -1127,11 +1145,11 @@ export const SlideTabsExample = () => {
               <button
                 aria-label="cart"
                 onClick={() => setCartOpen((v) => !v)}
-                className=" hidden relative md:grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
+                className=" hidden relative md:grid h-10 w-10 place-items-center rounded-full border border白/20 bg黑/30 hover:bg白/20 transition-colors"
               >
                 <ShoppingCart size={18} />
                 {cartCount > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-500 px-1 text-[11px] text-white">
+                  <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-500 px-1 text-[11px] text白">
                     {cartCount}
                   </span>
                 )}
