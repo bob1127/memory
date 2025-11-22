@@ -190,7 +190,6 @@ const BrandMenuContent = () => (
         ["菜單總覽", "/menu"],
         ["有香", "/menu01"],
         ["憶點點", "/menu02"],
-        ["有香ㄟ灶腳", "/menu03"],
       ].map(([t, href], idx) => (
         <Link
           key={t}
@@ -604,7 +603,6 @@ function MobileNavSheet({
     { t: "菜單總覽", href: "/menu" },
     { t: "有香", href: "/menu01" },
     { t: "憶點點", href: "/menu02" },
-    { t: "有香ㄟ灶腳", href: "/menu03" },
   ],
   cta = {
     groupBuy: { text: "團購商城", href: "https://corner-rouge.vercel.app/" },
@@ -964,7 +962,9 @@ export const SlideTabsExample = () => {
         className={`
           fixed left-0 top-0 z-[999999999] w-full
           transition-colors duration-300
-          ${isScrolled ? "bg-white shadow-md" : "bg-white md:bg-transparent"}
+          ${
+            isScrolled ? "bg-[#ede5d6] shadow-md" : "bg-white md:bg-transparent"
+          }
         `}
       >
         <div className="mx-auto lg:px-10 w-full mt-0  py-2 md:py-4 px-2 text-white">
@@ -1379,7 +1379,7 @@ export const SlideTabsExample = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="fixed h-[95vh] overflow-scroll right-4 ml-4 top-4 z-[2010] w-[min(920px,92vw)] rounded-2xl border border-black/10 bg-white/98 shadow-2xl backdrop-blur-md"
+              className="fixed h-[95vh] overflow-scroll right-4 ml-4 top-4 z-[999999999999] w-[min(920px,92vw)] rounded-2xl border border-black/10 bg-white/98 shadow-2xl backdrop-blur-md"
             >
               {/* Header */}
               <div className="flex items-center justify-between gap-3 border-b border-black/10 px-5 py-3">

@@ -808,7 +808,7 @@ export default function Home() {
             <FadeUp delay={0.02} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/index/about/有香集團.png"
+                  src="/images/index/about/DAV01968.jpg"
                   alt="有香集團"
                   fill
                   priority={false}
@@ -852,7 +852,7 @@ export default function Home() {
             <FadeUp delay={0.06} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/index/about/有香.png"
+                  src="/images/index/about/DAV01683.jpg"
                   alt="有香 Memory Corner"
                   fill
                   className="object-cover"
@@ -892,7 +892,7 @@ export default function Home() {
             <FadeUp delay={0.1} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/index/about/億點點.png"
+                  src="/images/index/about/DAV01773 (1).jpg"
                   alt="億點點 Sweet Memory"
                   fill
                   className="object-cover"
@@ -930,79 +930,31 @@ export default function Home() {
             </FadeUp>
           </div>
         </section>
-        <section className="h-full w-full section-video">
-          <img
-            src="/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg"
-            alt=""
-            className="w-full "
-          />
+
+        {/* ✅ SEO 友善影片載入（自動播放 / 靜音 / 無限重複 / playsInline） */}
+        <section className="h-full w-full section-video relative">
+          <video
+            className="w-full h-full object-cover"
+            src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg"
+            aria-label="Memory Corner promotion video"
+          >
+            <source
+              src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
+              type="video/mp4"
+            />
+          </video>
         </section>
+
         <section></section>
         {/* 
         <section className="section_video p-10">
-          <div className="title mx-auto mb-4 flex justify-center items-center flex-col">
-            <FadeUp>
-              <h2 className="text-[#1b1b1b] text-6xl font-extrabold">VIDEO</h2>
-            </FadeUp>
-            <FadeUp delay={0.06}>
-              <h3 className="text-white text-center text-2xl font-normal">
-                Lorem ipsum dolor, sit amet consectetur adipisicing.
-              </h3>
-            </FadeUp>
-            <FadeUp delay={0.12}>
-              <p className="max-w-[600px] text-center font-light">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit...
-              </p>
-            </FadeUp>
-          </div>
-          <FadeUp delay={0.08} amount={0.25}>
-            <BottomVideoGallery
-              items={[
-                {
-                  src: "https://www.pexels.com/zh-tw/download/video/3015488/",
-                  title: "Pexels 3015488",
-                  poster:
-                    "https://images.pexels.com/photos/769289/pexels-photo-769289.jpeg",
-                  toIndex: 0,
-                },
-                {
-                  src: "https://www.pexels.com/zh-tw/download/video/3195369/",
-                  title: "Pexels 3195369",
-                  poster:
-                    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
-                  toIndex: 1,
-                },
-                {
-                  src: "https://www.pexels.com/zh-tw/download/video/1341925/",
-                  title: "Pexels 1341925",
-                  poster:
-                    "https://images.pexels.com/photos/769289/pexels-photo-769289.jpeg",
-                  toIndex: 2,
-                },
-                {
-                  src: "https://www.pexels.com/zh-tw/download/video/2959312/",
-                  title: "Pexels 2959312",
-                  poster:
-                    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
-                  toIndex: 3,
-                },
-                {
-                  src: "https://www.pexels.com/zh-tw/download/video/3195728/",
-                  title: "Pexels 3195728",
-                  poster:
-                    "https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg",
-                  toIndex: 4,
-                },
-              ]}
-              onItemClick={(i, item) => {
-                if (Number.isInteger(item?.toIndex)) {
-
-                } else {
-            
-                }
-              }}
-            />
-          </FadeUp>
+          ...
         </section> */}
         <section className="section_app_operation bg-[url('/images/index/app/bg.png')]   bg-cover bg-no-repeat relative py-16 sm:py-20 px-6 sm:px-10">
           <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center md:items-stretch gap-10 md:gap-16">
@@ -1047,7 +999,7 @@ export default function Home() {
             {/* 右側 APP 示意圖 */}
             <div className="w-full md:w-[50%] flex justify-center md:justify-end">
               <FadeUp delay={0.1} amount={0.3} className="w-full max-w-[820px]">
-                <div className="relative flex justify-center">
+                <Link href="/app" className="relative flex justify-center">
                   <Image
                     src="/images/index/app/hand.png"
                     alt="Rewards App Mockup"
@@ -1056,7 +1008,7 @@ export default function Home() {
                     loading="lazy"
                     className="w-full h-auto"
                   />
-                </div>
+                </Link>
               </FadeUp>
             </div>
           </div>
