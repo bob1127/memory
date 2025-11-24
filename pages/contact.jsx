@@ -78,7 +78,7 @@ export default function ContactPage() {
         <title>聯絡我們 | Contact Us</title>
       </Head>
 
-      <div className="page">
+      <div className="page bg-[#EDE5D6]">
         <main className="container">
           <section className="card mt-20">
             <div className="flex flex-col justify-center items-center">
@@ -258,7 +258,7 @@ export default function ContactPage() {
             min-height: 100vh;
             width: 100%;
             box-sizing: border-box;
-            background: radial-gradient(circle at top, #f5f7ff, #f0f2f5);
+
             display: flex;
             align-items: center;
             justify-content: center;
@@ -274,11 +274,8 @@ export default function ContactPage() {
 
           .card {
             width: 100%; /* ✅ 卡片一定塞在 container 裡 */
-            background: #ffffff;
-            border-radius: 24px;
+
             padding: 28px 20px;
-            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-            border: 1px solid rgba(148, 163, 184, 0.25);
           }
 
           @media (min-width: 768px) {
