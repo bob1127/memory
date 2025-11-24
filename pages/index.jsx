@@ -571,7 +571,7 @@ export default function Home() {
         {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
         <section className=" ">
           {/* ✅ auto-rows-fr 讓每列高度一致，子項可 h-full 撐滿 */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto w-full mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto xl:h-[700px] w-full mx-auto">
             {cards.map((c, i) => (
               <Link key={i} href="/beer" className="flex w-full">
                 <BeerCard
@@ -804,7 +804,7 @@ export default function Home() {
             </FadeUp>
           </div>
 
-          <div className="max-w-[1920px] mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
+          <div className=" mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
             <FadeUp delay={0.02} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
