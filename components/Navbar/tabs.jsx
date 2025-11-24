@@ -1,10 +1,7 @@
-// components/SlideTabsExample.jsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { createPortal } from "react-dom";
-
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -114,7 +111,7 @@ const accordion = {
   expanded: { height: "auto", opacity: 1, transition: { duration: 0.22 } },
 };
 
-/* ====== Login helpers：把使用者輸入規範化、並提供後備嘗試 ====== */
+/* ====== Login helpers ====== */
 function normalizeLoginPayload({ username, password }) {
   const u = String(username || "").trim();
   const p = String(password || "");
@@ -135,7 +132,6 @@ function normalizeLoginPayload({ username, password }) {
   return payload;
 }
 
-/** 先用 normalize 遞交；失敗時嘗試換鍵名再登一次 */
 async function tryLoginFallback(store, raw) {
   const first = normalizeLoginPayload(raw);
   try {
@@ -154,7 +150,8 @@ async function tryLoginFallback(store, raw) {
     return store.login(second);
   }
 }
-/* ------------ 二層內容（桌機：品牌門店） ------------ */
+
+/* ------------ 二層內容 ------------ */
 const BrandStoresContent = () => (
   <div className="w-[230px] text-center text-[15px] leading-none">
     <div className="flex flex-col">
@@ -182,7 +179,6 @@ const BrandStoresContent = () => (
   </div>
 );
 
-/* ------------ 二層內容（桌機：品牌菜單） ------------ */
 const BrandMenuContent = () => (
   <div className="w-[230px] text-center text-[15px] leading-none">
     <div className="flex flex-col">
@@ -195,7 +191,7 @@ const BrandMenuContent = () => (
           key={t}
           href={href}
           className={`
-            px-4 py-2.5 text-[15px] text白
+            px-4 py-2.5 text-[15px] text-white
             bg-[#b87938] hover:bg-[#c5853d]
             border border-[#c59b63]
             ${idx > 0 ? "border-t-0" : ""}
@@ -209,7 +205,7 @@ const BrandMenuContent = () => (
   </div>
 );
 
-/* ------- 簡潔 Hover Flyout（靠左對齊，桌機） ------- */
+/* ------- 簡潔 Hover Flyout ------- */
 function FlyoutLink({ label, href = "#", FlyoutContent }) {
   const [open, setOpen] = useState(false);
   const showFlyout = !!FlyoutContent && open;
@@ -220,39 +216,34 @@ function FlyoutLink({ label, href = "#", FlyoutContent }) {
       onMouseLeave={() => setOpen(false)}
       className="relative w-fit h-fit group"
     >
-      {/* 上方主選單文字 */}
       <Link
         href={href}
         className={`
           relative inline-flex items-center 
-          px-5 py-2.5
-        
+          px-4 py-2.5
           border border-transparent
-          text-[18px] font-medium
+          text-[17px] font-medium
           text-[#3c2514]
           transition-colors duration-200
-          group-hover:border-[#b57a3c]
-          group-hover:bg-[#f5dfc0]
           group-hover:text-[#b57a3c]
         `}
       >
         {label}
       </Link>
-      {/* 下拉浮層 */}
       <AnimatePresence>
         {showFlyout && (
           <motion.div
             {...fadeUp}
             className="
-        absolute left-0 top-[100%]
-        z-[1200]
-        rounded-b-[8px]
-        border border-t-0 border-[#b57a3c]
-        bg-transparent
-        shadow-lg
-        backdrop-blur-[2px]
-        min-w-[220px]
-      "
+              absolute left-0 top-[100%]
+              z-[1200]
+              rounded-b-[8px]
+              border border-t-0 border-[#b57a3c]
+              bg-transparent
+              shadow-lg
+              backdrop-blur-[2px]
+              min-w-[220px]
+            "
           >
             <div className="p-0">{FlyoutContent && <FlyoutContent />}</div>
           </motion.div>
@@ -262,7 +253,7 @@ function FlyoutLink({ label, href = "#", FlyoutContent }) {
   );
 }
 
-/* ===== 加入購物車成功：右下角 Toast-Popup ===== */
+/* ===== Toast Popup ===== */
 function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
   useEffect(() => {
     if (!open) return;
@@ -283,7 +274,6 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
           <button
             className="absolute right-3 top-3 rounded-full px-2 py-1 text-gray-500 hover:bg-black/5"
             onClick={onClose}
-            aria-label="close"
           >
             ✕
           </button>
@@ -314,14 +304,12 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
                 </div>
               </div>
             )}
-
             <div className="mt-3 flex items-center justify-between border-t border-dashed border-black/10 pt-3">
-              <span className="text-sm text黑/70">小計</span>
+              <span className="text-sm text-black/70">小計</span>
               <span className="text-lg font-bold">
                 CA$ {Number(subtotal || 0).toLocaleString()}
               </span>
             </div>
-
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button
                 onClick={onCheckout}
@@ -343,7 +331,7 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
   );
 }
 
-/* ===== 線上點餐自定義 Popup ===== */
+/* ===== 線上點餐 Popup ===== */
 function OrderPopup({ open, onClose, children }) {
   if (!open) return null;
   return (
@@ -358,11 +346,11 @@ function OrderPopup({ open, onClose, children }) {
       >
         <motion.div
           variants={modalCard}
-          className="relative w-full max-w-[1560px] bg-[#dcdedd] p-6 shadow-2xl"
+          className="relative w-full max-w-[1560px] bg-[#dcdedd] p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            className="absolute right-4 top-4 text-gray-500 hover:text-black"
+            className="absolute right-4 top-4 z-50 rounded-full bg-white/50 p-2 text-gray-700 hover:bg-white hover:text-black"
             onClick={onClose}
           >
             ✕
@@ -374,7 +362,7 @@ function OrderPopup({ open, onClose, children }) {
   );
 }
 
-/* ===== 登入/註冊 Modal + 表單 ===== */
+/* ===== Auth Modal ===== */
 function AuthModal({
   open,
   mode,
@@ -588,7 +576,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
   );
 }
 
-/* ======= 手機抽屜選單元件（加會員 + 購物車） ======= */
+/* ======= 手機抽屜選單 ======= */
 function MobileNavSheet({
   open,
   onClose,
@@ -608,11 +596,12 @@ function MobileNavSheet({
     groupBuy: { text: "團購商城", href: "https://corner-rouge.vercel.app/" },
     order: { text: "線上點餐", href: "#" },
   },
-  auth, // ← 新增：登入狀態
-  cartCount = 0, // ← 新增：購物車數量
-  onLoginClick, // ← 新增：點擊登入/註冊時呼叫
-  onLogoutClick, // ← 新增：登出 callback
-  onCartClick, // ← 新增：點擊購物車
+  auth,
+  cartCount = 0,
+  onLoginClick,
+  onLogoutClick,
+  onCartClick,
+  onOrderClick, // 新增：點擊線上點餐的 callback
 }) {
   const panelRef = useRef(null);
   const [brandOpen, setBrandOpen] = useState(false);
@@ -658,13 +647,13 @@ function MobileNavSheet({
             animate="animate"
             exit="exit"
             ref={panelRef}
-            className="fixed right-0 top-0 z-[3010] h-full w-full bg-white shadow-2xl"
+            className="fixed right-0 top-0 z-[3010] h-full w-full  bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-black/10 px-4 py-3">
               <Link href="/" onClick={onClose} aria-label="Home">
-                <div className="w-[140px]">
+                <div className="w-[120px]">
                   <Image
                     src="/images/logo/有香餐飲集團-logo.png"
                     alt="有香餐飲集團"
@@ -679,17 +668,17 @@ function MobileNavSheet({
                 className="rounded-full p-2 text-gray-600 hover:bg-black/5"
                 onClick={onClose}
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
             {/* Body */}
             <div className="flex h-[calc(100%-64px)] flex-col">
-              <nav className="flex-1 overflow-y-auto px-2 py-2 text-[15px]">
+              <nav className="flex-1 overflow-y-auto px-4 py-4 text-[15px] space-y-1">
                 {/* 品牌門店 */}
                 <button
                   onClick={() => setBrandOpen((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left font-medium "
+                  className="flex w-full items-center justify-between rounded-xl px-2 py-3 text-left font-medium hover:bg-black/5 transition"
                 >
                   <span>品牌門店</span>
                   <ChevronDown
@@ -703,14 +692,14 @@ function MobileNavSheet({
                   variants={accordion}
                   initial="collapsed"
                   animate={brandOpen ? "expanded" : "collapsed"}
-                  className="overflow-hidden pl-1"
+                  className="overflow-hidden pl-2"
                 >
-                  <ul className="mb-1 space-y-1 rounded-xl bg-black/[0.03] p-1">
+                  <ul className="mb-2 space-y-1 border-l-2 border-black/5 pl-2">
                     {brandStores.map((it) => (
                       <li key={it.href}>
                         <Link
                           href={it.href}
-                          className="block rounded-lg px-3 py-2 hover:bg-white"
+                          className="block rounded-lg px-3 py-2 text-black/70 hover:bg-black/5 hover:text-black"
                           onClick={() => handleSelect(it.href)}
                         >
                           {it.t}
@@ -723,7 +712,7 @@ function MobileNavSheet({
                 {/* 品牌菜單 */}
                 <button
                   onClick={() => setMenuOpen((v) => !v)}
-                  className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-3 text-left font-medium hover:bg-black/5"
+                  className="flex w-full items-center justify-between rounded-xl px-2 py-3 text-left font-medium hover:bg-black/5 transition"
                 >
                   <span>品牌菜單</span>
                   <ChevronDown
@@ -737,14 +726,14 @@ function MobileNavSheet({
                   variants={accordion}
                   initial="collapsed"
                   animate={menuOpen ? "expanded" : "collapsed"}
-                  className="overflow-hidden pl-1"
+                  className="overflow-hidden pl-2"
                 >
-                  <ul className="mb-1 space-y-1 rounded-xl bg黑/[0.03] p-1">
+                  <ul className="mb-2 space-y-1 border-l-2 border-black/5 pl-2">
                     {brandMenus.map((it) => (
                       <li key={it.href}>
                         <Link
                           href={it.href}
-                          className="block rounded-lg px-3 py-2 hover:bg白"
+                          className="block rounded-lg px-3 py-2 text-black/70 hover:bg-black/5 hover:text-black"
                           onClick={() => handleSelect(it.href)}
                         >
                           {it.t}
@@ -757,55 +746,54 @@ function MobileNavSheet({
                 {/* 一層連結 */}
                 <Link
                   href="/news"
-                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg黑/5"
+                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
                   onClick={() => handleSelect("/news")}
                 >
                   品牌動態
                 </Link>
                 <Link
                   href="/participation"
-                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg黑/5"
+                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
                   onClick={() => handleSelect("/participation")}
                 >
                   加盟合作
                 </Link>
                 <Link
                   href="/contact"
-                  className="mt-1 block rounded-xl px-3 py-3 font-medium hover:bg黑/5"
-                  onClick={() => handleSelect("/participation")}
+                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
+                  onClick={() => handleSelect("/contact")}
                 >
                   聯絡我們
                 </Link>
               </nav>
 
-              {/* 新增：會員與購物車區 */}
-              <div className="border-t border-black/10 p-3 space-y-2">
-                {/* 會員區 */}
+              {/* 會員與購物車區 */}
+              <div className="border-t border-black/10 p-4 space-y-3 bg-gray-50/50">
                 {!auth?.user ? (
                   <button
                     onClick={() => {
                       onLoginClick?.();
                       onClose?.();
                     }}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg黑 px-4 py-2 text白 hover:opacity-90 active:scale-[0.99] transition"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-2.5 text-white hover:opacity-90 active:scale-[0.99] transition"
                   >
                     <User2 size={18} /> 會員登入 / 註冊
                   </button>
                 ) : (
-                  <div className="rounded-2xl border border黑/10 bg-gray-50 p-3 text-center">
-                    <div className="text-sm text黑/70 mb-1">
+                  <div className="rounded-xl border border-black/10 bg-white p-3 text-center shadow-sm">
+                    <div className="text-sm text-black/70 mb-2">
                       您好，{auth.user.displayName || auth.user.name || "會員"}
                     </div>
                     <div className="flex justify-center gap-2">
                       <Link
                         href="/account"
-                        className="rounded-xl bg黑 text白 px-3 py-1 text-sm hover:opacity-90"
+                        className="rounded-lg bg-black text-white px-3 py-1.5 text-xs hover:opacity-90"
                         onClick={onClose}
                       >
                         我的帳戶
                       </Link>
                       <button
-                        className="rounded-xl border border黑/15 px-3 py-1 text-sm hover:bg黑/5"
+                        className="rounded-lg border border-black/15 px-3 py-1.5 text-xs hover:bg-black/5"
                         onClick={() => {
                           onLogoutClick?.();
                           onClose?.();
@@ -817,18 +805,17 @@ function MobileNavSheet({
                   </div>
                 )}
 
-                {/* 購物車按鈕 */}
                 <button
                   onClick={() => {
                     onCartClick?.();
                     onClose?.();
                   }}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border黑/15 bg白 px-4 py-2 hover:bg黑/5 active:scale-[0.99] transition"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-black/15 bg-white px-4 py-2.5 hover:bg-black/5 active:scale-[0.99] transition"
                 >
                   <ShoppingCart size={18} />
                   購物車
                   {cartCount > 0 && (
-                    <span className="ml-1 rounded-full bg-red-500 px-2 py-[1px] text-[12px] text白">
+                    <span className="ml-1 rounded-full bg-[#9c2121] px-2 py-[1px] text-[11px] text-white">
                       {cartCount}
                     </span>
                   )}
@@ -836,25 +823,27 @@ function MobileNavSheet({
               </div>
 
               {/* CTA 區 */}
-              <div className="border-t border黑/10 p-3">
-                <div className="grid grid-cols-2 gap-2">
+              <div className="border-t border-black/10 p-4 bg-white">
+                <div className="grid grid-cols-2 gap-3">
                   <Link
                     href={cta.groupBuy.href}
                     target="_blank"
-                    className="rounded-2xl bg-[#9c2121] px-4 py-2 text-center text白 hover:opacity-90 active:scale-[0.99] transition"
+                    className="rounded-xl bg-[#9c2121] px-2 py-2.5 text-center text-sm font-medium text-white hover:bg-[#881b1b] active:scale-[0.99] transition shadow-sm"
                     onClick={onClose}
                   >
                     {cta.groupBuy.text}
                   </Link>
-                  <Link
-                    href={cta.order.href}
-                    className="rounded-2xl border border黑/15 bg白 px-4 py-2 text-center hover:bg黑/5 active:scale-[0.99] transition"
-                    onClick={onClose}
+                  <button
+                    onClick={() => {
+                      onOrderClick?.();
+                      onClose?.();
+                    }}
+                    className="rounded-xl border border-[#9c2121] text-[#9c2121] bg-white px-2 py-2.5 text-center text-sm font-medium hover:bg-red-50 active:scale-[0.99] transition"
                   >
                     {cta.order.text}
-                  </Link>
+                  </button>
                 </div>
-                <div className="mt-2 text-center text-xs text黑/50">
+                <div className="mt-3 text-center text-[10px] text-black/40">
                   © {new Date().getFullYear()} 有香餐飲集團
                 </div>
               </div>
@@ -870,16 +859,15 @@ function MobileNavSheet({
 export const SlideTabsExample = () => {
   const router = useRouter();
 
-  // ✅ 監聽是否有往下捲動
+  // 監聽捲動
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       if (typeof window === "undefined") return;
-      setIsScrolled(window.scrollY > 0); // 往下捲動就變 true
+      setIsScrolled(window.scrollY > 0);
     };
-
-    handleScroll(); // 進頁面時先跑一次
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -909,21 +897,21 @@ export const SlideTabsExample = () => {
   const [authLoading, setAuthLoading] = useState(false);
   const [authErr, setAuthErr] = useState("");
 
-  // ✅ 線上點餐彈出框
+  // 線上點餐彈出框
   const [showOrderPopup, setShowOrderPopup] = useState(false);
 
-  // ✅ 加入購物車成功提示
+  // 加入購物車成功提示
   const [showAdded, setShowAdded] = useState(false);
   const [addedItem, setAddedItem] = useState(null);
 
-  // 初始化與訂閱 auth 狀態
+  // 初始化 auth
   useEffect(() => {
     authStore.init?.();
     const unsub = authStore.subscribe?.((s) => setAuth({ ...(s || {}) }));
     return typeof unsub === "function" ? unsub : undefined;
   }, []);
 
-  // 跨分頁同步（localStorage 變更時重新 init）
+  // 跨分頁同步
   useEffect(() => {
     const onStorage = (e) => {
       if (!e) return;
@@ -937,139 +925,152 @@ export const SlideTabsExample = () => {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // 在商品卡片或詳情頁呼叫這個
-  const handleAddToCart = (item) => {
-    cartStore.add?.({
-      id: item.id,
-      name: item.name,
-      img: item.img,
-      price: item.price,
-      qty: item.qty || 1,
-    });
-    setAddedItem({ ...item, qty: item.qty || 1 });
-    setShowAdded(true);
-  };
-
   return (
     <div>
-      {/* 手機菜單遮罩（點擊背景時也關閉，已在 MobileNavSheet 內處理） */}
-
+      {/* =====================================================
+        Navbar 重構重點：
+        1. 使用 xl (1280px) 作為切換點，解決 Pad 跑版問題。
+        2. < xl : 漢堡選單模式 (左漢堡、中Logo、右功能)。
+        3. >= xl : 完整桌機選單。
+        =====================================================
+      */}
       <motion.nav
         key="navbar"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: easeOut }}
         className={`
-          fixed left-0 top-0 z-[999999999] w-full
-          transition-colors duration-300
+          fixed left-0 top-0 z-[999] w-full
+          transition-all duration-300
           ${
-            isScrolled ? "bg-[#ede5d6] shadow-md" : "bg-white md:bg-transparent"
+            isScrolled
+              ? "bg-[#ede5d6]/95 shadow-md backdrop-blur-sm py-2"
+              : "bg-white xl:bg-transparent py-2 xl:py-4"
           }
         `}
       >
-        <div className="mx-auto lg:px-10 w-full mt-0  py-2 md:py-4 px-2 text-white">
-          <div className="flex items-center">
-            <div className="w-[20%] md:flex   hidden ">
-              <Link
-                href="https://corner-rouge.vercel.app/"
-                target="_blank"
-                className="flex mr-4"
-              >
-                <p className="rounded-[30px]   border border-white/30 bg-[#9c2121] px-4 py-2 text-[14px] text白 hover:bg-[#881b1b]  transition-colors">
-                  團購商城
-                </p>
-              </Link>
-              <button
-                onClick={() => setShowOrderPopup(true)}
-                className="rounded-[30px] hidden md:block border border白/30 bg-[#9c2121] px-3 py-1 text-[14px] text白 hover:bg-[#881b1b] transition-colors"
-              >
-                線上點餐
-              </button>
+        <div className="mx-auto w-full px-4 xl:px-8 max-w-[1920px]">
+          <div className="flex items-center justify-between">
+            {/* 1. 左側區域 */}
+            <div className="flex w-[20%] items-center justify-start">
+              {/* < xl : 顯示漢堡選單按鈕 (左側) */}
+              <div className="xl:hidden">
+                <button
+                  aria-label="open menu"
+                  className="grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white/50 hover:bg-white active:scale-95 transition-all"
+                  onClick={() => setIsMenuOpen(true)}
+                >
+                  <Menu className="text-[#3c2514]" size={22} />
+                </button>
+              </div>
+
+              {/* >= xl : 顯示紅色按鈕群 */}
+              <div className="hidden xl:flex items-center gap-3">
+                <Link
+                  href="https://corner-rouge.vercel.app/"
+                  target="_blank"
+                  className="group relative overflow-hidden rounded-full border border-white/30 bg-[#9c2121] px-5 py-2 text-[15px] text-white hover:bg-[#881b1b] transition-colors shadow-sm"
+                >
+                  <span className="relative z-10">團購商城</span>
+                </Link>
+                <button
+                  onClick={() => setShowOrderPopup(true)}
+                  className="rounded-full border border-white/30 bg-[#9c2121] px-5 py-2 text-[15px] text-white hover:bg-[#881b1b] transition-colors shadow-sm"
+                >
+                  線上點餐
+                </button>
+              </div>
             </div>
-            {/* 左：手機 Logo */}
-            <div className="w-1/3 md:hidden block md:w-1/3">
-              <div className="md:hidden">
+
+            {/* 2. 中間區域 (Logo & 選單) */}
+            <div className="flex flex-1 justify-center">
+              {/* < xl : Logo 絕對置中 */}
+              <div className="xl:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 <Link href="/" aria-label="Home">
-                  <div className="w-[160px] p-2">
+                  <div className="w-[140px] md:w-[160px]">
                     <Image
                       src="/images/logo/有香餐飲集團-logo.png"
                       alt="有香餐飲集團"
-                      width={180}
-                      height={56}
+                      width={160}
+                      height={50}
                       priority
+                      className="h-auto w-full object-contain"
                     />
                   </div>
                 </Link>
               </div>
-            </div>
 
-            {/* 中：桌機選單 */}
-            <div className="hidden md:flex  w-[60%] lg:w-[60%] items-center justify-center gap-8">
-              <FlyoutLink
-                href="/"
-                label="品牌門店"
-                FlyoutContent={BrandStoresContent}
-              />
-              <FlyoutLink
-                href="/menu"
-                label="品牌菜單"
-                FlyoutContent={BrandMenuContent}
-              />
-
-              {/* 中間 Logo */}
-              <Link href="/" aria-label="Home" className="pl-2">
-                <Image
-                  src="/images/logo/有香餐飲集團-logo.png"
-                  alt="有香餐飲集團"
-                  width={150}
-                  height={48}
-                  priority
-                  className="h-auto w-[190px]"
+              {/* >= xl : 完整桌機選單 + Logo */}
+              <div className="hidden xl:flex items-center justify-center gap-5 2xl:gap-8">
+                <FlyoutLink
+                  href="/"
+                  label="品牌門店"
+                  FlyoutContent={BrandStoresContent}
                 />
-              </Link>
+                <FlyoutLink
+                  href="/menu"
+                  label="品牌菜單"
+                  FlyoutContent={BrandMenuContent}
+                />
 
-              <Link
-                href="/news"
-                className="text-[18px] font-medium text-black/80  transition-colors"
-              >
-                品牌動態
-              </Link>
-              <Link
-                href="/participation"
-                className="text-[18px] font-medium text-black/80  transition-colors"
-              >
-                加盟合作
-              </Link>
-              <Link
-                href="/contact"
-                className="text-[18px] font-medium text-black/80  transition-colors"
-              >
-                聯絡我們
-              </Link>
+                <Link href="/" aria-label="Home" className="px-2">
+                  <Image
+                    src="/images/logo/有香餐飲集團-logo.png"
+                    alt="有香餐飲集團"
+                    width={180}
+                    height={58}
+                    priority
+                    className="h-[50px] w-auto object-contain drop-shadow-sm"
+                  />
+                </Link>
+
+                <Link
+                  href="/news"
+                  className="px-4 py-2 text-[17px] font-medium text-[#3c2514] hover:text-[#b57a3c] transition-colors"
+                >
+                  品牌動態
+                </Link>
+                <Link
+                  href="/participation"
+                  className="px-4 py-2 text-[17px] font-medium text-[#3c2514] hover:text-[#b57a3c] transition-colors"
+                >
+                  加盟合作
+                </Link>
+                <Link
+                  href="/contact"
+                  className="px-4 py-2 text-[17px] font-medium text-[#3c2514] hover:text-[#b57a3c] transition-colors"
+                >
+                  聯絡我們
+                </Link>
+              </div>
             </div>
 
-            {/* 右：訂購 / 會員 / 購物車 / 漢堡 */}
-            <div className="flex pr-6 w-2/3 md:w-[20%]  items-center justify-end gap-3">
-              {/* 會員 icon（顯示「已登入」徽章 + 快速進入帳戶） */}
+            {/* 3. 右側區域 (會員 & 購物車) */}
+            <div className="flex w-[20%] items-center justify-end gap-3">
+              {/* 會員 Icon */}
               <div className="relative">
                 <button
                   aria-label="user"
                   onClick={() => setUserOpen((v) => !v)}
-                  className=" hidden relative md:grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-black/30 hover:bg-white/20 transition-colors"
+                  className={`
+                    grid h-10 w-10 place-items-center rounded-full border transition-all
+                    ${
+                      isScrolled || isMenuOpen
+                        ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                        : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
+                    }
+                  `}
                 >
-                  <User2 size={18} />
+                  <User2 size={20} />
                   {auth?.user && (
-                    <span className="absolute -right-1 -top-1 rounded-full bg-emerald-500 px-1.5 py-[1px] text-[10px] text白 shadow">
-                      已登入
-                    </span>
+                    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
                   )}
                 </button>
-
                 <AnimatePresence>
                   {userOpen && (
                     <motion.div
                       {...fadeUp}
-                      className="absolute right-0 mt-2 w-72 rounded-xl border border-white/15 bg-black/80 text白 shadow-xl backdrop-blur-md"
+                      className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden"
                     >
                       {!auth?.user ? (
                         <div className="p-2">
@@ -1079,9 +1080,10 @@ export const SlideTabsExample = () => {
                               setAuthMode("login");
                               setUserOpen(false);
                             }}
-                            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg白/10 transition-colors"
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
                           >
-                            <LogIn size={16} /> 登入
+                            <LogIn size={18} />{" "}
+                            <span className="text-[15px]">會員登入</span>
                           </button>
                           <button
                             onClick={() => {
@@ -1089,32 +1091,30 @@ export const SlideTabsExample = () => {
                               setAuthMode("register");
                               setUserOpen(false);
                             }}
-                            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 hover:bg白/10 transition-colors"
+                            className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
                           >
-                            <User2 size={16} /> 註冊
+                            <User2 size={18} />{" "}
+                            <span className="text-[15px]">註冊帳號</span>
                           </button>
                         </div>
                       ) : (
-                        <div className="p-2 text-sm">
-                          <div className="px-3 py-2">
-                            <div className="text白/80">已登入</div>
-                            <div className="truncate font-medium">
+                        <div className="p-2">
+                          <div className="px-4 py-3 border-b border-white/10 mb-1">
+                            <div className="text-xs text-white/50 uppercase tracking-wider">
+                              Signed in as
+                            </div>
+                            <div className="truncate font-medium text-[15px] mt-0.5">
                               {auth.user.displayName ||
                                 auth.user.name ||
                                 auth.user.email}
                             </div>
-                            {auth.user.email && (
-                              <div className="truncate text-xs text白/60">
-                                {auth.user.email}
-                              </div>
-                            )}
                           </div>
                           <Link
                             href="/account"
-                            className="block rounded-lg px-3 py-2 hover:bg白/10 transition-colors"
+                            className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
                             onClick={() => setUserOpen(false)}
                           >
-                            我的帳戶 / 訂單
+                            <User2 size={16} /> 我的帳戶
                           </Link>
                           <button
                             onClick={async () => {
@@ -1130,7 +1130,7 @@ export const SlideTabsExample = () => {
                                 }
                               }
                             }}
-                            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-red-200 hover:bg-red-500/10 transition-colors"
+                            className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
                           >
                             <LogOut size={16} /> 登出
                           </button>
@@ -1141,44 +1141,32 @@ export const SlideTabsExample = () => {
                 </AnimatePresence>
               </div>
 
-              {/* 購物車 */}
+              {/* 購物車 Icon */}
               <button
                 aria-label="cart"
                 onClick={() => setCartOpen((v) => !v)}
-                className=" hidden relative md:grid h-10 w-10 place-items-center rounded-full border border白/20 bg黑/30 hover:bg白/20 transition-colors"
+                className={`
+                  relative grid h-10 w-10 place-items-center rounded-full border transition-all
+                  ${
+                    isScrolled || isMenuOpen
+                      ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                      : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
+                  }
+                `}
               >
-                <ShoppingCart size={18} />
+                <ShoppingCart size={20} />
                 {cartCount > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-500 px-1 text-[11px] text白">
+                  <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
                     {cartCount}
                   </span>
                 )}
               </button>
-
-              {/* 漢堡（手機） */}
-              <div className="md:hidden pl-1">
-                <button
-                  aria-label="open menu"
-                  className={`grid h-10 w-10 place-items-center rounded-full border transition-colors ${
-                    isMenuOpen
-                      ? "bg-white border-gray-300 shadow-sm"
-                      : "bg-white/90 border-gray-300 hover:bg-white"
-                  }`}
-                  onClick={() => setIsMenuOpen((v) => !v)}
-                >
-                  {isMenuOpen ? (
-                    <X className="text-gray-700" />
-                  ) : (
-                    <Menu className="text-gray-700" />
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         </div>
       </motion.nav>
 
-      {/* ===== 新增：線上點餐自定義 Popup ===== */}
+      {/* ===== 線上點餐 Popup ===== */}
       <OrderPopup
         open={showOrderPopup}
         onClose={() => setShowOrderPopup(false)}
@@ -1353,7 +1341,7 @@ export const SlideTabsExample = () => {
         </div>
       </OrderPopup>
 
-      {/* ===== 加入購物車成功 Toast ===== */}
+      {/* ===== Toast ===== */}
       <AddToCartPopup
         open={showAdded}
         item={addedItem}
@@ -1361,7 +1349,7 @@ export const SlideTabsExample = () => {
         onClose={() => setShowAdded(false)}
         onCheckout={() => {
           setShowAdded(false);
-          setCartOpen(true); // 或 router.push('/checkout')
+          setCartOpen(true);
         }}
       />
 
@@ -1593,6 +1581,7 @@ export const SlideTabsExample = () => {
           window.location.reload();
         }}
         onCartClick={() => setCartOpen(true)}
+        onOrderClick={() => setShowOrderPopup(true)}
       />
     </div>
   );
