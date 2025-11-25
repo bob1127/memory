@@ -46,7 +46,7 @@ export default function BeerInner({ product }) {
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
           {/* ---------- 左：圖片區 ---------- */}
           <div className="lg:sticky lg:top-24 self-start">
-            <div className="aspect-square rounded-2xl overflow-hidden shadow-sm bg-neutral-50">
+            <div className="aspect-square rounded-2xl overflow-hidden ">
               <Swiper
                 modules={[Thumbs]}
                 spaceBetween={12}
@@ -166,37 +166,6 @@ export default function BeerInner({ product }) {
               >
                 加入購物車
               </motion.button>
-            </div>
-
-            {/* ---------- 詳細說明 ---------- */}
-            <div className="divide-y border rounded-xl overflow-hidden">
-              <details className="group open:bg-neutral-50">
-                <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
-                  <span>成分 / 風味</span>
-                  <span className="transition group-open:rotate-180">⌄</span>
-                </summary>
-                <div className="px-4 pb-4 text-sm text-neutral-700">
-                  麥芽、水、啤酒花。清爽收尾與淡淡麥香。
-                </div>
-              </details>
-              <details className="group open:bg-neutral-50">
-                <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
-                  <span>運送說明</span>
-                  <span className="transition group-open:rotate-180">⌄</span>
-                </summary>
-                <div className="px-4 pb-4 text-sm text-neutral-700">
-                  常溫/低溫配送（依品項而定）；下單後 1–2 個工作天出貨。
-                </div>
-              </details>
-              <details className="group open:bg-neutral-50">
-                <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium">
-                  <span>退換政策</span>
-                  <span className="transition group-open:rotate-180">⌄</span>
-                </summary>
-                <div className="px-4 pb-4 text-sm text-neutral-700">
-                  收到商品 7 天內未開封可申請退換；詳見網站退換貨說明。
-                </div>
-              </details>
             </div>
           </div>
         </div>

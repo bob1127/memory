@@ -164,7 +164,6 @@ export default function Home() {
             )}
           </AnimatePresence>
         </div>
-
         {/* ✅ 跑馬燈 */}
         <AnimatePresence>
           {showMarquee && (
@@ -183,11 +182,12 @@ export default function Home() {
                       src={item.src}
                       alt={item.alt}
                       loading="lazy"
-                      className="w-[420px] object-contain"
+                      className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full"
                     />
                   </div>
                 ))}
               </Marquee>
+
               <Marquee velocity={24} direction="ltr">
                 {MARQUEE_ITEMS.map((item, idx) => (
                   <div key={`m2-${idx}`} className="mx-6 flex items-center">
@@ -195,7 +195,7 @@ export default function Home() {
                       src={item.src}
                       alt={item.alt}
                       loading="lazy"
-                      className="w-[420px] object-contain"
+                      className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full"
                     />
                   </div>
                 ))}
@@ -265,17 +265,17 @@ export default function Home() {
                         </p>
                       )}
                     </div>
-
                     <Link
                       href={`/beer/${p.slug}`}
                       aria-label={`${p.name} 內頁`}
+                      className="relative block w-[240px] h-[240px]"
                     >
                       <Image
                         src={p.img}
                         alt={p.name}
-                        className="w-[200px] h-auto transition-transform group-hover:scale-[1.02]"
-                        width={330}
-                        height={120}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 240px"
+                        className="object-contain p-2 transition-transform group-hover:scale-[1.05]"
                       />
                     </Link>
 
