@@ -5,8 +5,9 @@ import { useRef, useEffect, useLayoutEffect, useState } from "react";
 import Image from "next/image";
 import { ReactLenis } from "@studio-freight/react-lenis";
 import ParallaxForks from "@/components/ParallaxForks";
-import Marquee from "react-marquee-slider";
+
 import Link from "next/link";
+import Marquee from "react-marquee-slider";
 import BeerCans from "@/components/BeerCans";
 import dynamic from "next/dynamic";
 import BottomVideoGallery from "../components/BottomVideoCarousel";
@@ -55,98 +56,6 @@ function FadeUp({
     >
       {children}
     </motion.div>
-  );
-}
-
-function BeerCard({
-  image = "/images/0616ala-removebg-preview.png",
-  imageAlt = "Beer",
-  bg = "",
-  bgImage,
-  title = "Title",
-  desc = "",
-  delay = 0,
-}) {
-  return (
-    <FadeUp delay={delay} className="w-full h-full">
-      <motion.article
-        className="
-          relative group flex items-center justify-center 
-          overflow-hidden w-full h-[350px] sm:h-[500px] xl:h-full
-          py-6 sm:py-10
-        "
-        style={{
-          backgroundColor: bg,
-          backgroundImage: bgImage ? `url(${bgImage})` : "",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-        initial={{ opacity: 0, y: 36, scale: 0.98, filter: "blur(8px)" }}
-        whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-        viewport={{ once: true, amount: 0.35 }}
-        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay }}
-      >
-        {/* ===== 浮動文字 ===== */}
-        <div
-          className="
-          pointer-events-none absolute top-6 sm:top-8
-          left-1/2 -translate-x-1/2
-          w-[80%] text-center z-20
-        "
-        >
-          <div
-            className="
-              opacity-100 sm:opacity-0
-              sm:-translate-y-3
-              sm:group-hover:opacity-100 sm:group-hover:translate-y-0
-              transition-all duration-700
-            "
-          >
-            <h2 className="text-xl sm:text-2xl font-bold text-black mb-1 sm:mb-2">
-              {title}
-            </h2>
-            <p className="text-black/90 leading-relaxed text-sm sm:text-base">
-              {desc}
-            </p>
-          </div>
-        </div>
-
-        {/* ===== 啤酒圖片 ===== */}
-        <div
-          className="
-            relative 
-            w-[65%] sm:w-[78%] 
-            max-w-[460px] mt-20 sm:mt-0 sm:max-w-[620px]
-            z-10
-            overflow-visible
-            flex justify-center
-          "
-        >
-          <motion.div
-            initial={{ y: 0, scale: 1.005 }}
-            whileHover={{ y: 40, scale: 1.08 }}
-            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-            className="origin-top"
-          >
-            <img
-              src={image}
-              alt={imageAlt}
-              className="
-                w-full 
-                max-h-[420px] sm:max-h-[500px]
-                object-contain mx-auto 
-                select-none
-              "
-              decoding="async"
-              loading="eager"
-              fetchPriority="high"
-              draggable="false"
-            />
-          </motion.div>
-        </div>
-      </motion.article>
-    </FadeUp>
   );
 }
 
@@ -567,30 +476,12 @@ export default function Home() {
             />
           </div>
         </section>
-
-        {/* ===== 四等份卡片：改為不同圖片＋文案 ===== */}
-        <section className=" ">
-          {/* ✅ auto-rows-fr 讓每列高度一致，子項可 h-full 撐滿 */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-fr h-auto xl:h-[700px] w-full mx-auto">
-            {cards.map((c, i) => (
-              <Link key={i} href="/beer" className="flex w-full">
-                <BeerCard
-                  image={c.image}
-                  imageAlt={c.title}
-                  bgImage={c.bgImage} // ✅ 新增這行
-                  title={c.title}
-                  desc={c.desc}
-                  delay={c.delay}
-                />
-              </Link>
-            ))}
-          </div>
-        </section>
+        <Carousel />
 
         {/* ======= 零食：各自落入袋口（原樣保留） ======= */}
         <section
           ref={dingingRef}
-          className="section_Dinging relative  overflow-x-hidden"
+          className="section_Dinging mx-auto max-w-[1920px] relative  overflow-x-hidden"
         >
           <div className="mx-auto  py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
@@ -750,7 +641,6 @@ export default function Home() {
               <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
-                    {/* 大標：VARIETY */}
                     <FadeUp>
                       <h2 className="title-large font-bold m-0 p-0 leading-none">
                         VARIETY
@@ -829,7 +719,7 @@ export default function Home() {
                       alt="有香集團 logo"
                       width={260}
                       height={120}
-                      className="w-[160px] md:w-[190px] lg:w-[210px] h-auto"
+                      className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
                     />
                   </div>
 
@@ -840,9 +730,9 @@ export default function Home() {
               transition-all duration-500 ease-out delay-75
             "
                   >
-                    <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
-                      集結台灣經典風味與回憶，開發多元餐飲品牌，<br></br>
-                      把「有香」的味道帶進每一個日常。
+                    <p className="text-white text-[16px]  leading-relaxed">
+                      始於1975年台灣高雄，在北美這片 土地上<br></br>
+                      傳遞家的溫度與歸屬感
                     </p>
                   </div>
                 </div>
@@ -870,7 +760,7 @@ export default function Home() {
                       alt="有香 logo"
                       width={260}
                       height={120}
-                      className="w-[150px] md:w-[180px] lg:w-[200px] h-auto"
+                      className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
                     />
                   </div>
                   <div
@@ -880,9 +770,8 @@ export default function Home() {
               transition-all duration-500 ease-out delay-75
             "
                   >
-                    <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
-                      一碗熱騰騰的牛肉麵、一桌家常菜，<br></br>
-                      把巷口記憶與人情味一起端上桌。
+                    <p className="text-white text-[16px]  leading-relaxed">
+                      傳承三代手路菜<br></br>正港的台灣料理
                     </p>
                   </div>
                 </div>
@@ -910,7 +799,7 @@ export default function Home() {
                       alt="億點點 logo"
                       width={260}
                       height={120}
-                      className="w-[150px] md:w-[180px] lg:w-[200px] h-auto"
+                      className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
                     />
                   </div>
                   <div
@@ -920,7 +809,7 @@ export default function Home() {
               transition-all duration-500 ease-out delay-75
             "
                   >
-                    <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed">
+                    <p className="text-white text-[16px] leading-relaxed">
                       手作甜點與飲品，蒐集生活裡那些 <br></br>
                       一點點卻很重要的甜美記憶。
                     </p>
@@ -956,12 +845,12 @@ export default function Home() {
         <section className="section_video p-10">
           ...
         </section> */}
-        <section className="section_app_operation bg-[url('/images/index/app/bg.png')]   bg-cover bg-no-repeat relative py-16 sm:py-20 px-6 sm:px-10">
-          <div className="max-w-[1500px] mx-auto flex flex-col md:flex-row items-center md:items-stretch gap-10 md:gap-16">
+        <section className="section_app_operation  bg-[#f7f7f7] relative  ">
+          <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center  md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
             {/* 左側文字區 */}
-            <div className="w-full md:w-[50%] flex items-center">
+            <div className="w-full md:w-[50%] flex sm:p-10 p-8 md:p-20 items-center">
               <FadeUp amount={0.35} className="w-full">
-                <div className="flex flex-col">
+                <div className="flex flex-col justify-center items-center">
                   {/* 大標：REWARDS APP */}
                   <FadeUp>
                     <h2
@@ -971,6 +860,7 @@ export default function Home() {
                 text-[#3b2619]
               
                 leading-none
+                 text-wrap
               "
                     >
                       REWARDS APP
@@ -991,25 +881,54 @@ export default function Home() {
                         Earn Points with Every Purchase
                       </p>
                     </FadeUp>
+                    <FadeUp delay={0.04}>
+                      <Link href="/app" className="group">
+                        <Image
+                          src="/images/more-btn.png"
+                          width={400}
+                          alt="more-btn"
+                          height={400}
+                          loading="lazy"
+                          className="w-[200px] mx-auto sm:mx-0 group-hover:scale-105 scale-100 duration-300 h-auto"
+                        />
+                      </Link>
+                    </FadeUp>
                   </div>
                 </div>
               </FadeUp>
             </div>
 
             {/* 右側 APP 示意圖 */}
-            <div className="w-full md:w-[50%] flex justify-center md:justify-end">
-              <FadeUp delay={0.1} amount={0.3} className="w-full max-w-[820px]">
-                <Link href="/app" className="relative flex justify-center">
+            <div className="w-full overflow-hidden  md:w-[50%] flex relative justify-center md:justify-end">
+              <FadeUp delay={0.1} amount={0.3} className="w-full ">
+                <Link
+                  href="/app"
+                  className="relative flex justify-center scale-100 xl:scale-125 absolute  left-0 lg:left-[10%]  bottom-[0%] lg:bottom-[-25%]"
+                >
                   <Image
-                    src="/images/index/app/hand.png"
+                    src="/images/app/app.png"
                     alt="Rewards App Mockup"
                     width={1700}
                     height={1700}
                     loading="lazy"
-                    className="w-full h-auto"
+                    className="w-full  h-auto"
                   />
                 </Link>
               </FadeUp>
+            </div>
+            <div className="absolute bottom-6">
+              <Marquee velocity={11}>
+                {Array(5)
+                  .fill(0)
+                  .map((_, i) => (
+                    <span
+                      key={i}
+                      className="mx-10 text-8xl font-bold text-[#ebe9ea]"
+                    >
+                      Join Now — Start Earning Points!
+                    </span>
+                  ))}
+              </Marquee>
             </div>
           </div>
         </section>
