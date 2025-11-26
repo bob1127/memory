@@ -918,7 +918,7 @@ export default function Home() {
                 </Link>
               </FadeUp>
             </div>
-            <div className="absolute bottom-6">
+            <div className="absolute bottom-6 w-full overflow-hidden">
               <Marquee velocity={11}>
                 {Array(5)
                   .fill(0)
