@@ -476,7 +476,9 @@ export default function Home() {
             />
           </div>
         </section>
-        <Carousel />
+        <section className="section_beer overflow-hidden">
+          <Carousel />
+        </section>
 
         {/* ======= 零食：各自落入袋口（原樣保留） ======= */}
         <section

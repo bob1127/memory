@@ -9,51 +9,43 @@ const OPTIONS = { dragFree: true, loop: true };
 const SLIDES = [
   {
     image: "/images/beer/台啤-蜂蜜.jpg",
-    title: "台灣傳統割包",
-    description:
-      "鬆軟白饅頭夾著滷得入味的五花肉，花生粉與酸菜點綴，鹹甜酸香一次到位，台式經典手握美味。",
+    title: "鮮蜜釀系列",
+    description: "珍稀淡雅龍眼花蜜與清爽啤酒完美融合，令人一口就上癮！",
   },
   {
     image: "/images/beer/微果醺.jpg",
-    title: "純香濃郁麥仔煎",
-    description:
-      "外層金黃香酥，裡頭包著濃濃麥香與鹹甜交織的滋味，一口咬下是老台灣的溫暖記憶。",
+    title: "女孩微醺系列",
+    description: "臉先紅，心先甜；微醺讓妳更嬌甜",
   },
   {
     image: "/images/beer/245A4057-已增強-雜訊減少 (1).jpg",
-    title: "胡椒餅",
-    description:
-      "炭火烘烤的焦脆餅皮，鎖住滿滿肉汁與胡椒香，熱騰騰咬下去，爆出的是鹹香與熱辣的痛快。",
+    title: "水果釀造系列",
+    description: "果香直擊、滑順爽口；每一口都是果釀的純粹與爽快",
   },
   {
     image: "/images/beer/245A3705-已增強-雜訊減少.jpg",
-    title: "台灣傳統割包",
-    description:
-      "鬆軟白饅頭夾著滷得入味的五花肉，花生粉與酸菜點綴，鹹甜酸香一次到位，台式經典手握美味。",
+    title: "職人釀造系列",
+    description: "獲獎無數、越喝越順；從順口到醇厚，喝的就是職人的穩、準、醇",
   },
   {
     image: "/images/beer/台啤-蜂蜜.jpg",
-    title: "台灣傳統割包",
-    description:
-      "鬆軟白饅頭夾著滷得入味的五花肉，花生粉與酸菜點綴，鹹甜酸香一次到位，台式經典手握美味。",
+    title: "鮮蜜釀系列",
+    description: "珍稀淡雅龍眼花蜜與清爽啤酒完美融合，令人一口就上癮！",
   },
   {
     image: "/images/beer/微果醺.jpg",
-    title: "純香濃郁麥仔煎",
-    description:
-      "外層金黃香酥，裡頭包著濃濃麥香與鹹甜交織的滋味，一口咬下是老台灣的溫暖記憶。",
+    title: "女孩微醺系列",
+    description: "臉先紅，心先甜；微醺讓妳更嬌甜",
   },
   {
     image: "/images/beer/245A4057-已增強-雜訊減少 (1).jpg",
-    title: "胡椒餅",
-    description:
-      "炭火烘烤的焦脆餅皮，鎖住滿滿肉汁與胡椒香，熱騰騰咬下去，爆出的是鹹香與熱辣的痛快。",
+    title: "水果釀造系列",
+    description: "果香直擊、滑順爽口；每一口都是果釀的純粹與爽快",
   },
   {
     image: "/images/beer/245A3705-已增強-雜訊減少.jpg",
-    title: "台灣傳統割包",
-    description:
-      "鬆軟白饅頭夾著滷得入味的五花肉，花生粉與酸菜點綴，鹹甜酸香一次到位，台式經典手握美味。",
+    title: "職人釀造系列",
+    description: "獲獎無數、越喝越順；從順口到醇厚，喝的就是職人的穩、準、醇",
   },
 ];
 
