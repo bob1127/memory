@@ -23,7 +23,7 @@ function FadeUp({ children, delay = 0, className = "" }) {
   );
 }
 
-/* ========== Tabs 文案 ========== */
+/* ========== Tabs 文案 (維持原樣) ========== */
 const TABS = [
   {
     id: "group",
@@ -67,7 +67,7 @@ const TABS = [
   },
 ];
 
-/* ========== 各 tab 對應門市資料 ========== */
+/* ========== 各 tab 對應門市資料 (維持原樣) ========== */
 const STORE_BY_TAB = {
   group: [
     {
@@ -81,7 +81,6 @@ const STORE_BY_TAB = {
       mapUrl: "https://www.google.com/maps",
     },
   ],
-  // 👉 關於有香：兩個門市
   youxiang: [
     {
       id: "store-youxiang-van",
@@ -136,7 +135,6 @@ const STORE_BY_TAB = {
 function StoreCard({ store }) {
   return (
     <div className="border border-[#c9b79a] bg-[#f7ecdd]">
-      {/* 圖片：點擊開新視窗 Google Map */}
       <a
         href={store.mapUrl}
         target="_blank"
@@ -151,7 +149,6 @@ function StoreCard({ store }) {
           className="h-auto w-full object-cover"
         />
       </a>
-
       <div className="px-4 pb-4 pt-3">
         <a
           href={store.mapUrl}
@@ -180,16 +177,14 @@ export default function BrandStoryPage() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // ---- 從 URL 讀 tab ----
   const tabFromUrl = useMemo(() => {
     const t = searchParams.get("tab") || "";
     const exists = TABS.some((tab) => tab.id === t);
-    return exists ? t : "youxiang"; // 預設「關於有香」
+    return exists ? t : "youxiang";
   }, [searchParams]);
 
   const [activeTab, setActiveTab] = useState(tabFromUrl);
 
-  // URL 變動時同步狀態
   useEffect(() => {
     if (tabFromUrl !== activeTab) setActiveTab(tabFromUrl);
   }, [tabFromUrl, activeTab]);
@@ -198,7 +193,6 @@ export default function BrandStoryPage() {
     TABS.find((t) => t.id === activeTab) ??
     TABS.find((t) => t.id === "youxiang");
 
-  // ---- 點擊 tab：更新 state + URL（不重整、不跳動） ----
   const handleTabClick = (id) => {
     setActiveTab(id);
     const params = new URLSearchParams(searchParams.toString());
@@ -208,8 +202,9 @@ export default function BrandStoryPage() {
 
   return (
     <Layout>
-      <main className="min-h-screen bg-[#f0e3cd] text-[#3b2a1a]">
-        <div className="mx-auto max-w-[1380px] px-4 pb-20 pt-32">
+      <main className="min-h-screen text-[#3b2a1a] bg-[#f0e3cd] relative ">
+        <div className="absolute top-0 opacity-15 left-0 w-full z-[1] h-[550px] bg-[url('/images/index/about/DAV01968.jpg')] bg-center bg-cover bg-no-repeat"></div>
+        <div className="mx-auto max-w-[1380px] z-50 relative px-4 pb-20 pt-[200px]">
           {/* 上方 tabs */}
           <FadeUp>
             <div className="mb-8 flex flex-wrap justify-center gap-3">
@@ -240,8 +235,18 @@ export default function BrandStoryPage() {
 
           {/* LOGO 區：依照設計稿 */}
           <FadeUp delay={0.05}>
-            <section className="mb-10 bg-[#e5d5bb]">
-              <div className="mx-auto max-w-[960px] px-4 py-6">
+            <section className="mt-10  sm:mb-[100px] mb-10 xl:mb-[160px] relative">
+              {/* ✅ 修正重點：使用 RWD 設定 bottom 距離，避免百分比在手機版跑掉 */}
+              <div
+                className="absolute z-50 left-1/2  -translate-x-1/2 w-screen pointer-events-none bg-gradient-to-t from-[#f0e3cd] to-transparent
+                
+             
+                h-72 bottom-[50px] sm:bottom-[-0px]
+
+                md:h-52 md:bottom-[-100px]"
+              />
+
+              <div className="mx-auto max-w-[960px] relative z-[99999] px-4 py-6">
                 {/* 上方雙線 */}
                 <div className="space-y-[3px]">
                   <div className="h-[2px] bg-[#2b211a]" />
@@ -250,12 +255,9 @@ export default function BrandStoryPage() {
 
                 {/* 中間主內容 */}
                 <div className="mt-6 flex flex-col items-center gap-6 md:flex-row md:justify-between">
-                  {/* 左：鹹食甜食 */}
                   <div className="text-[15px] tracking-[0.6em] text-[#2b211a]">
                     鹹 食 甜 食
                   </div>
-
-                  {/* 中央 LOGO 區 + 直線 */}
                   <div className="flex items-center gap-10">
                     <div className="hidden h-16 w-px bg-[#2b211a] md:block" />
                     <div className="flex flex-col items-center">
@@ -268,8 +270,6 @@ export default function BrandStoryPage() {
                     </div>
                     <div className="hidden h-16 w-px bg-[#2b211a] md:block" />
                   </div>
-
-                  {/* 右：台灣小吃 */}
                   <div className="text-[15px] tracking-[0.6em] text-[#2b211a]">
                     台 灣 小 吃
                   </div>
@@ -285,21 +285,20 @@ export default function BrandStoryPage() {
           </FadeUp>
 
           {/* 兩欄 layout */}
-          <section className="grid gap-10 md:grid-cols-[280px,minmax(0,1fr)]">
-            {/* 左欄 sticky 門市：隨 tabs 切換 */}
-            <FadeUp delay={0.08}>
-              <aside className="self-start md:sticky md:top-28">
+          <section className="relative grid gap-10 md:grid-cols-[280px,minmax(0,1fr)] bg-[#f0e3cd]">
+            {/* 左欄 sticky 門市 */}
+            <aside className="sticky md:top-28 self-start">
+              <FadeUp delay={0.08}>
                 <div className="space-y-8">
                   {(STORE_BY_TAB[activeTab] ?? []).map((store) => (
                     <StoreCard key={store.id} store={store} />
                   ))}
                 </div>
-              </aside>
-            </FadeUp>
+              </FadeUp>
+            </aside>
 
             {/* 右欄內容 */}
             <div className="space-y-10">
-              {/* 緣起主區塊 */}
               <AnimatePresence mode="wait">
                 <motion.article
                   key={currentTab.id}
@@ -339,7 +338,7 @@ export default function BrandStoryPage() {
 
               {/* 光采區塊 */}
               <FadeUp delay={0.05}>
-                <section className="border-t border-[#c9b79a] pt-6">
+                <section className="border-t pt-6">
                   <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
                     【光采】
                   </h2>
@@ -388,7 +387,6 @@ export default function BrandStoryPage() {
                   <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
                     【老味道】
                   </h2>
-
                   <div className="border border-[#c9b79a] bg-white">
                     <Image
                       src="/images/brand-story/memory-corner-03.png"
@@ -398,8 +396,6 @@ export default function BrandStoryPage() {
                       className="h-auto w-full object-cover"
                     />
                   </div>
-
-                  {/* 火鍋疊圖 */}
                   <div className="relative mt-[-80px] flex justify-end pr-6">
                     <div className="inline-block border border-[#c9b79a] bg-white p-1 shadow-md">
                       <Image
@@ -411,7 +407,6 @@ export default function BrandStoryPage() {
                       />
                     </div>
                   </div>
-
                   <div className="mt-6 space-y-3 text-[13px] leading-relaxed tracking-[0.05em]">
                     <p className="text-2xl font-bold leading-relaxed md:text-3xl">
                       這扇門，已在有香靜靜敞開，

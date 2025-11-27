@@ -13,11 +13,11 @@ export default function Footer() {
             {/* 左：Logo */}
             <div className="flex sm:justify-start justify-center">
               <Image
-                src="/images/logo05.png"
+                src="/images/logo/有香餐飲集團-logo.png"
                 alt="Memory Corner / 有香餐飲集團"
                 width={180}
                 height={80}
-                className="h-auto w-[100px]"
+                className="h-auto w-[150px]"
                 priority={false}
               />
             </div>
@@ -27,7 +27,7 @@ export default function Footer() {
               <ul className="flex items-center gap-8 text-[#5b4630]">
                 <li>
                   <Link
-                    href="/about"
+                    href="/brand-story?tab=group"
                     className="hover:underline underline-offset-4"
                   >
                     <p>品牌故事</p>

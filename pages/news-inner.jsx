@@ -5,10 +5,10 @@ import Image from "next/image";
 export default function RestaurantPromoArticle() {
   return (
     <Layout>
-      <div className="bg-[#eddbc1]">
+      <div className="bg-[#eddbc1] px-5 ">
         {" "}
         <section className="section-hero pt-20">
-          <div className="max-w-[1920px] xl:w-[60%] mt-20 md:w-[70%] w-full mx-auto">
+          <div className="max-w-[800px] max-h-[90vh] xl:w-[60%] mt-20 md:w-[70%] w-full mx-auto">
             <div className="aspect-[16/16] relative overflow-hidden shadow-lg">
               <Image
                 src="/images/news-01.jpg"

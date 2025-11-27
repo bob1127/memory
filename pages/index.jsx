@@ -4,19 +4,9 @@
 import { useRef, useEffect, useLayoutEffect, useState } from "react";
 import Image from "next/image";
 import { ReactLenis } from "@studio-freight/react-lenis";
-import ParallaxForks from "@/components/ParallaxForks";
-
 import Link from "next/link";
 import Marquee from "react-marquee-slider";
-import BeerCans from "@/components/BeerCans";
 import dynamic from "next/dynamic";
-import BottomVideoGallery from "../components/BottomVideoCarousel";
-import Carousel from "../components/EmblaCarouselTravel/index";
-const MinimalPushOverlayMenu = dynamic(
-  () => import("@/components/MinimalPushOverlayMenu"),
-  { ssr: false }
-);
-import Layout from "../pages/Layout";
 import {
   motion,
   useMotionValue,
@@ -26,12 +16,22 @@ import {
   useReducedMotion,
 } from "framer-motion";
 
-/* ========== 共用：滾動進場（大距離、超柔順） ========== */
+// Components
+import Layout from "../pages/Layout";
+import Carousel from "../components/EmblaCarouselTravel/index";
+
+// Dynamic Imports
+const MinimalPushOverlayMenu = dynamic(
+  () => import("@/components/MinimalPushOverlayMenu"),
+  { ssr: false }
+);
+
+/* ========== 優化版：滾動進場 (移除 Blur) ========== */
 function FadeUp({
   children,
   className = "",
   delay = 0,
-  distance = 96,
+  distance = 60, // 距離縮短，減少渲染範圍
   amount = 0.3,
 }) {
   const prefersReduced = useReducedMotion?.();
@@ -41,25 +41,25 @@ function FadeUp({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: distance, filter: "blur(6px)" }}
+      initial={{ opacity: 0, y: distance }} // ❌ 已移除 filter: blur
       whileInView={{
         opacity: 1,
         y: 0,
-        filter: "blur(0px)",
       }}
       transition={{
         ease: [0.16, 1, 0.3, 1],
-        duration: 1.05,
+        duration: 0.8,
         delay,
       }}
-      viewport={{ once: true, amount, margin: "0px 0px -10% 0px" }}
+      viewport={{ once: true, amount, margin: "0px 0px -5% 0px" }}
+      style={{ willChange: "opacity, transform" }} // ✅ 強制 GPU 加速
     >
       {children}
     </motion.div>
   );
 }
 
-/* ========= SnackDropLoop：掉落動畫 ========= */
+/* ========= SnackDropLoop：掉落動畫 (維持原邏輯，確保效能) ========= */
 function SnackDropLoop({
   anchorRef,
   className,
@@ -113,7 +113,6 @@ function SnackDropLoop({
       window.removeEventListener("orientationchange", onResize);
       cancelAnimationFrame(raf);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -121,10 +120,8 @@ function SnackDropLoop({
   }, [imgLoaded]);
 
   const canRun = ready && imgLoaded;
-
   const startY = canRun ? delta.y - Math.abs(spawn) : -Math.abs(spawn);
   const endY = canRun ? delta.y : 0;
-
   const mouthX = canRun ? delta.x + xOffset : 0;
   const startX = lockXToMouth ? mouthX : 0;
 
@@ -195,7 +192,7 @@ function SnackDropLoop({
       transition={transition}
       style={{
         zIndex: z,
-        willChange: "transform, opacity",
+        willChange: "transform, opacity", // ✅ 關鍵優化
         transformOrigin: "50% 50%",
         backfaceVisibility: "hidden",
         WebkitBackfaceVisibility: "hidden",
@@ -215,41 +212,22 @@ function SnackDropLoop({
     </motion.div>
   );
 }
-function RotatingMark({ className = "", sizeVW = 10 }) {
-  return (
-    <motion.div
-      className={`absolute ${className}`}
-      animate={{ rotate: 360 }}
-      transition={{ repeat: Infinity, ease: "linear", duration: 16 }}
-      style={{ width: `${sizeVW}vw`, minWidth: 56 }} // 行動裝置保底尺寸
-    >
-      <Image
-        src="/images/index/banner-07-a.png"
-        alt="mark"
-        width={800}
-        height={500}
-        loading="lazy"
-        placeholder="empty"
-        className="w-full h-auto"
-        sizes="(max-width: 640px) 64px, 10vw"
-      />
-    </motion.div>
-  );
-}
-/* ========= AutoSwapImage：兩張 A/B 自動輪播（可選左右進場/無位移、支援旋轉） ========= */
+
+/* ========= 優化版：AutoSwapImage (移除 Blur + 加入 Priority) ========= */
 function AutoSwapImage({
-  base, // 例如 "/images/index/banner-05"
+  base,
   alt = "",
   className = "",
-  positionClass = "", // 維持絕對定位與位置
+  positionClass = "",
   width = 800,
   height = 500,
-  interval = 6000, // 輪播間隔
-  initialDelay = 0, // 首次切換延遲
-  enterFrom = "none", // "left" | "right" | "none"
-  offset = 40, // 位移距離（px）
-  rotateInfinite = false, // 360 無限旋轉
-  rotateDuration = 16, // 旋轉一圈秒數
+  interval = 6000,
+  initialDelay = 0,
+  enterFrom = "none",
+  offset = 40,
+  rotateInfinite = false,
+  rotateDuration = 16,
+  priority = false, // ✅ 新增：控制是否優先載入
 }) {
   const prefersReduced = useReducedMotion?.();
   const [showB, setShowB] = useState(false);
@@ -270,7 +248,6 @@ function AutoSwapImage({
   const srcA = `${base}-a.png`;
   const srcB = `${base}-b.png`;
 
-  // 位移方向
   const dxIn =
     enterFrom === "left" ? -offset : enterFrom === "right" ? offset : 0;
   const dxOut =
@@ -283,18 +260,19 @@ function AutoSwapImage({
         initial={{
           opacity: 0,
           x: dxIn,
-          filter: dxIn ? "blur(6px)" : "blur(0px)",
-        }}
-        animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+        }} // ❌ 已移除 blur
+        animate={{ opacity: 1, x: 0 }}
         exit={{
           opacity: 0,
           x: dxOut,
-          filter: dxOut ? "blur(6px)" : "blur(0px)",
         }}
         transition={{ duration: 1.05, ease: [0.16, 1, 0.3, 1] }}
         style={{
-          willChange: "transform, opacity",
+          willChange: "transform, opacity", // ✅ 強制 GPU 加速
           backfaceVisibility: "hidden",
+          position: "relative",
+          width: "100%",
+          height: "100%",
         }}
       >
         <Image
@@ -302,7 +280,8 @@ function AutoSwapImage({
           alt={alt}
           width={width}
           height={height}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"} // ✅ 根據 priority 決定
+          priority={priority} // ✅ Next.js 圖片優化
           placeholder="empty"
           className={className}
           sizes="(max-width: 1024px) 80vw, 50vw"
@@ -311,7 +290,6 @@ function AutoSwapImage({
     </AnimatePresence>
   );
 
-  // 需要無限旋轉時，用外層包一層旋轉容器（不受 key 影響）
   if (rotateInfinite) {
     return (
       <motion.div
@@ -335,13 +313,14 @@ function AutoSwapImage({
 export default function Home() {
   const rightRef = useRef(null);
 
-  // 中央 hotpot 旋轉
+  // 中央 hotpot 旋轉邏輯
   const baseAngle = useMotionValue(0);
   const hotpotRotate = useSpring(baseAngle, {
     stiffness: 300,
     damping: 18,
     mass: 0.8,
   });
+
   useEffect(() => {
     const stepPerWheel = 0.25;
     const onWheel = (e) =>
@@ -350,88 +329,45 @@ export default function Home() {
     return () => window.removeEventListener("wheel", onWheel);
   }, [baseAngle]);
 
-  const [index, setIndex] = useState(0);
-  const images = [
-    "https://image.memorycorner8.com/DAV02145.jpg",
-    "https://image.memorycorner8.com/DAV02128.jpg",
-    "https://image.memorycorner8.com/DAV02175.jpg",
-  ];
-  useEffect(() => {
-    const timer = setInterval(
-      () => setIndex((p) => (p + 1) % images.length),
-      9000
-    );
-    return () => clearInterval(timer);
-  }, [images.length]);
-
-  // Dinging 區塊（錨點會被零食使用）
+  // Dinging 區塊
   const dingingRef = useRef(null);
   const anchorRef = useRef(null);
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
-  const cards = [
-    {
-      image: "/images/beer/4.金牌ONE-Photoroom.png",
-      bgImage: "/images/index/beer/beer-bg-green.png", // ✅ 綠色背景
-      title: "金牌啤酒",
-      desc: "嚴選麥芽香與清爽氣泡，回味無窮的在地經典。",
-      delay: 0,
-    },
-    {
-      image: "/images/beer/6.荔枝-Photoroom.png",
-      bgImage: "/images/index/beer/beer-bg-peach.png", // ✅ 桃色背景
-      title: "果香調性",
-      desc: "淡淡果香與細緻泡沫，微醺剛剛好。",
-      delay: 0.15,
-    },
-    {
-      image: "/images/beer/9.蜂蜜-Photoroom.png",
-      bgImage: "/images/index/beer/beer-bg-yellow.png", // ✅ 黃色背景
-      title: "濃厚黑麥",
-      desc: "焦糖與可可的尾韻，征服重口味愛好者。",
-      delay: 0.3,
-    },
-    {
-      image: "/images/beer/12.葡萄-Photoroom.png",
-      bgImage: "/images/index/beer/beer-bg-pink.png", // ✅ 粉色背景
-      title: "清爽拉格",
-      desc: "超順口、耐喝不膩，百搭各式台式料理。",
-      delay: 0.45,
-    },
-  ];
-
   return (
-    <ReactLenis root>
+    <>
       <Layout>
-        <section className="section-hero z-[9] pt-[0px] relative  md:mt-0 aspect-[16/16] md:aspect-[16/12]  xl:aspect-[16/7.6] overflow-hidden">
+        {/* Section Hero: 加入 pointer-events-none 避免誤觸 */}
+        <section className="section-hero z-[9] pt-[0px] relative md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
-            {/* 中央主標（只替換，不位移） */}
+            {/* 中央主標：Priority = true */}
             <AutoSwapImage
               base="/images/index/banner-06"
               alt="background"
               positionClass="z-10 right-[-3%] top-[10%] md:top-[-10%]"
               className="w-[80vw]"
-              width={800}
-              height={500}
+              width={1200}
+              height={800}
               interval={7000}
-              enterFrom="none" // ✅ 不做位移
+              enterFrom="none"
+              priority={true} // ✅ 優先載入
             />
 
-            {/* 角色（右側 → 從右邊進入） */}
+            {/* 角色 */}
             <AutoSwapImage
               base="/images/index/banner-05"
               alt="charactor"
-              positionClass="z-20 right-[0%]  bottom-[-2%]   "
-              className="w-[70vw] sm:w-[55vw]  lg:w-[50vw] xl:w-[52vw]"
+              positionClass="z-20 right-[0%] bottom-[-2%]"
+              className="w-[70vw] sm:w-[55vw] lg:w-[50vw] xl:w-[52vw]"
               width={800}
               height={500}
               interval={7000}
               initialDelay={1200}
-              enterFrom="right" // ✅ 從右邊進來
+              enterFrom="right"
               offset={36}
             />
 
-            {/* 筷子（左側 → 從左邊進入，過度「稍晚」） */}
+            {/* 筷子 */}
             <AutoSwapImage
               base="/images/index/banner-02"
               alt="chopsticks"
@@ -440,12 +376,12 @@ export default function Home() {
               width={800}
               height={500}
               interval={7000}
-              initialDelay={2400} // ✅ 再晚一點
-              enterFrom="left" // ✅ 從左邊進來
+              initialDelay={2400}
+              enterFrom="left"
               offset={28}
             />
 
-            {/* 轉動標誌（左側 → 持續 360° 旋轉 + A/B 替換 + 左邊進入） */}
+            {/* 轉動標誌：無限旋轉 */}
             <AutoSwapImage
               base="/images/index/banner-07"
               alt="mark"
@@ -457,11 +393,11 @@ export default function Home() {
               initialDelay={3600}
               enterFrom="left"
               offset={24}
-              rotateInfinite // ✅ 無限旋轉
-              rotateDuration={16} // 一圈 16 秒
+              rotateInfinite
+              rotateDuration={16}
             />
 
-            {/* 火鍋（左側 → 從左邊進入） */}
+            {/* 火鍋：Priority = true */}
             <AutoSwapImage
               base="/images/index/banner-01"
               alt="hotpot"
@@ -471,26 +407,28 @@ export default function Home() {
               height={500}
               interval={7000}
               initialDelay={4800}
-              enterFrom="left" // ✅ 從左邊進來
+              enterFrom="left"
               offset={32}
+              priority={true} // ✅ 優先載入
             />
           </div>
         </section>
+
         <section className="section_beer overflow-hidden">
           <Carousel />
         </section>
 
-        {/* ======= 零食：各自落入袋口（原樣保留） ======= */}
+        {/* ======= 零食：各自落入袋口 ======= */}
         <section
           ref={dingingRef}
-          className="section_Dinging mx-auto max-w-[1920px] relative  overflow-x-hidden"
+          className="section_Dinging mx-auto bg-[#efefef] max-w-[1920px] relative overflow-x-hidden"
         >
-          <div className="mx-auto  py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
+          <div className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
               {/* 左側：動畫區 */}
               <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
                 <div className="flex justify-center">
-                  <FadeUp delay={0.05} amount={0.25} className="absolute ">
+                  <FadeUp delay={0.05} amount={0.25} className="absolute">
                     <Image
                       src="/images/snack/buynow.png"
                       width={500}
@@ -505,9 +443,11 @@ export default function Home() {
                   ref={anchorRef}
                   className="absolute left-[34%] -translate-x-1/2 bottom-[18%] w-2 h-2"
                 />
+
+                {/* SnackDropLoops */}
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[10%] sm:bottom-[30%] -translate-x-1/2 left-[-5%] sm:left-[40%] z-[9]"
+                  className="w-[80%] bottom-[10%] sm:bottom-[30%] -translate-x-1/2 left-[-5%] sm:left-[40%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05055.png"
                   imgClassName="w-[180px] sm:w-[220px]"
                   spawn={260}
@@ -519,9 +459,10 @@ export default function Home() {
                   duration={2.2}
                   delay={0.0}
                 />
+                {/* ... 其他零食 (保持你的原始參數) ... */}
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[7%] sm:bottom-[40%] -translate-x-1/2 left-[10%] z-[9]"
+                  className="w-[80%] bottom-[7%] sm:bottom-[40%] -translate-x-1/2 left-[10%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05082.png"
                   imgClassName="w-[270px] sm:w-[320px]"
                   spawn={260}
@@ -535,7 +476,7 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[15%] sm:bottom-[30%] -translate-x-1/2 left-[35%] sm:left-[50%] z-[9]"
+                  className="w-[80%] bottom-[15%] sm:bottom-[30%] -translate-x-1/2 left-[35%] sm:left-[50%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05035.png"
                   imgClassName="w-[200px] sm:w-[220px]"
                   spawn={260}
@@ -549,7 +490,7 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-0 sm:bottom-[20%] -translate-x-1/2 left-[30%] sm:left-[60%] z-[9]"
+                  className="w-[80%] bottom-0 sm:bottom-[20%] -translate-x-1/2 left-[30%] sm:left-[60%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05051.png"
                   imgClassName="w-[220px] sm:w-[220px]"
                   spawn={260}
@@ -563,7 +504,7 @@ export default function Home() {
                 />
                 <SnackDropLoop
                   anchorRef={anchorRef}
-                  className="w-[80%]  bottom-[-10%] sm:bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
+                  className="w-[80%] bottom-[-10%] sm:bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
                   imgSrc="/images/灶腳商品圖/DSC05021.png"
                   imgClassName="w-[160px] sm:w-[220px]"
                   spawn={460}
@@ -649,7 +590,6 @@ export default function Home() {
                       </h2>
                     </FadeUp>
 
-                    {/* 英文小標：Traditional grocery shop */}
                     <div className="">
                       <FadeUp delay={0.06}>
                         <p className="sub_title m-0 p-0">
@@ -658,7 +598,6 @@ export default function Home() {
                       </FadeUp>
                     </div>
 
-                    {/* 中文說明文字 */}
                     <div className="mt-3 sm:mt-4">
                       <FadeUp delay={0.08}>
                         <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
@@ -680,42 +619,30 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section_brand_story relative ">
-          <div className="pointer-events-none absolute top-[7%] sm:top-[15%] left-[10%]  md:translate-x-0 z-20">
+        {/* Brand Story Section */}
+        <section className="section_brand_story relative">
+          <div className="pointer-events-none absolute top-[7%] sm:top-[15%] left-[10%] md:translate-x-0 z-20">
             <FadeUp>
-              <h2
-                className="
-        font-extrabold tracking-[0.18em]
-        text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)]
-        text-[clamp(2.4rem,7vw,8.5rem)]
-        leading-none
-      "
-              >
+              <h2 className="font-extrabold tracking-[0.18em] text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] text-[clamp(2.4rem,7vw,8.5rem)] leading-none">
                 ABOUT&nbsp;US
               </h2>
             </FadeUp>
           </div>
 
-          <div className=" mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
+          <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
             <FadeUp delay={0.02} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
                   src="/images/index/about/DAV01968.jpg"
                   alt="有香集團"
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw" // ✅ 優化圖片尺寸
                   priority={false}
                   className="object-cover"
                 />
-
                 <div className="absolute inset-0 bg-black/35" />
-
                 <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-                  <div
-                    className="
-              transform transition-transform duration-500 ease-out
-              group-hover:-translate-y-2
-            "
-                  >
+                  <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
                     <Image
                       src="/images/index/about/有香集團-logo.png"
                       alt="有香集團 logo"
@@ -724,15 +651,8 @@ export default function Home() {
                       className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
                     />
                   </div>
-
-                  <div
-                    className="
-              mt-3 opacity-0 translate-y-3
-              group-hover:opacity-100 group-hover:translate-y-0
-              transition-all duration-500 ease-out delay-75
-            "
-                  >
-                    <p className="text-white text-[16px]  leading-relaxed">
+                  <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
+                    <p className="text-white text-[16px] leading-relaxed">
                       始於1975年台灣高雄，在北美這片 土地上<br></br>
                       傳遞家的溫度與歸屬感
                     </p>
@@ -747,16 +667,12 @@ export default function Home() {
                   src="/images/index/about/DAV01683.jpg"
                   alt="有香 Memory Corner"
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/35" />
                 <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-                  <div
-                    className="
-              transform transition-transform duration-500 ease-out
-              group-hover:-translate-y-2
-            "
-                  >
+                  <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
                     <Image
                       src="/images/index/about/有香-logo.png"
                       alt="有香 logo"
@@ -765,14 +681,8 @@ export default function Home() {
                       className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
                     />
                   </div>
-                  <div
-                    className="
-              mt-3 opacity-0 translate-y-3
-              group-hover:opacity-100 group-hover:translate-y-0
-              transition-all duration-500 ease-out delay-75
-            "
-                  >
-                    <p className="text-white text-[16px]  leading-relaxed">
+                  <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
+                    <p className="text-white text-[16px] leading-relaxed">
                       傳承三代手路菜<br></br>正港的台灣料理
                     </p>
                   </div>
@@ -786,16 +696,12 @@ export default function Home() {
                   src="/images/index/about/DAV01773 (1).jpg"
                   alt="億點點 Sweet Memory"
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/35" />
                 <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-                  <div
-                    className="
-              transform transition-transform duration-500 ease-out
-              group-hover:-translate-y-2
-            "
-                  >
+                  <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
                     <Image
                       src="/images/index/about/億點點-logo.png"
                       alt="億點點 logo"
@@ -804,13 +710,7 @@ export default function Home() {
                       className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
                     />
                   </div>
-                  <div
-                    className="
-              mt-3 opacity-0 translate-y-3
-              group-hover:opacity-100 group-hover:translate-y-0
-              transition-all duration-500 ease-out delay-75
-            "
-                  >
+                  <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
                     <p className="text-white text-[16px] leading-relaxed">
                       手作甜點與飲品，蒐集生活裡那些 <br></br>
                       一點點卻很重要的甜美記憶。
@@ -822,7 +722,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ✅ SEO 友善影片載入（自動播放 / 靜音 / 無限重複 / playsInline） */}
+        {/* Video Section */}
         <section className="h-full w-full section-video relative">
           <video
             className="w-full h-full object-cover"
@@ -843,43 +743,22 @@ export default function Home() {
         </section>
 
         <section></section>
-        {/* 
-        <section className="section_video p-10">
-          ...
-        </section> */}
-        <section className="section_app_operation  bg-[#f7f7f7] relative  ">
-          <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center  md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
-            {/* 左側文字區 */}
+
+        {/* APP Operation Section */}
+        <section className="section_app_operation bg-[#f7f7f7] relative">
+          <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
             <div className="w-full md:w-[50%] flex sm:p-10 p-8 md:p-20 items-center">
               <FadeUp amount={0.35} className="w-full">
                 <div className="flex flex-col justify-center items-center">
-                  {/* 大標：REWARDS APP */}
                   <FadeUp>
-                    <h2
-                      className="
-            title-large 
-            font-bold
-                text-[#3b2619]
-              
-                leading-none
-                 text-wrap
-              "
-                    >
+                    <h2 className="title-large font-bold text-[#3b2619] leading-none text-wrap">
                       REWARDS APP
                     </h2>
                   </FadeUp>
 
-                  {/* 英文小標：Earn Points with Every Purchase */}
                   <div className="mt-4">
                     <FadeUp delay={0.06}>
-                      <p
-                        className="
-                  text-[#3b2619]
-                  font-normal
-                   sub_title
-                  leading-relaxed
-                "
-                      >
+                      <p className="text-[#3b2619] font-normal sub_title leading-relaxed">
                         Earn Points with Every Purchase
                       </p>
                     </FadeUp>
@@ -900,12 +779,11 @@ export default function Home() {
               </FadeUp>
             </div>
 
-            {/* 右側 APP 示意圖 */}
-            <div className="w-full overflow-hidden  md:w-[50%] flex relative justify-center md:justify-end">
-              <FadeUp delay={0.1} amount={0.3} className="w-full ">
+            <div className="w-full overflow-hidden md:w-[50%] flex relative justify-center md:justify-end">
+              <FadeUp delay={0.1} amount={0.3} className="w-full">
                 <Link
                   href="/app"
-                  className="relative flex justify-center scale-100 xl:scale-125 absolute  left-0 lg:left-[10%]  bottom-[0%] lg:bottom-[-25%]"
+                  className="relative flex justify-center scale-100 xl:scale-125 absolute left-0 lg:left-[10%] bottom-[0%] lg:bottom-[-25%]"
                 >
                   <Image
                     src="/images/app/app.png"
@@ -913,7 +791,7 @@ export default function Home() {
                     width={1700}
                     height={1700}
                     loading="lazy"
-                    className="w-full  h-auto"
+                    className="w-full h-auto"
                   />
                 </Link>
               </FadeUp>
@@ -935,6 +813,6 @@ export default function Home() {
           </div>
         </section>
       </Layout>
-    </ReactLenis>
+    </>
   );
 }

@@ -153,7 +153,7 @@ export default function News() {
         <MotionConfig transition={spring} reducedMotion="user">
           <section className="py-[150px] bg-[#ede5d6] ">
             <div
-              className="mx-auto w-full md:w-[90%] px-5 xl:w-[85%] max-w-[1520px]
+              className="mx-auto w-full md:w-[90%] px-5 xl:w-[85%] max-w-[1400px]
                          grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {/* 父層用 stagger 控制所有卡片依序 fade-up */}
@@ -205,10 +205,10 @@ export default function News() {
 
                           <div className="pt-1">
                             <div className="px-3 py-5">
-                              <p className="text-[14px] text-gray-600">
+                              <p className="text-[16px] text-gray-600">
                                 {n.desc}
                               </p>
-                              <h2 className="text-[16px] font-medium leading-tight text-black">
+                              <h2 className="text-[24px] font-medium leading-tight text-black">
                                 {n.title}
                               </h2>
                             </div>

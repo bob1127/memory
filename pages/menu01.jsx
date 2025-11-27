@@ -167,7 +167,7 @@ export default function Home() {
         <section className="max-w-[1300px] mx-auto xl:w-[90%] md:w-[90%] w-full py-10 sm:py-16">
           {/* ===== 上方設計參照圖（麵包屑 + 大標） ===== */}
           <div className="text-center mt-6 sm:mt-10">
-            <div className="text-xs sm:text-sm text-stone-500 tracking-wide">
+            <div className="text-[18px]  text-stone-800 sm:text-stone-500 tracking-wide">
               <Link href="/" className="hover:text-black duration-400">
                 首頁
               </Link>{" "}

@@ -1,6 +1,8 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+/* DF-01 字體 (維持原樣) */
 @font-face {
   font-family: 'DF-01';
   src: url('/fonts/DF-01.ttf') format('truetype');
@@ -8,16 +10,50 @@
   font-style: normal;
 }
 
+/* =========================================
+   新增：LXGW WenKai TC (霞鶩文楷) 完整設定
+   對應截圖中的三個檔案
+   ========================================= */
 
+/* 1. 標準 (Regular) - 對應 font-weight: 400 (normal) */
 @font-face {
-  font-family: "ResourceHanRoundedCN-Heavy";
-  src: url("/fonts/ResourceHanRoundedCN-Heavy.woff2") format("woff2"),
-       url("/fonts/ResourceHanRoundedCN-Heavy.woff") format("woff");
+  font-family: "LXGW WenKai TC";
+  src: url("/fonts/LXGW_WenKai_TC/LXGWWenKaiTC-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. 粗體 (Bold) - 對應 font-weight: 700 (bold) */
+@font-face {
+  font-family: "LXGW WenKai TC";
+  src: url("/fonts/LXGW_WenKai_TC/LXGWWenKaiTC-Bold.ttf") format("truetype");
   font-weight: bold;
   font-style: normal;
   font-display: swap;
 }
- 
+
+/* 3. 細體 (Light) - 對應 font-weight: 300 */
+@font-face {
+  font-family: "LXGW WenKai TC";
+  src: url("/fonts/LXGW_WenKai_TC/LXGWWenKaiTC-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 如果你不想更改 Tailwind Config 或 HTML 中的 font-family 名稱，
+   可以保留下方這段 (將舊名稱指向新字體的 Bold 版本)，
+   但建議最好直接使用上面的 "LXGW WenKai TC"。
+*/
+@font-face {
+  font-family: "ResourceHanRoundedCN-Heavy"; /* 舊名稱相容 */
+  src: url("/fonts/LXGW_WenKai_TC/LXGWWenKaiTC-Bold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 :root{
   /* 購買按鈕 */
@@ -62,20 +98,7 @@
 .bg-card-2{
    background-color: var(--color-card-2);
 }
-/* Additional styles */
-/* @import './additional-styles/range-slider.css';
-@import './additional-styles/theme.css';
-@import './additional-styles/toggle-switch.css';
-@import './additional-styles/utility-patterns.css'; */
-/* *{ outline: none !important;
-      box-shadow:none !important;}
-      .group[data-selected=true] .group-data-\[selected\=true\]\:text-default-foreground {
-        color: white !important;
-      } */
 
-/* .navlink:hover{
-  background: rgba(255,255,255,.5);
-} */
 .image-swiper-button-next{
   width: 50px;
   height: 50px;
@@ -91,26 +114,19 @@
 
 }
 
-
-
 .article-title{
   font-size: 40px;
   font-weight: 800;
   color: #333;
-  
 }
 
 
 @media screen and (max-width:500px){
-  
-.article-title{
-  font-size: 26px;
-  font-weight: 900;
-  color: #161616;
-  
-}
-
-
+  .article-title{
+    font-size: 26px;
+    font-weight: 900;
+    color: #161616;
+  }
 }
 .article-h2{
    font-size: 28px;
@@ -124,15 +140,11 @@
 
 
 @media screen and (max-width:500px){
-  
-.article-h2{
-  font-size: 20px;
-  font-weight: 700;
-  color: #191919;
-  
-}
-
-
+  .article-h2{
+    font-size: 20px;
+    font-weight: 700;
+    color: #191919;
+  }
 }
 
 .article-h3{
@@ -143,24 +155,17 @@
 }
 
 @media screen and (max-width:500px){
-  
-.article-h3{
-  font-size: 18px;
-  font-weight: 700;
-  color: #333;
-  
+  .article-h3{
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+  }
 }
-
-
-}
-
-
 
 
 .mainTitle{
   margin-top:68px;
   text-align: center ;
- 
 }
 .text-Hp{
   margin-bottom: 24px;
@@ -173,8 +178,6 @@
 }
 .blank02{
   margin-bottom: 24px;
- 
-
 }
 .model{
   margin-top:12px;
@@ -183,15 +186,8 @@
   color: rgb(190,96,90);
   font-size: 18px;
   text-align:left;
-
-  
-  
 }
 
-
-.h1-Hp{
-
-}
 
 /* UX系列 */
 
@@ -204,19 +200,16 @@
   font-size: 32px;
   line-height: 48px;
   margin-top: 68px;
-
 }
 
 .model-u{
   margin-top:12px;
   margin-bottom: 16px;
   line-height: 22px;
-   color: #F78C26;
+  color: #F78C26;
   font-size: 18px;
   text-align:left;
-
-  
-  
+  font-weight: 700;
 }
 
 
@@ -224,39 +217,15 @@
   font-size: 16px;
   line-height: 24px ;
   margin-bottom: 24px;
- 
-  
 }
 
-
-.model-u{
-  font-size: 18px;
-  margin-top: 12px;
-  margin-bottom: 16px;
-  font-weight: 700;
-
-  
-   color:#F78C26;
-  
-  
-}
-
-
-/* 
-section{
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-} */
 section.section_article p{
   font-size: 16px;
   font-weight: 500;
   color: black;
-  
 }
 .dropdownn:hover{
   background-color: rgb(248,250,252) !important;
-  
-
 }
 .dropdownn a{
   transform: scale(1);
@@ -264,7 +233,6 @@ section.section_article p{
 }
 .dropdownn a:hover{
   transform: scale(1.02);
-
 }
 
 /* 移除 Swiper 預設箭頭 */
@@ -287,37 +255,21 @@ section.section_article p{
 .swiper-button-prev {
   background-image: url("/images/right-arrow.png");
   transform: rotate(180deg); /* 讓箭頭指向左方 */
-  
 }
 
 /* 右箭頭 */
 .swiper-button-next {
   background-image: url("/images/right-arrow.png");
-  
 }
 
 /* 滑鼠懸停效果 */
 .swiper-button-prev:hover,
 .swiper-button-next:hover {
- 
   transform: scale(1.05);
-  
 }
-
-/* a{
-  opacity: 0 !important;
-} */
-/* 
-body *{
-  transition-delay: .4s;
-  @apply transition-colors duration-500;
-
-  
-} */
 
 iframe .cover{
   display: none !important;
-  
 }
 .fixed {
     left: 0 !important;
@@ -333,12 +285,7 @@ iframe .cover{
   
 }
 
-
-
   /* layout style */
-  /* section{
-    @apply mt-[50px] border-green-500 border
-  } */
   .flex-center{
     @apply flex justify-center items-center flex-row
   }
@@ -359,7 +306,6 @@ iframe .cover{
   }
 
   .container.center {
-   
     display: flex;
     justify-content: center;
     align-items: center;
@@ -379,45 +325,7 @@ iframe .cover{
     --color-5: 90 100% 63%;
   }
 
-
-
 }
-
-
-
-/* 
- @media screen and (min-width:1000px) and (max-width:1300px){
-    h1 {
-    @apply text-3xl; 
-    
-
-
-}
-
-  }
-  @media screen and (min-width:600px) and (max-width:1000px){
-    h1 {
-    @apply text-4xl; 
-    
-
-
-}
-
-  } */
-  /* 
-    // h1 {
-    //     @apply {
-    //         text-4xl,
-    //         text-color: black
-    //     }
-    // } */
-
-
-
-
-
-
-
 
 .container .title {
     position: relative;
@@ -607,59 +515,8 @@ iframe .cover{
     color: #424550;
 }
 
-
-
-/* style.css */
-
-
-
-/* 
-
-@layer components {
-  .header-link-item {
-    @apply cursor-pointer text-xs font-medium opacity-75 transition duration-300 hover:opacity-100;
-  }
-
-  .carousel-btn-switch-card {
-    @apply absolute z-40 flex h-9 w-9 cursor-pointer items-center justify-center
-      rounded-full border-2 border-[#302e30] bg-[#181818] text-2xl opacity-75 transition duration-300 hover:opacity-100 md:h-12 md:w-12;
-  }
-
-  .carousel-btn-switch-card-left {
-    @apply right-1/2 top-1/2 translate-x-[-200px] translate-y-[-50%] transform sm:translate-x-[-250px] md:translate-x-[-300px] lg:translate-x-[-350px];
-  }
-
-  .carousel-btn-switch-card-right {
-    @apply top-1/2 left-1/2 translate-x-[200px] translate-y-[-50%] transform sm:translate-x-[250px] md:translate-x-[300px] lg:translate-x-[350px];
-  }
-
-  .carousel-indicator {
-    @apply absolute left-1/2 -bottom-4 flex h-5 w-24 -translate-x-1/2 transform items-center justify-center space-x-1 md:-bottom-10;
-  }
-
-  .carousel-indicator-dots {
-    @apply h-2 w-2 rounded-full bg-white opacity-50  transition-all duration-500 hover:w-4 hover:opacity-100;
-  }
-
-  .carousel-container {
-    @apply relative h-56 w-3/6 sm:h-40 md:h-56 lg:h-80;
-    perspective: 550px;
-    transform-style: preserve-3d;
-  }
-
-  .carousel-item {
-    @apply absolute h-full w-full cursor-pointer overflow-hidden rounded-3xl drop-shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-700 ease-in-out;
-  }
-}
-
- */
-
-
-
-
 section.section-cloth{
   padding: 100px ;
-
 }
  .section-title-cloth{
   display: flex;
@@ -668,8 +525,6 @@ section.section-cloth{
    align-items: center;
    padding-top: 50px;
  }
-
-
 
 .slider {
   position: relative;
@@ -708,16 +563,10 @@ img {
   width: 500px;
   height: 100%;
   z-index: 10000;
-  
-  /* Semi-transparent background for the frosted effect */
-  background: rgba(255, 255, 255, 0.1);  /* Light transparency for glass effect */
-  
-  /* Blurring the background */
-  backdrop-filter: blur(10px);  /* Apply a blur effect to the background */
-  
-  /* Optionally add a border or shadow for better visibility */
-  border-radius: 10px;          /* Optional rounded corners */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Optional shadow for depth */
+  background: rgba(255, 255, 255, 0.1); 
+  backdrop-filter: blur(10px); 
+  border-radius: 10px;        
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
 }
 
 
@@ -792,7 +641,6 @@ img {
   border-radius: 8px;
   background-color: rgba(255, 255, 255, 0.8);
   width: 0%;
-  /* 初始寬度為0，通過動畫逐漸增長 */
 }
 
 
@@ -878,91 +726,6 @@ img {
 .embla-thumbs__slide--selected .embla-thumbs__slide__number {
   color: var(--text-body);
 }
-
-
-
-.embla {
-  max-width: 48rem;
-  margin: auto;
-  --slide-height: 19rem;
-  --slide-spacing: 1rem;
-  --slide-size: 100%;
-}
-.embla__viewport {
-  overflow: hidden;
-}
-.embla__container {
-  display: flex;
-  touch-action: pan-y pinch-zoom;
-  margin-left: calc(var(--slide-spacing) * -1);
-}
-.embla__slide {
-  transform: translate3d(0, 0, 0);
-  flex: 0 0 var(--slide-size);
-  min-width: 0;
-  padding-left: var(--slide-spacing);
-}
-.embla__slide__number {
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  border-radius: 1.8rem;
-  font-size: 4rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--slide-height);
-  user-select: none;
-}
-.embla-thumbs {
-  --thumbs-slide-spacing: 0.8rem;
-  --thumbs-slide-height: 6rem;
-  margin-top: var(--thumbs-slide-spacing);
-}
-.embla-thumbs__viewport {
-  overflow: hidden;
-}
-.embla-thumbs__container {
-  display: flex;
-  flex-direction: row;
-  margin-left: calc(var(--thumbs-slide-spacing) * -1);
-}
-.embla-thumbs__slide {
-  flex: 0 0 22%;
-  min-width: 0;
-  padding-left: var(--thumbs-slide-spacing);
-}
-@media (min-width: 576px) {
-  .embla-thumbs__slide {
-    flex: 0 0 15%;
-  }
-}
-.embla-thumbs__slide__number {
-  border-radius: 1.8rem;
-  -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  touch-action: manipulation;
-  display: inline-flex;
-  text-decoration: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: var(--detail-high-contrast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--thumbs-slide-height);
-  width: 100%;
-}
-.embla-thumbs__slide--selected .embla-thumbs__slide__number {
-  color: var(--text-body);
-}
-
 
 
 .slider {

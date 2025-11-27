@@ -6,12 +6,12 @@ import {
   PrevButton,
   usePrevNextButtons,
 } from "./EmblaCarouselArrowButtons";
-import { DotButton, useDotButton } from "./EmblaCarosuelDotButton"; // 注意你的檔名拼字
-import { gsap } from "gsap";
+import { DotButton, useDotButton } from "./EmblaCarosuelDotButton";
 
 const EmblaCarousel = (props) => {
   const { slides, options } = props;
 
+  // Autoplay 設定
   const autoplay = useRef(
     Autoplay({
       delay: 4000,
@@ -30,28 +30,15 @@ const EmblaCarousel = (props) => {
     [autoplay.current]
   );
 
-  const dragIndicatorRef = useRef(null);
   const { selectedIndex, scrollSnaps, onDotButtonClick } =
     useDotButton(emblaApi);
+
   const {
     prevBtnDisabled,
     nextBtnDisabled,
     onPrevButtonClick,
     onNextButtonClick,
   } = usePrevNextButtons(emblaApi);
-
-  const handleMouseEnter = () => {
-    gsap.to(dragIndicatorRef.current, { opacity: 1, scale: 1, duration: 0.5 });
-    document.body.style.cursor = "grab";
-  };
-  const handleMouseLeave = () => {
-    gsap.to(dragIndicatorRef.current, {
-      opacity: 0,
-      scale: 0.5,
-      duration: 0.5,
-    });
-    document.body.style.cursor = "default";
-  };
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -62,23 +49,19 @@ const EmblaCarousel = (props) => {
     [emblaApi, onPrevButtonClick, onNextButtonClick]
   );
 
+  // 移除無用的空監聽器，減少內存佔用
   useEffect(() => {
     if (!emblaApi) return;
-    emblaApi
-      .on("reInit", () => {})
-      .on("scroll", () => {})
-      .on("slideFocus", () => {});
+    // 這裡原本的空函數監聽器已被移除
   }, [emblaApi]);
 
   return (
     <div
-      className="w-full pb-12 mx-auto relative ml-8"
+      className="w-full pb-12 mx-auto relative ml-8 outline-none"
       style={{
         "--slide-spacing": "1rem",
         "--slide-size": "28.5%",
       }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
@@ -90,7 +73,11 @@ const EmblaCarousel = (props) => {
         @media (max-width: 550px)  { .embla__viewport { --slide-size: 85%; --slide-height: 22rem; } }
       `}</style>
 
-      <div className="embla__viewport overflow-hidden pb-10" ref={emblaRef}>
+      {/* 加入 cursor-grab 樣式代替 JS 操作 */}
+      <div
+        className="embla__viewport overflow-hidden pb-10 cursor-grab active:cursor-grabbing"
+        ref={emblaRef}
+      >
         <div
           className="embla__container flex touch-pan-y touch-pinch-zoom h-auto"
           style={{ marginLeft: "calc(var(--slide-spacing) * -1)" }}
@@ -100,7 +87,7 @@ const EmblaCarousel = (props) => {
               className="embla__slide transform flex-none min-w-0"
               key={index}
               style={{
-                transform: "translate3d(0, 0, 0)",
+                transform: "translate3d(0, 0, 0)", // 強制開啟 GPU 加速
                 flex: "0 0 var(--slide-size)",
                 paddingLeft: "var(--slide-spacing)",
               }}
@@ -112,6 +99,7 @@ const EmblaCarousel = (props) => {
                   height: "var(--slide-height)",
                   userSelect: "none",
                   backgroundColor: "#1a1a1a",
+                  transform: "translateZ(0)", // 效能優化
                 }}
               >
                 <a href="/" className="block w-full h-full relative">
@@ -123,24 +111,30 @@ const EmblaCarousel = (props) => {
                       <img
                         src={slide.image}
                         alt={slide.title || `Slide ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-110"
+                        // 加入 decoding="async" 減少主線程阻塞
+                        decoding="async"
+                        className="w-full h-full object-cover transition-transform duration-[1500ms] ease-out group-hover:scale-110 will-change-transform"
                         loading="lazy"
                       />
                     )}
                   </div>
 
-                  {/* 漸層 (僅在電腦版顯示，手機版因為白底不需要漸層) */}
+                  {/* 漸層 */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 pointer-events-none z-10 transition-opacity duration-700 hidden md:block" />
 
-                  {/* ✅ 內容區塊修正 */}
+                  {/* ✅ 內容區塊修正 - 移除 backdrop-blur，優化 transition */}
                   <div
                     className="absolute bottom-0 left-0 w-full z-20 overflow-hidden
-                    transition-all duration-1000 ease-in-out rounded-[22px] md:rounded-none md:rounded-t-[22px]
+                    rounded-[22px] md:rounded-none md:rounded-t-[22px]
+                    will-change-transform
                     
-                    /* 手機版樣式 (預設) */
-                    translate-y-0 bg-white/100 backdrop-blur-sm
+                    /* 優化：只對必要的屬性做 transition，移除 transition-all */
+                    transition-[transform,background-color,opacity] duration-700 ease-in-out
                     
-                    /* 電腦版樣式 (md:) */
+                    /* 手機版樣式 */
+                    translate-y-0 bg-white/95
+                    
+                    /* 電腦版樣式 */
                     md:translate-y-[calc(100%-30px)] 
                     md:bg-transparent 
                     md:group-hover:translate-y-0 
@@ -149,35 +143,33 @@ const EmblaCarousel = (props) => {
                     <div className="p-5 md:p-8 flex flex-col gap-2 md:gap-3">
                       {/* Tag */}
                       <span
-                        className="w-fit text-[10px] px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-sm transition-colors duration-1000
+                        className="w-fit text-[10px] px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-sm transition-colors duration-700
                             bg-[#dfcabe] text-white"
                       >
                         Featured
                       </span>
 
-                      {/* Title: 手機版字體變小，且預設為黑色 */}
+                      {/* Title */}
                       <b
                         className="leading-tight line-clamp-1 transition-colors duration-700
                             text-xl md:text-3xl
-                            text-gray-900 md:text-white md:group-hover:text-gray-900 
-                            drop-shadow-none md:drop-shadow-md md:group-hover:drop-shadow-none"
+                            text-gray-900 md:text-white md:group-hover:text-gray-900"
                       >
                         {slide.title}
                       </b>
 
-                      {/* Description Wrapper: 手機版永遠顯示，電腦版 Hover 才顯示 */}
+                      {/* Description Wrapper */}
                       <div
                         className="
                           flex flex-col gap-3 md:gap-4
                           transition-opacity duration-700 delay-100
                           opacity-100 md:opacity-0 md:group-hover:opacity-100"
                       >
-                        {/* Description Text: 手機版字體變小 */}
                         <p className="font-normal leading-relaxed line-clamp-2 md:line-clamp-3 text-gray-600 text-sm md:text-[18px]">
                           {slide.description}
                         </p>
 
-                        <button className="w-fit text-[10px] md:text-xs font-bold border border-gray-300 text-gray-800 px-4 py-2 md:px-6 md:py-3 rounded-full hover:bg-black hover:text-white transition-all duration-300">
+                        <button className="w-fit text-[10px] md:text-xs font-bold border border-gray-300 text-gray-800 px-4 py-2 md:px-6 md:py-3 rounded-full hover:bg-black hover:text-white transition-colors duration-300">
                           VIEW DETAILS
                         </button>
                       </div>
