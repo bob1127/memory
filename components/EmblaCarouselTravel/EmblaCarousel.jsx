@@ -57,7 +57,7 @@ const EmblaCarousel = (props) => {
 
   return (
     <div
-      className="w-full pb-12 mx-auto relative ml-8 outline-none"
+      className="w-full pb-12 mx-auto relative  outline-none"
       style={{
         "--slide-spacing": "1rem",
         "--slide-size": "28.5%",
@@ -93,7 +93,7 @@ const EmblaCarousel = (props) => {
               }}
             >
               <div
-                className="embla__slide__card group relative overflow-hidden border-none md:border md:border-black/10 flex flex-col justify-end"
+                className="embla__slide__card group ml-4 relative overflow-hidden border-none md:border md:border-black/10 flex flex-col justify-end"
                 style={{
                   borderRadius: "1.8rem",
                   height: "var(--slide-height)",
@@ -102,7 +102,7 @@ const EmblaCarousel = (props) => {
                   transform: "translateZ(0)", // 效能優化
                 }}
               >
-                <a href="/" className="block w-full h-full relative">
+                <a href="/beer" className="block w-full h-full relative">
                   {/* 背景圖片 */}
                   <div className="absolute inset-0 w-full h-full overflow-hidden">
                     {slide.content ? (

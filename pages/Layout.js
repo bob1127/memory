@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import AOS from "aos";
-import "aos/dist/aos.css";
+import { useState, useEffect } from "react"; // 保留 useState 和 useEffect (雖然 useEffect 變得空了)
+// ❌ 移除 import AOS from "aos";
+// ❌ 移除 import "aos/dist/aos.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import Navbar from "@/components/Navbar/Navbar.jsx";
@@ -8,11 +8,18 @@ import Banner from "@/components/banner";
 import Image from "next/image";
 import Footer from "@/components/ui/footer.jsx";
 import Head from "next/head";
-import Sidebar from "@/components/Sidebar.js"; // 引入側邊欄組件
+import Sidebar from "@/components/Sidebar.js";
 import { UserProvider } from "../components/context/UserContext";
+
 export default function RootLayout({ children }) {
   const [sidebarProduct, setSidebarProduct] = useState(null); // 儲存購物車資料
 
+  // 輔助函數：模擬獲取變體 ID
+  const getVariantId = (selectedAttributes) => {
+    // 這裡應有實際的邏輯來根據屬性組合生成/查找 ID
+    return selectedAttributes.map(attr => attr.value).join('-');
+  };
+  
   // handleAddToCart 用於更新 sidebarProduct
   const handleAddToCart = (product, quantity, selectedAttributes) => {
     const totalPrice = product.price * quantity; // 計算總價
@@ -28,10 +35,13 @@ export default function RootLayout({ children }) {
       variantId,
     });
     
-    // 顯示購物車側邊欄（根據需求控制顯示）ㄈ
-    setIsSidebarOpen(true);
+    // 顯示購物車側邊欄（根據需求控制顯示）
+    // 注意：setIsSidebarOpen 需要在狀態中定義，這裡暫時假設它存在
+    // setIsSidebarOpen(true); 
   };
 
+  // ❌ 移除整個 AOS 相關的 useEffect 區塊
+  /*
   useEffect(() => {
     AOS.init({
       once: true,
@@ -40,6 +50,7 @@ export default function RootLayout({ children }) {
       easing: "ease-out-cubic",
     });
   }, []);
+  */
 
   return (
     <>
@@ -60,20 +71,17 @@ export default function RootLayout({ children }) {
         <meta name="twitter:image" content="/default-og-image.jpg" />
       </Head>
 
-        
       <div className="">
-         
-
-      <NextUIProvider>
-  <NextThemesProvider>
-    <UserProvider>  {/* ✅ 提早包住所有元件 */}
-      <Navbar />
-      <Sidebar sidebarProduct={sidebarProduct} onAddToCart={handleAddToCart} />
-      {children}
-    </UserProvider>
-  </NextThemesProvider>
-</NextUIProvider>
-   
+        <NextUIProvider>
+          <NextThemesProvider>
+            <UserProvider>
+              <Navbar />
+              <Sidebar sidebarProduct={sidebarProduct} onAddToCart={handleAddToCart} />
+              {children}
+            </UserProvider>
+          </NextThemesProvider>
+        </NextUIProvider>
+        
         <Banner />
         <Footer />
       </div>

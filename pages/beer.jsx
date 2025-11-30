@@ -223,7 +223,7 @@ export default function Home() {
           </motion.div>
 
           <motion.div
-            className="absolute left-10 bottom-20 z-20"
+            className="absolute left-[-10%] sm:left-10 bottom-20 z-20"
             initial={{ scale: 1.5, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             transition={{ duration: 1.3, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
@@ -234,13 +234,13 @@ export default function Home() {
               width={800}
               height={500}
               priority
-              className="w-[700px]"
+              className=" w-[400px] lg:w-[700px]"
             />
           </motion.div>
         </section>
 
         {/* ✅ 商品清單區（WooCommerce） */}
-        <section className="section-content bg-white min-h-screen pb-24">
+        <section className="section-content bg-white min-h-screen py-24">
           <div className="title flex justify-center pt-20 items-center">
             <h4 className="text-[22px] font-bold">ORDER</h4>
           </div>
@@ -328,7 +328,7 @@ export default function Home() {
         </section>
 
         {/* ✅ Newsletter 區 */}
-        <section className="section-newsletter bg-white w-full py-16">
+        {/* <section className="section-newsletter bg-white w-full py-16">
           <motion.form
             onSubmit={handleSubscribe}
             initial={{ opacity: 0, y: 12 }}
@@ -374,7 +374,7 @@ export default function Home() {
               登録する
             </button>
           </motion.form>
-        </section>
+        </section> */}
 
         {/* ✅ 地圖 + 跑馬燈 */}
         <section className="section-map  bg-white pt-20 flex flex-col">

@@ -77,7 +77,7 @@ const STORE_BY_TAB = {
       addrLine1: "123 Example St",
       addrLine2: "Vancouver BC 000 000",
       hours: "11:00 AM–10:00 PM",
-      img: "/images/placeholder-store-1.jpg",
+      img: "/images/brand-story/memory-corner-01.png",
       mapUrl: "https://www.google.com/maps",
     },
   ],
@@ -89,7 +89,7 @@ const STORE_BY_TAB = {
       addrLine1: "1110-4651 Garden City Rd",
       addrLine2: "Richmond BC V6X 2K4",
       hours: "11:30 AM–10:30 PM",
-      img: "/images/placeholder-store-1.jpg",
+      img: "/images/brand-story/memory-corner-01.png",
       mapUrl:
         "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
     },
@@ -100,7 +100,7 @@ const STORE_BY_TAB = {
       addrLine1: "345 North Rd, Coquitlam",
       addrLine2: "BC V3K 3V8",
       hours: "11:30 AM–11:00 PM",
-      img: "/images/placeholder-store-2.jpg",
+      img: "/images/brand-story/memory-corner-01.png",
       mapUrl:
         "https://www.google.com/maps/place/345+North+Rd,+Coquitlam,+BC+V3K+3V8",
     },
@@ -113,7 +113,7 @@ const STORE_BY_TAB = {
       addrLine1: "88 Sweet St",
       addrLine2: "Coquitlam BC 000 000",
       hours: "12:00 PM–09:30 PM",
-      img: "/images/placeholder-store-1.jpg",
+      img: "/images/brand-story/memory-corner-01.png",
       mapUrl: "https://www.google.com/maps",
     },
   ],
@@ -125,7 +125,7 @@ const STORE_BY_TAB = {
       addrLine1: "99 Corner Rd",
       addrLine2: "Vancouver BC 000 000",
       hours: "05:00 PM–01:00 AM",
-      img: "/images/placeholder-store-2.jpg",
+      img: "/images/brand-story/memory-corner-01.png",
       mapUrl: "https://www.google.com/maps",
     },
   ],
@@ -317,7 +317,7 @@ export default function BrandStoryPage() {
 
                   <div className="mb-2 border border-[#c9b79a] bg-white">
                     <Image
-                      src="/images/brand-story/memory-corner-01.png"
+                      src="/images/brand-story/憶點點/DAV01773 (1).jpg"
                       alt="Memory Corner 外觀"
                       width={880}
                       height={520}
@@ -389,24 +389,24 @@ export default function BrandStoryPage() {
                   </h2>
                   <div className="border border-[#c9b79a] bg-white">
                     <Image
-                      src="/images/brand-story/memory-corner-03.png"
+                      src="/images/brand-story/DAV01968.jpg"
                       alt="店內環境"
                       width={880}
                       height={520}
                       className="h-auto w-full object-cover"
                     />
                   </div>
-                  <div className="relative mt-[-80px] flex justify-end pr-6">
+                  {/* <div className="relative mt-[-80px] flex justify-end pr-6">
                     <div className="inline-block border border-[#c9b79a] bg-white p-1 shadow-md">
                       <Image
-                        src="/images/brand-story/memory-corner-hotpot.png"
+                        src="/images/brand-story/banner-01-a.png"
                         alt="熱騰騰的鍋物"
                         width={220}
                         height={220}
                         className="h-auto w-[180px] object-contain"
                       />
                     </div>
-                  </div>
+                  </div> */}
                   <div className="mt-6 space-y-3 text-[13px] leading-relaxed tracking-[0.05em]">
                     <p className="text-2xl font-bold leading-relaxed md:text-3xl">
                       這扇門，已在有香靜靜敞開，
