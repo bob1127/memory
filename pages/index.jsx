@@ -1,12 +1,9 @@
-// app/page.jsx
-"use client";
-
 import { useRef, useEffect, useLayoutEffect, useState } from "react";
 import Image from "next/image";
-import { ReactLenis } from "@studio-freight/react-lenis";
 import Link from "next/link";
 import Marquee from "react-marquee-slider";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router"; // 用來獲取當前語言狀態
 import {
   motion,
   useMotionValue,
@@ -17,7 +14,7 @@ import {
 } from "framer-motion";
 
 // Components
-import Layout from "../pages/Layout";
+import Layout from "../pages/Layout"; // 確認您的 Layout 路徑是否正確
 import Carousel from "../components/EmblaCarouselTravel/index";
 
 // Dynamic Imports
@@ -26,12 +23,85 @@ const MinimalPushOverlayMenu = dynamic(
   { ssr: false }
 );
 
-/* ========== 優化版：滾動進場 (移除 Blur) ========== */
+/* =================================================================
+   1. 翻譯資料庫 (實際專案通常會放在 locales/zh-TW.json 檔案中)
+   ================================================================= */
+const TRANSLATIONS = {
+  "zh-TW": {
+    variety: {
+      title: "VARIETY",
+      subtitle: "Traditional grocery shop",
+      desc1: "販售各式台灣經典零食、懷舊童玩，以及方便好料理的台灣小吃冷凍包。",
+      desc2: "帶你重溫最經典的台灣味。",
+      desc3: "喜歡台味的朋友，能線上輕鬆訂購， 也歡迎到店逛逛！",
+    },
+    about: {
+      title: "ABOUT US",
+      group_desc:
+        "始於1975年台灣高雄，在北美這片 土地上<br/>傳遞家的溫度與歸屬感",
+      memory_desc: "傳承三代手路菜<br/>正港的台灣料理",
+      sweet_desc:
+        "手作甜點與飲品，蒐集生活裡那些 <br/>一點點卻很重要的甜美記憶。",
+    },
+    app: {
+      title: "REWARDS APP",
+      subtitle: "Earn Points with Every Purchase",
+      marquee: "Join Now — Start Earning Points!",
+    },
+  },
+  en: {
+    variety: {
+      title: "VARIETY",
+      subtitle: "Traditional Grocery Shop",
+      desc1:
+        "We sell a variety of classic Taiwanese snacks, nostalgic toys, and convenient frozen Taiwanese street food packs.",
+      desc2: "Relive the most classic Taiwanese flavors.",
+      desc3:
+        "Fans of Taiwanese taste can order online easily, or visit our store!",
+    },
+    about: {
+      title: "ABOUT US",
+      group_desc:
+        "Started in Kaohsiung, Taiwan in 1975.<br/>Delivering the warmth of home and belonging in North America.",
+      memory_desc:
+        "Inheriting three generations of culinary skills.<br/>Authentic Taiwanese cuisine.",
+      sweet_desc:
+        "Handmade desserts and drinks.<br/>Collecting those small but important sweet memories in life.",
+    },
+    app: {
+      title: "REWARDS APP",
+      subtitle: "Earn Points with Every Purchase",
+      marquee: "Join Now — Start Earning Points!",
+    },
+  },
+};
+
+/* =================================================================
+   2. SSG 資料獲取 (Server Side Build Time)
+   ================================================================= */
+export async function getStaticProps({ locale }) {
+  // 根據網址 (例如 /en 或 /zh-TW) 決定要拿哪一份資料
+  // 如果找不到對應語言，預設回傳 zh-TW
+  const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
+
+  return {
+    props: {
+      t, // 翻譯資料
+      locale, // 當前語系代碼
+    },
+  };
+}
+
+/* =================================================================
+   3. 動畫與功能元件 (保持不變)
+   ================================================================= */
+
+/* 優化版：滾動進場 */
 function FadeUp({
   children,
   className = "",
   delay = 0,
-  distance = 60, // 距離縮短，減少渲染範圍
+  distance = 60,
   amount = 0.3,
 }) {
   const prefersReduced = useReducedMotion?.();
@@ -41,7 +111,7 @@ function FadeUp({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: distance }} // ❌ 已移除 filter: blur
+      initial={{ opacity: 0, y: distance }}
       whileInView={{
         opacity: 1,
         y: 0,
@@ -52,14 +122,14 @@ function FadeUp({
         delay,
       }}
       viewport={{ once: true, amount, margin: "0px 0px -5% 0px" }}
-      style={{ willChange: "opacity, transform" }} // ✅ 強制 GPU 加速
+      style={{ willChange: "opacity, transform" }}
     >
       {children}
     </motion.div>
   );
 }
 
-/* ========= SnackDropLoop：掉落動畫 (維持原邏輯，確保效能) ========= */
+/* SnackDropLoop */
 function SnackDropLoop({
   anchorRef,
   className,
@@ -213,7 +283,7 @@ function SnackDropLoop({
   );
 }
 
-/* ========= 優化版：AutoSwapImage (移除 Blur + 加入 Priority) ========= */
+/* AutoSwapImage */
 function AutoSwapImage({
   base,
   alt = "",
@@ -227,7 +297,7 @@ function AutoSwapImage({
   offset = 40,
   rotateInfinite = false,
   rotateDuration = 16,
-  priority = false, // ✅ 新增：控制是否優先載入
+  priority = false,
 }) {
   const prefersReduced = useReducedMotion?.();
   const [showB, setShowB] = useState(false);
@@ -260,7 +330,7 @@ function AutoSwapImage({
         initial={{
           opacity: 0,
           x: dxIn,
-        }} // ❌ 已移除 blur
+        }}
         animate={{ opacity: 1, x: 0 }}
         exit={{
           opacity: 0,
@@ -268,7 +338,7 @@ function AutoSwapImage({
         }}
         transition={{ duration: 1.05, ease: [0.16, 1, 0.3, 1] }}
         style={{
-          willChange: "transform, opacity", // ✅ 強制 GPU 加速
+          willChange: "transform, opacity",
           backfaceVisibility: "hidden",
           position: "relative",
           width: "100%",
@@ -280,8 +350,8 @@ function AutoSwapImage({
           alt={alt}
           width={width}
           height={height}
-          loading={priority ? "eager" : "lazy"} // ✅ 根據 priority 決定
-          priority={priority} // ✅ Next.js 圖片優化
+          loading={priority ? "eager" : "lazy"}
+          priority={priority}
           placeholder="empty"
           className={className}
           sizes="(max-width: 1024px) 80vw, 50vw"
@@ -310,7 +380,14 @@ function AutoSwapImage({
   return <div className={`absolute ${positionClass}`}>{content}</div>;
 }
 
-export default function Home() {
+/* =================================================================
+   4. 主頁面元件 (接收 props.t)
+   ================================================================= */
+export default function Home({ t, locale }) {
+  // 如果需要做語言切換按鈕，可以用 useRouter
+  // const router = useRouter();
+  // const switchLang = () => router.push('/', '/', { locale: locale === 'en' ? 'zh-TW' : 'en' })
+
   const rightRef = useRef(null);
 
   // 中央 hotpot 旋轉邏輯
@@ -337,10 +414,10 @@ export default function Home() {
   return (
     <>
       <Layout>
-        {/* Section Hero: 加入 pointer-events-none 避免誤觸 */}
+        {/* Section Hero */}
         <section className="section-hero z-[9] pt-[0px] relative md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
-            {/* 中央主標：Priority = true */}
+            {/* 中央主標 */}
             <AutoSwapImage
               base="/images/index/banner-06"
               alt="background"
@@ -350,7 +427,7 @@ export default function Home() {
               height={800}
               interval={7000}
               enterFrom="none"
-              priority={true} // ✅ 優先載入
+              priority={true}
             />
 
             {/* 角色 */}
@@ -381,7 +458,7 @@ export default function Home() {
               offset={28}
             />
 
-            {/* 轉動標誌：無限旋轉 */}
+            {/* 轉動標誌 */}
             <AutoSwapImage
               base="/images/index/banner-07"
               alt="mark"
@@ -397,7 +474,7 @@ export default function Home() {
               rotateDuration={16}
             />
 
-            {/* 火鍋：Priority = true */}
+            {/* 火鍋 */}
             <AutoSwapImage
               base="/images/index/banner-01"
               alt="hotpot"
@@ -409,7 +486,7 @@ export default function Home() {
               initialDelay={4800}
               enterFrom="left"
               offset={32}
-              priority={true} // ✅ 優先載入
+              priority={true}
             />
           </div>
         </section>
@@ -418,14 +495,14 @@ export default function Home() {
           <Carousel />
         </section>
 
-        {/* ======= 零食：各自落入袋口 ======= */}
+        {/* ======= 零食區塊 ======= */}
         <section
           ref={dingingRef}
           className="section_Dinging mx-auto bg-[#efefef] max-w-[1920px] relative overflow-x-hidden"
         >
           <div className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
-              {/* 左側：動畫區 */}
+              {/* 左側：動畫區 (保持原樣) */}
               <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
                 <div className="flex justify-center">
                   <FadeUp delay={0.05} amount={0.25} className="absolute">
@@ -444,7 +521,7 @@ export default function Home() {
                   className="absolute left-[34%] -translate-x-1/2 bottom-[18%] w-2 h-2"
                 />
 
-                {/* SnackDropLoops */}
+                {/* SnackDropLoops (保持不變) */}
                 <SnackDropLoop
                   anchorRef={anchorRef}
                   className="w-[80%] bottom-[10%] sm:bottom-[30%] -translate-x-1/2 left-[-5%] sm:left-[40%] z-[9]"
@@ -459,7 +536,7 @@ export default function Home() {
                   duration={2.2}
                   delay={0.0}
                 />
-                {/* ... 其他零食 (保持你的原始參數) ... */}
+                {/* ... 其他 SnackDropLoop 省略 (內容保持不變) ... */}
                 <SnackDropLoop
                   anchorRef={anchorRef}
                   className="w-[80%] bottom-[7%] sm:bottom-[40%] -translate-x-1/2 left-[10%] z-[9]"
@@ -580,20 +657,20 @@ export default function Home() {
                 </FadeUp>
               </div>
 
-              {/* 右側：文案區 */}
+              {/* 右側：文案區 (使用 t 變數替換文字) */}
               <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
                     <FadeUp>
                       <h2 className="title-large font-bold m-0 p-0 leading-none">
-                        VARIETY
+                        {t.variety.title}
                       </h2>
                     </FadeUp>
 
                     <div className="">
                       <FadeUp delay={0.06}>
                         <p className="sub_title m-0 p-0">
-                          Traditional grocery shop
+                          {t.variety.subtitle}
                         </p>
                       </FadeUp>
                     </div>
@@ -601,14 +678,13 @@ export default function Home() {
                     <div className="mt-3 sm:mt-4">
                       <FadeUp delay={0.08}>
                         <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
-                          販售各式台灣經典零食、懷舊童玩，
-                          以及方便好料理的台灣小吃冷凍包。
+                          {t.variety.desc1}
                         </p>
                         <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
-                          帶你重溫最經典的台灣味。
+                          {t.variety.desc2}
                         </p>
                         <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
-                          喜歡台味的朋友，能線上輕鬆訂購， 也歡迎到店逛逛！
+                          {t.variety.desc3}
                         </p>
                       </FadeUp>
                     </div>
@@ -624,19 +700,20 @@ export default function Home() {
           <div className="pointer-events-none absolute top-[7%] sm:top-[15%] left-[10%] md:translate-x-0 z-20">
             <FadeUp>
               <h2 className="font-extrabold tracking-[0.18em] text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] text-[clamp(2.4rem,7vw,8.5rem)] leading-none">
-                ABOUT&nbsp;US
+                {t.about.title}
               </h2>
             </FadeUp>
           </div>
 
           <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
+            {/* 區塊 1 */}
             <FadeUp delay={0.02} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
                   src="/images/index/about/DAV01968.jpg"
                   alt="有香集團"
                   fill
-                  sizes="(max-width: 768px) 100vw, 33vw" // ✅ 優化圖片尺寸
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   priority={false}
                   className="object-cover"
                 />
@@ -652,15 +729,17 @@ export default function Home() {
                     />
                   </div>
                   <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
-                    <p className="text-white text-[16px] leading-relaxed">
-                      始於1975年台灣高雄，在北美這片 土地上<br></br>
-                      傳遞家的溫度與歸屬感
-                    </p>
+                    {/* 使用 dangerouslySetInnerHTML 支援 <br/> 標籤 */}
+                    <p
+                      className="text-white text-[16px] leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: t.about.group_desc }}
+                    />
                   </div>
                 </div>
               </div>
             </FadeUp>
 
+            {/* 區塊 2 */}
             <FadeUp delay={0.06} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
@@ -682,14 +761,16 @@ export default function Home() {
                     />
                   </div>
                   <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
-                    <p className="text-white text-[16px] leading-relaxed">
-                      傳承三代手路菜<br></br>正港的台灣料理
-                    </p>
+                    <p
+                      className="text-white text-[16px] leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: t.about.memory_desc }}
+                    />
                   </div>
                 </div>
               </div>
             </FadeUp>
 
+            {/* 區塊 3 */}
             <FadeUp delay={0.1} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
@@ -711,10 +792,10 @@ export default function Home() {
                     />
                   </div>
                   <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
-                    <p className="text-white text-[16px] leading-relaxed">
-                      手作甜點與飲品，蒐集生活裡那些 <br></br>
-                      一點點卻很重要的甜美記憶。
-                    </p>
+                    <p
+                      className="text-white text-[16px] leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: t.about.sweet_desc }}
+                    />
                   </div>
                 </div>
               </div>
@@ -722,7 +803,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Video Section */}
+        {/* Video Section (保持不變) */}
         <section className="h-full w-full section-video relative">
           <video
             className="w-full h-full object-cover"
@@ -745,21 +826,21 @@ export default function Home() {
         <section></section>
 
         {/* APP Operation Section */}
-        <section className="section_app_operation bg-[#f7f7f7] relative">
+        <section className="section_app_operation bg-[#f7f7f7] relative overflow-hidden">
           <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
             <div className="w-full md:w-[50%] flex sm:p-10 p-8 md:p-20 items-center">
               <FadeUp amount={0.35} className="w-full">
                 <div className="flex flex-col justify-center items-center">
                   <FadeUp>
                     <h2 className="title-large font-bold text-[#3b2619] leading-none text-wrap">
-                      REWARDS APP
+                      {t.app.title}
                     </h2>
                   </FadeUp>
 
                   <div className="mt-4">
                     <FadeUp delay={0.06}>
                       <p className="text-[#3b2619] font-normal sub_title leading-relaxed">
-                        Earn Points with Every Purchase
+                        {t.app.subtitle}
                       </p>
                     </FadeUp>
                     <FadeUp delay={0.04}>
@@ -805,7 +886,7 @@ export default function Home() {
                       key={i}
                       className="mx-10 text-8xl font-bold text-[#ebe9ea]"
                     >
-                      Join Now — Start Earning Points!
+                      {t.app.marquee}
                     </span>
                   ))}
               </Marquee>

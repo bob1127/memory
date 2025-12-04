@@ -1,13 +1,154 @@
-// pages/contact.jsx
 import { useState } from "react";
 import Head from "next/head";
-import Layout from "./Layout";
+import Layout from "./Layout"; // 請確認 Layout 路徑
 
-export default function ContactPage() {
+/* ========== 1. i18n 資料 ========== */
+const TRANSLATIONS = {
+  "zh-TW": {
+    meta: {
+      title: "聯絡我們 | 有香 Memory Corner",
+      description:
+        "有任何問題或建議？歡迎透過表單聯絡有香餐飲集團，我們將盡快回覆您。",
+    },
+    title: "聯絡我們 (Contact Us)",
+    form: {
+      name: "姓名 (Name)",
+      name_ph: "請輸入您的姓名",
+      email: "電子郵件 (Email Address)",
+      email_ph: "example@email.com",
+      email_hint: "我們將透過此信箱回覆您。",
+      phone: "聯絡電話 (Phone Number)",
+      phone_ph: "請輸入您的聯絡電話（可略過）",
+      reason: "聯絡主題 (Reason for Contact)",
+      reason_default: "請選擇聯絡主題",
+      store: "相關分店 (Store Location)",
+      store_default: "請選擇分店（可略過）",
+      date: "消費日期 (Date of Visit)",
+      date_hint: "幫助我們追溯當天情況。",
+      message: "訊息內容 (Message)",
+      message_ph: "請盡可能詳細描述您的情況。",
+      attachment: "上傳附件 (Attachment)",
+      attachment_hint: "例如：收據、照片（可略過）。",
+      submit: "送出表單",
+      submitting: "送出中...",
+      note: "* 為必填欄位",
+      optional: "（選填）",
+    },
+    options: {
+      reasons: [
+        { value: "Complaint: Food Quality", label: "客訴：餐點品質" },
+        { value: "Complaint: Service", label: "客訴：服務態度" },
+        { value: "Complaint: Store Environment", label: "客訴：環境清潔" },
+        { value: "General Suggestion", label: "一般建議" },
+        { value: "Business Cooperation", label: "商業合作" },
+        { value: "Other", label: "其他" },
+      ],
+      stores: [
+        {
+          value: "Memory Corner Richmond",
+          label: "有香 Memory Corner (Richmond)",
+        },
+        {
+          value: "Sweet Memory Richmond",
+          label: "憶點點 Sweet Memory (Richmond)",
+        },
+        {
+          value: "Kitchen Corner Richmond",
+          label: "有香ㄟ灶腳 Kitchen Corner (Richmond)",
+        },
+        {
+          value: "Memory Corner Coquitlam",
+          label: "有香 Memory Corner (Coquitlam)",
+        },
+      ],
+    },
+    messages: {
+      error_store: "若為客訴，請選擇相關分店。",
+      error_date: "若為客訴，請填寫消費日期。",
+      success: "表單已送出，我們會在 2–3 個工作日內回覆您，感謝！",
+      fail: "送出失敗，請稍後再試，或改用其他聯絡方式，謝謝。",
+    },
+  },
+  en: {
+    meta: {
+      title: "Contact Us | Memory Corner",
+      description:
+        "Have questions or suggestions? Contact Memory Dining Group through this form, and we will get back to you soon.",
+    },
+    title: "Contact Us",
+    form: {
+      name: "Name",
+      name_ph: "Enter your name",
+      email: "Email Address",
+      email_ph: "example@email.com",
+      email_hint: "We will reply via this email.",
+      phone: "Phone Number",
+      phone_ph: "Enter your phone number (Optional)",
+      reason: "Reason for Contact",
+      reason_default: "Select a reason",
+      store: "Store Location",
+      store_default: "Select a store (Optional)",
+      date: "Date of Visit",
+      date_hint: "Helps us trace the incident.",
+      message: "Message",
+      message_ph: "Please describe your situation in detail.",
+      attachment: "Attachment",
+      attachment_hint: "E.g., Receipt, Photo (Optional).",
+      submit: "Submit",
+      submitting: "Submitting...",
+      note: "* Required fields",
+      optional: "(Optional)",
+    },
+    options: {
+      reasons: [
+        { value: "Complaint: Food Quality", label: "Complaint: Food Quality" },
+        { value: "Complaint: Service", label: "Complaint: Service" },
+        {
+          value: "Complaint: Store Environment",
+          label: "Complaint: Store Environment",
+        },
+        { value: "General Suggestion", label: "General Suggestion" },
+        { value: "Business Cooperation", label: "Business Cooperation" },
+        { value: "Other", label: "Other" },
+      ],
+      stores: [
+        { value: "Memory Corner Richmond", label: "Memory Corner (Richmond)" },
+        { value: "Sweet Memory Richmond", label: "Sweet Memory (Richmond)" },
+        {
+          value: "Kitchen Corner Richmond",
+          label: "Kitchen Corner (Richmond)",
+        },
+        {
+          value: "Memory Corner Coquitlam",
+          label: "Memory Corner (Coquitlam)",
+        },
+      ],
+    },
+    messages: {
+      error_store: "Please select a store location for complaints.",
+      error_date: "Please specify the date of visit for complaints.",
+      success:
+        "Form submitted! We will get back to you within 2-3 business days. Thank you!",
+      fail: "Submission failed. Please try again later or contact us via other methods.",
+    },
+  },
+};
+
+/* ========== 2. SSG 設定 ========== */
+export async function getStaticProps({ locale }) {
+  const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
+  return {
+    props: { t, locale },
+  };
+}
+
+/* ========== 3. 頁面組件 ========== */
+export default function ContactPage({ t, locale }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
   const [reason, setReason] = useState("");
 
+  // 判斷是否為客訴 (邏輯依賴 value 值，這些值在不同語系下保持一致)
   const isComplaint =
     reason === "Complaint: Food Quality" ||
     reason === "Complaint: Service" ||
@@ -25,7 +166,7 @@ export default function ContactPage() {
       if (!form.storeLocation.value) {
         setStatus({
           type: "error",
-          message: "若為客訴，請選擇相關分店。",
+          message: t.messages.error_store,
         });
         setLoading(false);
         return;
@@ -33,20 +174,19 @@ export default function ContactPage() {
       if (!form.visitDate.value) {
         setStatus({
           type: "error",
-          message: "若為客訴，請填寫消費日期。",
+          message: t.messages.error_date,
         });
         setLoading(false);
         return;
       }
     }
 
-    // 使用 FormData 才能夾帶檔案
     const formData = new FormData(form);
 
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
-        body: formData, // 不要自己設 Content-Type，讓瀏覽器自動帶 boundary
+        body: formData,
       });
 
       const data = await res.json();
@@ -54,88 +194,108 @@ export default function ContactPage() {
       if (res.ok && data.success) {
         setStatus({
           type: "success",
-          message: "表單已送出，我們會在 2–3 個工作日內回覆您，感謝！",
+          message: t.messages.success,
         });
         form.reset();
         setReason("");
       } else {
-        throw new Error(data.error || "送出失敗");
+        throw new Error(data.error || "Failed");
       }
     } catch (err) {
       console.error(err);
       setStatus({
         type: "error",
-        message: "送出失敗，請稍後再試，或改用其他聯絡方式，謝謝。",
+        message: t.messages.fail,
       });
     } finally {
       setLoading(false);
     }
   }
 
+  /* 結構化資料：ContactPage */
+  const contactPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: t.meta.title,
+    description: t.meta.description,
+    url: `https://www.memorycorner8.com${
+      locale === "en" ? "/en/contact" : "/contact"
+    }`,
+    mainEntity: {
+      "@type": "Organization",
+      name: "Memory Corner Group",
+      email: "info@memorycorner8.com", // 請確認您的聯絡信箱
+      url: "https://www.memorycorner8.com",
+    },
+  };
+
   return (
     <Layout>
       <Head>
-        <title>聯絡我們 | Contact Us</title>
+        <title>{t.meta.title}</title>
+        <meta name="description" content={t.meta.description} />
       </Head>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
+      />
 
       <div className="page bg-[#EDE5D6]">
         <main className="container">
           <section className="card mt-20">
             <div className="flex flex-col justify-center items-center">
-              {" "}
-              <h1 className="text-xl font-bold mb-4 md:text-2xl">
-                聯絡我們 (Contact Us)
+              <h1 className="text-xl font-bold mb-4 md:text-2xl text-[#3b2a1a]">
+                {t.title}
               </h1>
             </div>
             <form className="form" onSubmit={handleSubmit}>
               {/* 欄位1：姓名 */}
               <div className="field">
                 <label className="label">
-                  姓名 (Name) <span className="required">*</span>
+                  {t.form.name} <span className="required">*</span>
                 </label>
                 <input
                   type="text"
                   name="name"
                   required
                   className="input"
-                  placeholder="請輸入您的姓名"
+                  placeholder={t.form.name_ph}
                 />
               </div>
 
               {/* 欄位2：電子郵件 */}
               <div className="field">
                 <label className="label">
-                  電子郵件 (Email Address) <span className="required">*</span>
+                  {t.form.email} <span className="required">*</span>
                 </label>
                 <input
                   type="email"
                   name="email"
                   required
                   className="input"
-                  placeholder="example@email.com"
+                  placeholder={t.form.email_ph}
                 />
-                <p className="hint">我們將透過此信箱回覆您。</p>
+                <p className="hint">{t.form.email_hint}</p>
               </div>
 
               {/* 欄位3：聯絡電話 */}
               <div className="field">
                 <label className="label">
-                  聯絡電話 (Phone Number)
-                  <span className="optional">（選填）</span>
+                  {t.form.phone}
+                  <span className="optional">{t.form.optional}</span>
                 </label>
                 <input
                   type="tel"
                   name="phone"
                   className="input"
-                  placeholder="請輸入您的聯絡電話（可略過）"
+                  placeholder={t.form.phone_ph}
                 />
               </div>
 
               {/* 欄位4：聯絡主題 */}
               <div className="field">
                 <label className="label">
-                  聯絡主題 (Reason for Contact){" "}
-                  <span className="required">*</span>
+                  {t.form.reason} <span className="required">*</span>
                 </label>
                 <select
                   name="reason"
@@ -144,34 +304,23 @@ export default function ContactPage() {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                 >
-                  <option value="">請選擇聯絡主題</option>
-                  <option value="Complaint: Food Quality">
-                    客訴：餐點品質 (Complaint: Food Quality)
-                  </option>
-                  <option value="Complaint: Service">
-                    客訴：服務態度 (Complaint: Service)
-                  </option>
-                  <option value="Complaint: Store Environment">
-                    客訴：環境清潔 (Complaint: Store Environment)
-                  </option>
-                  <option value="General Suggestion">
-                    一般建議 (General Suggestion)
-                  </option>
-                  <option value="Business Cooperation">
-                    商業合作 (Business Cooperation)
-                  </option>
-                  <option value="Other">其他 (Other)</option>
+                  <option value="">{t.form.reason_default}</option>
+                  {t.options.reasons.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* 欄位5：相關分店 */}
               <div className="field">
                 <label className="label">
-                  相關分店 (Store Location)
+                  {t.form.store}
                   {isComplaint ? (
                     <span className="required">*</span>
                   ) : (
-                    <span className="optional">（選填）</span>
+                    <span className="optional">{t.form.optional}</span>
                   )}
                 </label>
                 <select
@@ -179,48 +328,46 @@ export default function ContactPage() {
                   className="input select"
                   defaultValue=""
                 >
-                  <option value="">請選擇分店（可略過）</option>
-                  <option value="有香 Richmond 店">有香 Richmond 店</option>
-                  <option value="憶點點 Richmond 店">憶點點 Richmond 店</option>
-                  <option value="有香ㄟ灶腳 Richmond店">
-                    有香ㄟ灶腳 Richmond店
-                  </option>
-                  <option value="有香 Coquitlam店">有香 Coquitlam店</option>
+                  <option value="">{t.form.store_default}</option>
+                  {t.options.stores.map((store) => (
+                    <option key={store.value} value={store.value}>
+                      {store.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* 欄位6：消費日期（客訴時建議必填，非客訴可不顯示或選填） */}
+              {/* 欄位6：消費日期 */}
               {isComplaint && (
                 <div className="field">
                   <label className="label">
-                    消費日期 (Date of Visit)
+                    {t.form.date}
                     <span className="required">*</span>
                   </label>
                   <input type="date" name="visitDate" className="input" />
-                  <p className="hint">幫助我們追溯當天情況。</p>
+                  <p className="hint">{t.form.date_hint}</p>
                 </div>
               )}
 
               {/* 欄位7：訊息內容 */}
               <div className="field">
                 <label className="label">
-                  訊息內容 (Message) <span className="required">*</span>
+                  {t.form.message} <span className="required">*</span>
                 </label>
                 <textarea
                   name="message"
                   required
                   className="input textarea"
-                  placeholder="請盡可能詳細描述您的情況。"
+                  placeholder={t.form.message_ph}
                   rows={5}
                 />
-                <p className="hint">請盡可能詳細描述您的情況。</p>
               </div>
 
               {/* 欄位8：上傳附件 */}
               <div className="field">
                 <label className="label">
-                  上傳附件 (Attachment)
-                  <span className="optional">（選填）</span>
+                  {t.form.attachment}
+                  <span className="optional">{t.form.optional}</span>
                 </label>
                 <input
                   type="file"
@@ -228,7 +375,7 @@ export default function ContactPage() {
                   className="input"
                   accept="image/*,.pdf,.jpg,.jpeg,.png"
                 />
-                <p className="hint">例如：收據、照片（可略過）。</p>
+                <p className="hint">{t.form.attachment_hint}</p>
               </div>
 
               {/* 狀態訊息 */}
@@ -245,9 +392,9 @@ export default function ContactPage() {
               {/* 送出按鈕 */}
               <div className="actions">
                 <button type="submit" className="button" disabled={loading}>
-                  {loading ? "送出中..." : "送出表單"}
+                  {loading ? t.form.submitting : t.form.submit}
                 </button>
-                <p className="note">* 為必填欄位</p>
+                <p className="note">{t.form.note}</p>
               </div>
             </form>
           </section>
@@ -258,23 +405,21 @@ export default function ContactPage() {
             min-height: 100vh;
             width: 100%;
             box-sizing: border-box;
-
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 24px 16px;
-            overflow-x: hidden; /* 避免橫向捲動 */
+            overflow-x: hidden;
           }
 
           .container {
             width: 100%;
-            max-width: 600px; /* ✅ 手機版最多 600px 寬 */
+            max-width: 600px;
             margin: 0 auto;
           }
 
           .card {
-            width: 100%; /* ✅ 卡片一定塞在 container 裡 */
-
+            width: 100%;
             padding: 28px 20px;
           }
 
@@ -282,19 +427,6 @@ export default function ContactPage() {
             .card {
               padding: 40px 40px;
             }
-          }
-
-          /* 平板以上再恢復原本比較大的內距 */
-          @media (min-width: 768px) {
-            .card {
-              padding: 40px 40px;
-            }
-          }
-
-          .description {
-            color: #475569;
-            margin-bottom: 24px;
-            line-height: 1.6;
           }
 
           .form {
@@ -317,7 +449,7 @@ export default function ContactPage() {
           .label {
             font-size: 0.95rem;
             font-weight: 600;
-            color: #0f172a;
+            color: #3b2a1a; /* 配合 Layout 風格 */
             margin-bottom: 6px;
           }
 
@@ -332,7 +464,7 @@ export default function ContactPage() {
             color: #64748b;
           }
           .input {
-            width: 100%; /* ✅ 滿版但不超出 */
+            width: 100%;
             max-width: 100%;
             box-sizing: border-box;
             border-radius: 12px;
@@ -341,7 +473,7 @@ export default function ContactPage() {
             font-size: 0.95rem;
             outline: none;
             transition: border-color 0.18s ease, box-shadow 0.18s ease,
-              background-color 0.18s ease, transform 0.05s ease;
+              background-color 0.18s ease;
             background-color: #f8fafc;
           }
           .field,
@@ -358,8 +490,8 @@ export default function ContactPage() {
           }
 
           .input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2);
+            border-color: #d4a373;
+            box-shadow: 0 0 0 1px rgba(212, 163, 115, 0.4);
             background-color: #ffffff;
           }
 
@@ -414,15 +546,10 @@ export default function ContactPage() {
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            background: linear-gradient(
-              135deg,
-              #d4a373,
-              #f3d5b5
-            ); /* 土黃色系漸層 */
+            background: linear-gradient(135deg, #d4a373, #f3d5b5);
             color: #ffffff;
             box-shadow: 0 12px 25px rgba(212, 163, 115, 0.35);
-            transition: transform 0.08s ease, box-shadow 0.08s ease,
-              opacity 0.18s ease;
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
           }
 
           .button:hover:not(:disabled) {

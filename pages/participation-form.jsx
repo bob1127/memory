@@ -1,8 +1,181 @@
-// pages/franchise-inquiry.jsx
 import { useState } from "react";
 import Head from "next/head";
-import Layout from "./Layout";
-export default function FranchiseInquiryPage() {
+import Layout from "./Layout"; // 請確認 Layout 路徑
+
+/* ========== 1. i18n 資料 ========== */
+const TRANSLATIONS = {
+  "zh-TW": {
+    meta: {
+      title: "加盟資訊表單 | 有香 Memory Corner",
+      description:
+        "對有香餐飲集團加盟有興趣？請填寫此表單，我們將有專人盡快與您聯繫，提供詳細加盟資訊。",
+    },
+    title: "加盟資訊表單 (Franchise Inquiry)",
+    desc: "感謝您對我們品牌有興趣，請填寫以下資訊，我們將有專人盡快與您聯繫。",
+    form: {
+      fullName: "全名 (Full Name)",
+      fullName_ph: "請輸入您的全名",
+      email: "電子郵件 (Email Address)",
+      email_ph: "example@email.com",
+      email_hint: "我們將透過此信箱寄送加盟簡報。",
+      contactType: "首選聯絡方式 (Preferred Contact)",
+      contactType_default: "請選擇聯絡方式",
+      contactId: "聯絡號碼 / ID (Contact Number / ID)",
+      contactId_ph: "請輸入電話或帳號 ID",
+      contactId_hint: "根據您的上列選擇，請填寫號碼或帳號 ID。",
+      city: "居住城市 (Current City)",
+      city_ph: "e.g., Vancouver, Richmond, Burnaby",
+      city_hint: "e.g., Vancouver, Richmond, Burnaby",
+      residency: "加拿大居留身份 (Residency Status)",
+      residency_default: "請選擇您的身份",
+      investment: "可投資金額 (Investment Budget)",
+      investment_default: "請選擇預估投資金額",
+      startDate: "預計加盟時程 (Target Start Date)",
+      startDate_default: "請選擇預計時程",
+      hearAbout: "您如何得知我們 (How did you hear about us?)",
+      hearAbout_default: "請選擇（可略過）",
+      notes: "補充說明 (Additional Notes)",
+      notes_ph: "e.g., 您是否有餐飲經驗或已看好的店面？",
+      notes_hint: "e.g., 您是否有餐飲經驗或已看好的店面？",
+      submit: "送出表單",
+      submitting: "送出中...",
+      required: "* 為必填欄位",
+      optional: "（選填）",
+    },
+    messages: {
+      success: "表單已送出，我們將盡快與您聯繫，感謝！",
+      fail: "送出失敗，請稍後再試，或改用其他聯絡方式，謝謝。",
+    },
+    // 下拉選單選項 (Value 不變，Label 變)
+    options: {
+      contacts: [
+        { value: "Phone", label: "電話 (Phone)" },
+        { value: "WhatsApp", label: "WhatsApp" },
+        { value: "Line", label: "Line" },
+        { value: "WeChat", label: "WeChat" },
+      ],
+      residencies: [
+        {
+          value: "Citizen/PR",
+          label: "公民 / PR (Citizen / Permanent Resident)",
+        },
+        { value: "Work Permit", label: "工作簽證 (Work Permit)" },
+        { value: "Student Visa", label: "學生簽證 (Student Visa)" },
+        { value: "Overseas Investor", label: "海外投資者 (Overseas Investor)" },
+      ],
+      investments: [
+        { value: "<250000", label: "< CA$250,000" },
+        { value: "250000-350000", label: "CA$250,000 - $350,000" },
+        { value: "350000-500000", label: "CA$350,000 - $500,000" },
+        { value: ">500000", label: "> CA$500,000" },
+      ],
+      dates: [
+        {
+          value: "0-3",
+          label: "立刻 / 3 個月內 (Immediately / Within 3 Months)",
+        },
+        { value: "3-6", label: "3 - 6 個月內 (Within 3-6 Months)" },
+        { value: "6-12", label: "6 - 12 個月內 (Within 6-12 Months)" },
+        { value: "research", label: "僅在研究階段 (Just Researching)" },
+      ],
+      hearAbouts: [
+        { value: "Visited Store", label: "光顧過店家 (Visited the Store)" },
+        { value: "Referral", label: "親友推薦 (Friend/Family Referral)" },
+        { value: "Google", label: "Google 搜尋 (Google Search)" },
+        { value: "Social Media", label: "社群媒體 (Social Media)" },
+        { value: "Other", label: "其他 (Other)" },
+      ],
+    },
+  },
+  en: {
+    meta: {
+      title: "Franchise Inquiry | Memory Corner",
+      description:
+        "Interested in franchising with Memory Dining Group? Please fill out this form, and our representative will contact you shortly.",
+    },
+    title: "Franchise Inquiry",
+    desc: "Thank you for your interest in our brand. Please fill out the information below, and we will contact you as soon as possible.",
+    form: {
+      fullName: "Full Name",
+      fullName_ph: "Enter your full name",
+      email: "Email Address",
+      email_ph: "example@email.com",
+      email_hint: "We will send the franchise presentation to this email.",
+      contactType: "Preferred Contact",
+      contactType_default: "Select contact method",
+      contactId: "Contact Number / ID",
+      contactId_ph: "Enter number or ID",
+      contactId_hint:
+        "Please provide the number/ID based on your selection above.",
+      city: "Current City",
+      city_ph: "e.g., Vancouver, Richmond, Burnaby",
+      city_hint: "e.g., Vancouver, Richmond, Burnaby",
+      residency: "Residency Status",
+      residency_default: "Select your status",
+      investment: "Investment Budget",
+      investment_default: "Select estimated budget",
+      startDate: "Target Start Date",
+      startDate_default: "Select target timeline",
+      hearAbout: "How did you hear about us?",
+      hearAbout_default: "Select (Optional)",
+      notes: "Additional Notes",
+      notes_ph: "e.g., Do you have F&B experience or a location in mind?",
+      notes_hint: "e.g., Do you have F&B experience or a location in mind?",
+      submit: "Submit",
+      submitting: "Submitting...",
+      required: "* Required fields",
+      optional: "(Optional)",
+    },
+    messages: {
+      success: "Form submitted successfully! We will contact you shortly.",
+      fail: "Submission failed. Please try again later or contact us directly.",
+    },
+    options: {
+      contacts: [
+        { value: "Phone", label: "Phone" },
+        { value: "WhatsApp", label: "WhatsApp" },
+        { value: "Line", label: "Line" },
+        { value: "WeChat", label: "WeChat" },
+      ],
+      residencies: [
+        { value: "Citizen/PR", label: "Citizen / Permanent Resident" },
+        { value: "Work Permit", label: "Work Permit" },
+        { value: "Student Visa", label: "Student Visa" },
+        { value: "Overseas Investor", label: "Overseas Investor" },
+      ],
+      investments: [
+        { value: "<250000", label: "< CA$250,000" },
+        { value: "250000-350000", label: "CA$250,000 - $350,000" },
+        { value: "350000-500000", label: "CA$350,000 - $500,000" },
+        { value: ">500000", label: "> CA$500,000" },
+      ],
+      dates: [
+        { value: "0-3", label: "Immediately / Within 3 Months" },
+        { value: "3-6", label: "Within 3-6 Months" },
+        { value: "6-12", label: "Within 6-12 Months" },
+        { value: "research", label: "Just Researching" },
+      ],
+      hearAbouts: [
+        { value: "Visited Store", label: "Visited the Store" },
+        { value: "Referral", label: "Friend/Family Referral" },
+        { value: "Google", label: "Google Search" },
+        { value: "Social Media", label: "Social Media" },
+        { value: "Other", label: "Other" },
+      ],
+    },
+  },
+};
+
+/* ========== 2. SSG 設定 ========== */
+export async function getStaticProps({ locale }) {
+  const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
+  return {
+    props: { t, locale },
+  };
+}
+
+/* ========== 3. 頁面組件 ========== */
+export default function FranchiseInquiryPage({ t, locale }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
 
@@ -12,6 +185,7 @@ export default function FranchiseInquiryPage() {
     setStatus({ type: "", message: "" });
 
     const form = e.currentTarget;
+    // 這裡的 formData 收集的是 value (英文代碼)，這對後端處理比較好
     const formData = {
       fullName: form.fullName.value,
       email: form.email.value,
@@ -37,77 +211,94 @@ export default function FranchiseInquiryPage() {
       if (res.ok && data.success) {
         setStatus({
           type: "success",
-          message: "表單已送出，我們將盡快與您聯繫，感謝！",
+          message: t.messages.success,
         });
         form.reset();
       } else {
-        throw new Error(data.error || "送出失敗");
+        throw new Error(data.error || "Failed");
       }
     } catch (err) {
       console.error(err);
       setStatus({
         type: "error",
-        message: "送出失敗，請稍後再試，或改用其他聯絡方式，謝謝。",
+        message: t.messages.fail,
       });
     } finally {
       setLoading(false);
     }
   }
 
+  /* 結構化資料：ContactPage */
+  const contactPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: t.meta.title,
+    description: t.meta.description,
+    url: `https://www.memorycorner8.com${
+      locale === "en" ? "/en/franchise/inquiry" : "/franchise/inquiry"
+    }`,
+    mainEntity: {
+      "@type": "Organization",
+      name: "Memory Dining Group",
+      email: "franchise@memorycorner8.com", // 請替換為加盟專用信箱
+    },
+  };
+
   return (
     <Layout>
       <Head>
-        <title>加盟資訊表單 | Franchise Inquiry</title>
+        <title>{t.meta.title}</title>
+        <meta name="description" content={t.meta.description} />
       </Head>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
+      />
 
       <div className="page bg-[#EDE5D6]">
         <main className="container">
           <section className="card mt-20">
-            <div className="flex flex-col justify-center items-center">
-              {" "}
-              <h1 className="text-xl font-bold mb-4 md:text-2xl">
-                加盟資訊表單 (Franchise Inquiry)
+            <div className="flex flex-col justify-center items-center text-center">
+              <h1 className="text-xl font-bold mb-4 md:text-2xl text-[#3b2a1a]">
+                {t.title}
               </h1>
-              <p className="description">
-                感謝您對我們品牌有興趣，請填寫以下資訊，我們將有專人盡快與您聯繫。
-              </p>
+              <p className="description">{t.desc}</p>
             </div>
 
             <form className="form" onSubmit={handleSubmit}>
               {/* 欄位1：全名 */}
               <div className="field">
                 <label className="label">
-                  全名 (Full Name) <span className="required">*</span>
+                  {t.form.fullName} <span className="required">*</span>
                 </label>
                 <input
                   type="text"
                   name="fullName"
                   required
                   className="input"
-                  placeholder="請輸入您的全名"
+                  placeholder={t.form.fullName_ph}
                 />
               </div>
 
               {/* 欄位2：電子郵件 */}
               <div className="field">
                 <label className="label">
-                  電子郵件 (Email Address) <span className="required">*</span>
+                  {t.form.email} <span className="required">*</span>
                 </label>
                 <input
                   type="email"
                   name="email"
                   required
                   className="input"
-                  placeholder="example@email.com"
+                  placeholder={t.form.email_ph}
                 />
-                <p className="hint">我們將透過此信箱寄送加盟簡報。</p>
+                <p className="hint">{t.form.email_hint}</p>
               </div>
 
               {/* 欄位3：首選聯絡方式 */}
               <div className="field">
                 <label className="label">
-                  首選聯絡方式 (Preferred Contact){" "}
-                  <span className="required">*</span>
+                  {t.form.contactType} <span className="required">*</span>
                 </label>
                 <select
                   name="preferredContact"
@@ -116,51 +307,50 @@ export default function FranchiseInquiryPage() {
                   defaultValue=""
                 >
                   <option value="" disabled>
-                    請選擇聯絡方式
+                    {t.form.contactType_default}
                   </option>
-                  <option value="Phone">電話 (Phone)</option>
-                  <option value="WhatsApp">WhatsApp</option>
-                  <option value="Line">Line</option>
-                  <option value="WeChat">WeChat</option>
+                  {t.options.contacts.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* 欄位4：聯絡號碼 / ID */}
               <div className="field">
                 <label className="label">
-                  聯絡號碼 / ID (Contact Number / ID){" "}
-                  <span className="required">*</span>
+                  {t.form.contactId} <span className="required">*</span>
                 </label>
                 <input
                   type="text"
                   name="contactId"
                   required
                   className="input"
-                  placeholder="請輸入電話或帳號 ID"
+                  placeholder={t.form.contactId_ph}
                 />
-                <p className="hint">根據您的上列選擇，請填寫號碼或帳號 ID。</p>
+                <p className="hint">{t.form.contactId_hint}</p>
               </div>
 
               {/* 欄位5：居住城市 */}
               <div className="field">
                 <label className="label">
-                  居住城市 (Current City) <span className="required">*</span>
+                  {t.form.city} <span className="required">*</span>
                 </label>
                 <input
                   type="text"
                   name="city"
                   required
                   className="input"
-                  placeholder="e.g., Vancouver, Richmond, Burnaby"
+                  placeholder={t.form.city_ph}
                 />
-                <p className="hint">e.g., Vancouver, Richmond, Burnaby</p>
+                <p className="hint">{t.form.city_hint}</p>
               </div>
 
               {/* 欄位6：加拿大居留身份 */}
               <div className="field">
                 <label className="label">
-                  加拿大居留身份 (Residency Status){" "}
-                  <span className="required">*</span>
+                  {t.form.residency} <span className="required">*</span>
                 </label>
                 <select
                   name="residencyStatus"
@@ -169,24 +359,20 @@ export default function FranchiseInquiryPage() {
                   defaultValue=""
                 >
                   <option value="" disabled>
-                    請選擇您的身份
+                    {t.form.residency_default}
                   </option>
-                  <option value="Citizen/PR">
-                    公民 / PR (Citizen / Permanent Resident)
-                  </option>
-                  <option value="Work Permit">工作簽證 (Work Permit)</option>
-                  <option value="Student Visa">學生簽證 (Student Visa)</option>
-                  <option value="Overseas Investor">
-                    海外投資者 (Overseas Investor / None of the above)
-                  </option>
+                  {t.options.residencies.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* 欄位7：可投資金額 */}
               <div className="field">
                 <label className="label">
-                  可投資金額 (Investment Budget){" "}
-                  <span className="required">*</span>
+                  {t.form.investment} <span className="required">*</span>
                 </label>
                 <select
                   name="investmentBudget"
@@ -195,20 +381,20 @@ export default function FranchiseInquiryPage() {
                   defaultValue=""
                 >
                   <option value="" disabled>
-                    請選擇預估投資金額
+                    {t.form.investment_default}
                   </option>
-                  <option value="<250000">&lt; CA$250,000</option>
-                  <option value="250000-350000">CA$250,000 - $350,000</option>
-                  <option value="350000-500000">CA$350,000 - $500,000</option>
-                  <option value=">500000">&gt; CA$500,000</option>
+                  {t.options.investments.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* 欄位8：預計加盟時程 */}
               <div className="field">
                 <label className="label">
-                  預計加盟時程 (Target Start Date){" "}
-                  <span className="required">*</span>
+                  {t.form.startDate} <span className="required">*</span>
                 </label>
                 <select
                   name="startDate"
@@ -217,58 +403,49 @@ export default function FranchiseInquiryPage() {
                   defaultValue=""
                 >
                   <option value="" disabled>
-                    請選擇預計時程
+                    {t.form.startDate_default}
                   </option>
-                  <option value="0-3">
-                    立刻 / 3 個月內 (Immediately / Within 3 Months)
-                  </option>
-                  <option value="3-6">3 - 6 個月內 (Within 3-6 Months)</option>
-                  <option value="6-12">
-                    6 - 12 個月內 (Within 6-12 Months)
-                  </option>
-                  <option value="research">
-                    僅在研究階段 (Just Researching)
-                  </option>
+                  {t.options.dates.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* 欄位9：您如何得知我們（非必填） */}
               <div className="field">
                 <label className="label">
-                  您如何得知我們 (How did you hear about us?)
-                  <span className="optional">（選填）</span>
+                  {t.form.hearAbout}
+                  <span className="optional">{t.form.optional}</span>
                 </label>
                 <select
                   name="hearAbout"
                   className="input select"
                   defaultValue=""
                 >
-                  <option value="">請選擇（可略過）</option>
-                  <option value="Visited Store">
-                    光顧過店家 (Visited the Store)
-                  </option>
-                  <option value="Referral">
-                    親友推薦 (Friend/Family Referral)
-                  </option>
-                  <option value="Google">Google 搜尋 (Google Search)</option>
-                  <option value="Social Media">社群媒體 (Social Media)</option>
-                  <option value="Other">其他 (Other)</option>
+                  <option value="">{t.form.hearAbout_default}</option>
+                  {t.options.hearAbouts.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* 欄位10：補充說明（非必填） */}
               <div className="field">
                 <label className="label">
-                  補充說明 (Additional Notes)
-                  <span className="optional">（選填）</span>
+                  {t.form.notes}
+                  <span className="optional">{t.form.optional}</span>
                 </label>
                 <textarea
                   name="notes"
                   className="input textarea"
-                  placeholder="e.g., 您是否有餐飲經驗或已看好的店面？"
+                  placeholder={t.form.notes_ph}
                   rows={4}
                 />
-                <p className="hint">e.g., 您是否有餐飲經驗或已看好的店面？</p>
+                <p className="hint">{t.form.notes_hint}</p>
               </div>
 
               {/* 狀態訊息 */}
@@ -285,9 +462,9 @@ export default function FranchiseInquiryPage() {
               {/* 送出按鈕 */}
               <div className="actions">
                 <button type="submit" className="button" disabled={loading}>
-                  {loading ? "送出中..." : "送出表單"}
+                  {loading ? t.form.submitting : t.form.submit}
                 </button>
-                <p className="note">* 為必填欄位</p>
+                <p className="note">{t.form.required}</p>
               </div>
             </form>
           </section>
@@ -298,23 +475,21 @@ export default function FranchiseInquiryPage() {
             min-height: 100vh;
             width: 100%;
             box-sizing: border-box;
-
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 24px 16px;
-            overflow-x: hidden; /* 避免橫向捲動 */
+            overflow-x: hidden;
           }
 
           .container {
             width: 100%;
-            max-width: 600px; /* ✅ 手機版最多 600px 寬 */
+            max-width: 600px;
             margin: 0 auto;
           }
 
           .card {
-            width: 100%; /* ✅ 卡片一定塞在 container 裡 */
-
+            width: 100%;
             padding: 28px 20px;
           }
 
@@ -322,20 +497,6 @@ export default function FranchiseInquiryPage() {
             .card {
               padding: 40px 40px;
             }
-          }
-
-          /* 平板以上再恢復原本比較大的內距 */
-          @media (min-width: 768px) {
-            .card {
-              padding: 40px 40px;
-            }
-          }
-
-          .title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #0f172a;
           }
 
           .description {
@@ -364,7 +525,7 @@ export default function FranchiseInquiryPage() {
           .label {
             font-size: 0.95rem;
             font-weight: 600;
-            color: #0f172a;
+            color: #3b2a1a; /* 品牌色 */
             margin-bottom: 6px;
           }
 
@@ -380,7 +541,7 @@ export default function FranchiseInquiryPage() {
           }
 
           .input {
-            width: 100%; /* ✅ 滿版但不超出 */
+            width: 100%;
             max-width: 100%;
             box-sizing: border-box;
             border-radius: 12px;
@@ -389,7 +550,7 @@ export default function FranchiseInquiryPage() {
             font-size: 0.95rem;
             outline: none;
             transition: border-color 0.18s ease, box-shadow 0.18s ease,
-              background-color 0.18s ease, transform 0.05s ease;
+              background-color 0.18s ease;
             background-color: #f8fafc;
           }
           .field,
@@ -397,9 +558,10 @@ export default function FranchiseInquiryPage() {
             width: 100%;
             max-width: 100%;
           }
+
           .input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2);
+            border-color: #d4a373; /* 品牌色 focus */
+            box-shadow: 0 0 0 1px rgba(212, 163, 115, 0.4);
             background-color: #ffffff;
           }
 
@@ -454,22 +616,24 @@ export default function FranchiseInquiryPage() {
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            background: linear-gradient(135deg, #d4a373, #f3d5b5);
-
+            background: linear-gradient(
+              135deg,
+              #d4a373,
+              #f3d5b5
+            ); /* 品牌色按鈕 */
             color: #ffffff;
-            box-shadow: 0 12px 25px rgba(79, 70, 229, 0.35);
-            transition: transform 0.08s ease, box-shadow 0.08s ease,
-              opacity 0.18s ease;
+            box-shadow: 0 12px 25px rgba(212, 163, 115, 0.35);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
           }
 
           .button:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 18px 35px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 18px 35px rgba(212, 163, 115, 0.45);
           }
 
           .button:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 10px 22px rgba(79, 70, 229, 0.25);
+            box-shadow: 0 10px 22px rgba(212, 163, 115, 0.3);
           }
 
           .button:disabled {

@@ -1,8 +1,30 @@
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/router";
+
+/* ========== i18n 資料 ========== */
+const FOOTER_TRANSLATIONS = {
+  "zh-TW": {
+    brand_story: "品牌故事",
+    contact_us: "聯絡我們",
+    privacy: "隱私政策說明",
+    copyright: "Memory Corner co. ltd. all © {year} Copyright",
+  },
+  en: {
+    brand_story: "Brand Story",
+    contact_us: "Contact Us",
+    privacy: "Privacy Policy",
+    copyright: "Memory Corner co. ltd. all © {year} Copyright",
+  },
+};
 
 export default function Footer() {
+  const router = useRouter();
   const year = new Date().getFullYear();
+
+  // 取得目前語系，預設為 zh-TW
+  const locale = router.locale || "zh-TW";
+  const t = FOOTER_TRANSLATIONS[locale] || FOOTER_TRANSLATIONS["zh-TW"];
 
   return (
     <footer className="w-full">
@@ -12,25 +34,27 @@ export default function Footer() {
           <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-3">
             {/* 左：Logo */}
             <div className="flex sm:justify-start justify-center">
-              <Image
-                src="/images/logo/有香餐飲集團-logo.png"
-                alt="Memory Corner / 有香餐飲集團"
-                width={180}
-                height={80}
-                className="h-auto w-[150px]"
-                priority={false}
-              />
+              <Link href="/">
+                <Image
+                  src="/images/logo/有香餐飲集團-logo.png"
+                  alt="Memory Corner / 有香餐飲集團"
+                  width={180}
+                  height={80}
+                  className="h-auto w-[150px]"
+                  priority={false}
+                />
+              </Link>
             </div>
 
             {/* 中：導覽連結 */}
             <nav className="flex items-center justify-center text-sm">
-              <ul className="flex items-center gap-8 text-[#5b4630]">
+              <ul className="flex items-center gap-8 text-[#5b4630] font-medium tracking-wide">
                 <li>
                   <Link
                     href="/brand-story?tab=group"
                     className="hover:underline underline-offset-4"
                   >
-                    <p>品牌故事</p>
+                    <p>{t.brand_story}</p>
                   </Link>
                 </li>
                 <li>
@@ -38,7 +62,7 @@ export default function Footer() {
                     href="/contact"
                     className="hover:underline underline-offset-4"
                   >
-                    <p>聯絡我們</p>
+                    <p>{t.contact_us}</p>
                   </Link>
                 </li>
                 <li>
@@ -46,7 +70,7 @@ export default function Footer() {
                     href="/privacy"
                     className="hover:underline underline-offset-4"
                   >
-                    <p>隱私政策說明</p>
+                    <p>{t.privacy}</p>
                   </Link>
                 </li>
               </ul>
@@ -95,7 +119,7 @@ export default function Footer() {
       <div className="bg-[#b5864f]">
         <div className="mx-auto max-w-6xl px-4">
           <div className="py-3 text-center text-[13px] tracking-wide text-white/95">
-            Memory Corner co. ltd. all © {year} Copyright
+            {t.copyright.replace("{year}", year)}
           </div>
         </div>
       </div>
