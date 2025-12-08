@@ -15,12 +15,13 @@ import {
   Trash2,
   ShoppingCart,
   ChevronDown,
+  Globe,
 } from "lucide-react";
 import { useRouter } from "next/router";
 import { cartStore } from "@/lib/cartStore";
 import { authStore } from "@/lib/authStore";
 
-/* =================== 1. 導覽列翻譯資料庫 =================== */
+/* =================== 1. 導覽列與購物車翻譯資料庫 =================== */
 const NAV_TRANSLATIONS = {
   "zh-TW": {
     stores: "品牌門店",
@@ -34,14 +35,29 @@ const NAV_TRANSLATIONS = {
     my_account: "我的帳戶",
     logout: "登出",
     cart: "購物車",
-    // 品牌門店下拉內容
+    language: "語言 / Language",
+    // --- 新增：購物車與彈窗翻譯 ---
+    cart_ui: {
+      added: "已加入購物車",
+      qty: "數量",
+      subtotal: "小計",
+      checkout: "前往結帳",
+      continue: "繼續逛逛",
+      close: "關閉",
+      item_unit: "件",
+      empty: "目前沒有商品",
+      summary: "訂單摘要",
+      shipping: "運費",
+      shipping_calc: "結帳計算",
+      total: "總計",
+      remove: "刪除",
+    },
     sub_stores: [
       { t: "關於有香餐飲集團", href: "/brand-story?tab=group" },
       { t: "關於有香", href: "/brand-story?tab=youxiang" },
       { t: "關於憶點點", href: "/brand-story?tab=memory" },
       { t: "關於有香ㄟ灶腳", href: "/brand-story?tab=corner" },
     ],
-    // 品牌菜單下拉內容
     sub_menus: [
       { t: "菜單總覽", href: "/menu" },
       { t: "有香", href: "/menu01" },
@@ -60,7 +76,23 @@ const NAV_TRANSLATIONS = {
     my_account: "My Account",
     logout: "Logout",
     cart: "Cart",
-    // 英文版下拉內容
+    language: "Language",
+    // --- 新增：購物車與彈窗翻譯 (英文) ---
+    cart_ui: {
+      added: "Added to Cart",
+      qty: "Qty",
+      subtotal: "Subtotal",
+      checkout: "Checkout",
+      continue: "Continue Shopping",
+      close: "Close",
+      item_unit: "items",
+      empty: "Your cart is empty",
+      summary: "Order Summary",
+      shipping: "Shipping",
+      shipping_calc: "Calculated at checkout",
+      total: "Total",
+      remove: "Remove",
+    },
     sub_stores: [
       { t: "About Group", href: "/brand-story?tab=group" },
       { t: "Memory Corner", href: "/brand-story?tab=youxiang" },
@@ -163,7 +195,7 @@ async function tryLoginFallback(store, raw) {
   }
 }
 
-/* ------------ 二層內容 (改為接收 props) ------------ */
+/* ------------ SubMenuContent (保持不變) ------------ */
 const SubMenuContent = ({ items }) => (
   <div className="w-[230px] text-center text-[15px] leading-none">
     <div className="flex flex-col">
@@ -171,13 +203,9 @@ const SubMenuContent = ({ items }) => (
         <Link
           key={item.href}
           href={item.href}
-          className={`
-            px-4 py-2.5 text-[15px] text-white
-            bg-[#b87938] hover:bg-[#c5853d]
-            border border-[#c59b63]
-            ${idx > 0 ? "border-t-0" : ""}
-            transition-colors
-          `}
+          className={`px-4 py-2.5 text-[15px] text-white bg-[#b87938] hover:bg-[#c5853d] border border-[#c59b63] ${
+            idx > 0 ? "border-t-0" : ""
+          } transition-colors`}
         >
           {item.t}
         </Link>
@@ -186,10 +214,9 @@ const SubMenuContent = ({ items }) => (
   </div>
 );
 
-/* ------- Hover Flyout (微調) ------- */
+/* ------- FlyoutLink (保持不變) ------- */
 function FlyoutLink({ label, href = "#", items }) {
   const [open, setOpen] = useState(false);
-
   return (
     <div
       onMouseEnter={() => setOpen(true)}
@@ -198,15 +225,7 @@ function FlyoutLink({ label, href = "#", items }) {
     >
       <Link
         href={href}
-        className={`
-          relative inline-flex items-center 
-          px-4 py-2.5
-          border border-transparent
-          text-[17px] font-medium
-          text-[#3c2514]
-          transition-colors duration-200
-          group-hover:text-[#b57a3c]
-        `}
+        className={`relative inline-flex items-center px-4 py-2.5 border border-transparent text-[17px] font-medium text-[#3c2514] transition-colors duration-200 group-hover:text-[#b57a3c]`}
       >
         {label}
       </Link>
@@ -214,16 +233,7 @@ function FlyoutLink({ label, href = "#", items }) {
         {open && items && (
           <motion.div
             {...fadeUp}
-            className="
-              absolute left-0 top-[100%]
-              z-[1200]
-              rounded-b-[8px]
-              border border-t-0 border-[#b57a3c]
-              bg-transparent
-              shadow-lg
-              backdrop-blur-[2px]
-              min-w-[220px]
-            "
+            className="absolute left-0 top-[100%] z-[1200] rounded-b-[8px] border border-t-0 border-[#b57a3c] bg-transparent shadow-lg backdrop-blur-[2px] min-w-[220px]"
           >
             <div className="p-0">
               <SubMenuContent items={items} />
@@ -235,13 +245,16 @@ function FlyoutLink({ label, href = "#", items }) {
   );
 }
 
-/* ===== Toast Popup (保持不變) ===== */
-function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
+/* ===== [修改] AddToCartPopup：新增 t 參數並套用翻譯 ===== */
+function AddToCartPopup({ open, item, subtotal, onClose, onCheckout, t }) {
   useEffect(() => {
     if (!open) return;
     const id = setTimeout(onClose, 2800);
     return () => clearTimeout(id);
   }, [open, onClose]);
+
+  // 安全存取翻譯物件
+  const ui = t?.cart_ui || {};
 
   return (
     <AnimatePresence>
@@ -261,7 +274,7 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
           </button>
           <div className="p-4">
             <div className="mb-3 flex items-center gap-2 text-base font-semibold">
-              <ShoppingCart size={18} /> 已加入購物車
+              <ShoppingCart size={18} /> {ui.added || "已加入購物車"}
             </div>
             {item && (
               <div className="flex items-center gap-3">
@@ -275,19 +288,21 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
                     {item.name}
                   </div>
                   <div className="mt-1 text-xs text-black/60">
-                    數量：{item.qty || 1}
+                    {ui.qty || "數量"}：{item.qty || 1}
                   </div>
                 </div>
                 <div className="text-sm font-semibold">
                   CA${" "}
-                  {(
-                    Number(item.price || 0) * Number(item.qty || 1)
+                  {Number(
+                    item.price || 0 * Number(item.qty || 1)
                   ).toLocaleString()}
                 </div>
               </div>
             )}
             <div className="mt-3 flex items-center justify-between border-t border-dashed border-black/10 pt-3">
-              <span className="text-sm text-black/70">小計</span>
+              <span className="text-sm text-black/70">
+                {ui.subtotal || "小計"}
+              </span>
               <span className="text-lg font-bold">
                 CA$ {Number(subtotal || 0).toLocaleString()}
               </span>
@@ -297,13 +312,13 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout }) {
                 onClick={onCheckout}
                 className="rounded-xl bg-black px-4 py-2.5 text-white hover:opacity-90"
               >
-                前往結帳
+                {ui.checkout || "前往結帳"}
               </button>
               <button
                 onClick={onClose}
                 className="rounded-xl border border-black/15 bg-white px-4 py-2.5 text-black hover:bg-black/5"
               >
-                繼續逛逛
+                {ui.continue || "繼續逛逛"}
               </button>
             </div>
           </div>
@@ -422,7 +437,6 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
       };
     return { first_name: s, last_name: "" };
   };
-
   return (
     <form
       onSubmit={(e) => {
@@ -454,6 +468,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
     >
       {mode === "login" ? (
         <>
+          {" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             placeholder="Email 或手機"
@@ -461,7 +476,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("username")}
             autoComplete="username"
             required
-          />
+          />{" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="password"
@@ -470,10 +485,11 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("password")}
             autoComplete="current-password"
             required
-          />
+          />{" "}
         </>
       ) : (
         <>
+          {" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="email"
@@ -482,7 +498,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("email")}
             autoComplete="email"
             required
-          />
+          />{" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="tel"
@@ -492,7 +508,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             inputMode="tel"
             autoComplete="tel"
             required
-          />
+          />{" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             placeholder="姓名（必填）"
@@ -500,7 +516,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("name")}
             autoComplete="name"
             required
-          />
+          />{" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="password"
@@ -509,7 +525,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("password")}
             autoComplete="new-password"
             required
-          />
+          />{" "}
         </>
       )}
       {error && (
@@ -548,12 +564,12 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
   );
 }
 
-/* ======= 手機抽屜選單 (接收翻譯 t) ======= */
+/* ======= 手機抽屜選單 (保持上次修正後的狀態) ======= */
 function MobileNavSheet({
   open,
   onClose,
   onSelect,
-  t, // 接收翻譯物件
+  t,
   cta = {
     groupBuy: { href: "https://corner-rouge.vercel.app/" },
     order: { href: "#" },
@@ -564,6 +580,8 @@ function MobileNavSheet({
   onLogoutClick,
   onCartClick,
   onOrderClick,
+  locale,
+  onSwitchLocale,
 }) {
   const panelRef = useRef(null);
   const [brandOpen, setBrandOpen] = useState(false);
@@ -581,7 +599,6 @@ function MobileNavSheet({
     document.documentElement.style.overflow = "hidden";
     return () => (document.documentElement.style.overflow = prev);
   }, [open]);
-
   const handleSelect = (href) => {
     onSelect?.(href);
     onClose?.();
@@ -627,9 +644,35 @@ function MobileNavSheet({
                 <X size={20} />
               </button>
             </div>
-            <div className="flex h-[calc(100%-64px)] flex-col">
+            <div className="flex items-center justify-between bg-gray-50 px-4 py-2 border-b border-black/5">
+              <div className="flex items-center gap-2 text-sm text-black/60">
+                <Globe size={16} /> {t.language || "Language"}
+              </div>
+              <div className="flex items-center rounded-full bg-[#634832]/90 p-[3px] shadow-inner">
+                <button
+                  onClick={() => onSwitchLocale("zh-TW")}
+                  className={`rounded-full px-4 py-[4px] text-[12px] font-bold transition-all duration-300 ${
+                    locale === "zh-TW" || !locale
+                      ? "bg-white text-[#3c2514] shadow-sm"
+                      : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  中文
+                </button>
+                <button
+                  onClick={() => onSwitchLocale("en")}
+                  className={`rounded-full px-4 py-[4px] text-[12px] font-bold transition-all duration-300 ${
+                    locale === "en"
+                      ? "bg-white text-[#3c2514] shadow-sm"
+                      : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+            <div className="flex h-[calc(100%-110px)] flex-col">
               <nav className="flex-1 overflow-y-auto px-4 py-4 text-[15px] space-y-1">
-                {/* 品牌門店 */}
                 <button
                   onClick={() => setBrandOpen((v) => !v)}
                   className="flex w-full items-center justify-between rounded-xl px-2 py-3 text-left font-medium hover:bg-black/5 transition"
@@ -662,8 +705,6 @@ function MobileNavSheet({
                     ))}
                   </ul>
                 </motion.div>
-
-                {/* 品牌菜單 */}
                 <button
                   onClick={() => setMenuOpen((v) => !v)}
                   className="flex w-full items-center justify-between rounded-xl px-2 py-3 text-left font-medium hover:bg-black/5 transition"
@@ -696,8 +737,6 @@ function MobileNavSheet({
                     ))}
                   </ul>
                 </motion.div>
-
-                {/* 一層連結 (使用翻譯 t) */}
                 <Link
                   href="/news"
                   className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
@@ -720,7 +759,6 @@ function MobileNavSheet({
                   {t.contact}
                 </Link>
               </nav>
-
               <div className="border-t border-black/10 p-4 space-y-3 bg-gray-50/50">
                 {!auth?.user ? (
                   <button
@@ -734,10 +772,11 @@ function MobileNavSheet({
                   </button>
                 ) : (
                   <div className="rounded-xl border border-black/10 bg-white p-3 text-center shadow-sm">
+                    {" "}
                     <div className="text-sm text-black/70 mb-2">
                       Hello,{" "}
                       {auth.user.displayName || auth.user.name || "Member"}
-                    </div>
+                    </div>{" "}
                     <div className="flex justify-center gap-2">
                       <Link
                         href="/account"
@@ -755,7 +794,7 @@ function MobileNavSheet({
                       >
                         {t.logout}
                       </button>
-                    </div>
+                    </div>{" "}
                   </div>
                 )}
                 <button
@@ -773,7 +812,6 @@ function MobileNavSheet({
                   )}
                 </button>
               </div>
-
               <div className="border-t border-black/10 p-4 bg-white">
                 <div className="grid grid-cols-2 gap-3">
                   <Link
@@ -810,9 +848,9 @@ function MobileNavSheet({
 export const SlideTabsExample = () => {
   const router = useRouter();
   const { locale, pathname, query, asPath } = router;
-
-  // 1. 取得當前語系的翻譯資料
+  // 取得翻譯
   const t = NAV_TRANSLATIONS[locale] || NAV_TRANSLATIONS["zh-TW"];
+  const ui = t.cart_ui || {}; // 方便下方使用的捷徑
 
   const handleSwitchLocale = (newLocale) => {
     if (newLocale === locale) return;
@@ -886,7 +924,7 @@ export const SlideTabsExample = () => {
       >
         <div className="mx-auto w-full px-4 xl:px-8 max-w-[1920px]">
           <div className="flex items-center justify-between">
-            {/* 1. 左側區域 */}
+            {/* 左側 */}
             <div className="flex w-[20%] items-center justify-start">
               <div className="xl:hidden">
                 <button
@@ -913,8 +951,7 @@ export const SlideTabsExample = () => {
                 </button>
               </div>
             </div>
-
-            {/* 2. 中間區域 */}
+            {/* 中間 */}
             <div className="flex flex-1 justify-center">
               <div className="xl:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                 <Link href="/" aria-label="Home">
@@ -931,10 +968,8 @@ export const SlideTabsExample = () => {
                 </Link>
               </div>
               <div className="hidden xl:flex items-center justify-center gap-5 2xl:gap-8">
-                {/* 傳入翻譯好的子選單 */}
                 <FlyoutLink href="/" label={t.stores} items={t.sub_stores} />
                 <FlyoutLink href="/menu" label={t.menus} items={t.sub_menus} />
-
                 <Link href="/" aria-label="Home" className="px-2">
                   <Image
                     src="/images/logo/有香餐飲集團-logo.png"
@@ -945,7 +980,6 @@ export const SlideTabsExample = () => {
                     className="h-[50px] w-auto object-contain drop-shadow-sm"
                   />
                 </Link>
-
                 <Link
                   href="/news"
                   className="px-4 py-2 text-[17px] font-medium text-[#3c2514] hover:text-[#b57a3c] transition-colors"
@@ -966,11 +1000,9 @@ export const SlideTabsExample = () => {
                 </Link>
               </div>
             </div>
-
-            {/* 3. 右側區域 */}
+            {/* 右側 */}
             <div className="flex w-[20%] items-center justify-end gap-2 sm:gap-3">
-              {/* 語言切換 */}
-              <div className="flex items-center rounded-full bg-[#634832]/90 p-[3px] shadow-inner backdrop-blur-sm">
+              <div className="hidden sm:flex items-center rounded-full bg-[#634832]/90 p-[3px] shadow-inner backdrop-blur-sm">
                 <button
                   onClick={() => handleSwitchLocale("zh-TW")}
                   className={`rounded-full px-3 py-[3px] text-[12px] font-bold transition-all duration-300 ${
@@ -992,8 +1024,6 @@ export const SlideTabsExample = () => {
                   EN
                 </button>
               </div>
-
-              {/* 會員 */}
               <div className="relative hidden sm:block">
                 <button
                   aria-label="user"
@@ -1064,8 +1094,6 @@ export const SlideTabsExample = () => {
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* 購物車 */}
               <button
                 aria-label="cart"
                 onClick={() => setCartOpen((v) => !v)}
@@ -1087,12 +1115,10 @@ export const SlideTabsExample = () => {
         </div>
       </motion.nav>
 
-      {/* Popups & Modals */}
       <OrderPopup
         open={showOrderPopup}
         onClose={() => setShowOrderPopup(false)}
       >
-        {/* ... (內容省略) ... */}
         <div className="w-full sm:hidden block">
           <Image
             src="/images/online-store/mobile-01.png"
@@ -1114,6 +1140,8 @@ export const SlideTabsExample = () => {
           />
         </div>
       </OrderPopup>
+
+      {/* AddToCartPopup: 傳入 t 進行翻譯 */}
       <AddToCartPopup
         open={showAdded}
         item={addedItem}
@@ -1123,8 +1151,10 @@ export const SlideTabsExample = () => {
           setShowAdded(false);
           setCartOpen(true);
         }}
+        t={t}
       />
-      {/* Cart Drawer */}
+
+      {/* Cart Drawer: 使用翻譯 ui 變數 */}
       <AnimatePresence>
         {cartOpen && (
           <>
@@ -1145,7 +1175,7 @@ export const SlideTabsExample = () => {
                   <ShoppingCart size={18} /> {t.cart}{" "}
                   {cartCount > 0 && (
                     <span className="ml-1 text-sm font-normal text-black/60">
-                      · {cartCount} 件
+                      · {cartCount} {ui.item_unit}
                     </span>
                   )}
                 </div>
@@ -1153,14 +1183,13 @@ export const SlideTabsExample = () => {
                   className="rounded-full px-3 py-1.5 text-sm text-gray-600 hover:bg-black/5"
                   onClick={() => setCartOpen(false)}
                 >
-                  關閉
+                  {ui.close || "關閉"}
                 </button>
               </div>
-              {/* Cart Content (Keep original logic) */}
               <div className="grid grid-cols-1 lg:grid-cols-3">
                 <div className="lg:col-span-2 max-h-[58vh] overflow-y-auto px-5 py-4">
                   {cart.length === 0 ? (
-                    <EmptyCart />
+                    <EmptyCart t={t} />
                   ) : (
                     <ul className="space-y-3">
                       <AnimatePresence initial={false}>
@@ -1225,16 +1254,15 @@ export const SlideTabsExample = () => {
                               <div className="flex flex-col items-end gap-2">
                                 <div className="text-sm font-semibold">
                                   CA${" "}
-                                  {(
-                                    Number(it.price || 0) * (it.qty || 0)
+                                  {Number(
+                                    it.price || 0 * (it.qty || 0)
                                   ).toLocaleString()}
                                 </div>
                                 <button
                                   className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600"
                                   onClick={() => cartStore.remove?.(it.id)}
                                 >
-                                  <Trash2 size={14} />
-                                  刪除
+                                  <Trash2 size={14} /> {ui.remove || "刪除"}
                                 </button>
                               </div>
                             </div>
@@ -1247,21 +1275,31 @@ export const SlideTabsExample = () => {
                 <div className="border-t border-black/10 lg:border-l lg:border-t-0">
                   <div className="sticky top-0 px-5 py-4">
                     <div className="rounded-xl border border-black/10 bg-white p-4 shadow-sm">
-                      <div className="text-base font-semibold">訂單摘要</div>
+                      <div className="text-base font-semibold">
+                        {ui.summary || "訂單摘要"}
+                      </div>
                       <div className="mt-3 space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-black/70">小計</span>
+                          <span className="text-black/70">
+                            {ui.subtotal || "小計"}
+                          </span>
                           <span className="font-medium">
                             CA$ {subtotal.toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-black/70">運費</span>
-                          <span className="text-black/60">結帳計算</span>
+                          <span className="text-black/70">
+                            {ui.shipping || "運費"}
+                          </span>
+                          <span className="text-black/60">
+                            {ui.shipping_calc || "結帳計算"}
+                          </span>
                         </div>
                       </div>
                       <div className="mt-3 flex items-center justify-between border-t border-dashed border-black/10 pt-3">
-                        <span className="font-semibold">總計</span>
+                        <span className="font-semibold">
+                          {ui.total || "總計"}
+                        </span>
                         <span className="text-lg font-bold">
                           CA$ {subtotal.toLocaleString()}
                         </span>
@@ -1275,13 +1313,13 @@ export const SlideTabsExample = () => {
                           }}
                           disabled={cart.length === 0}
                         >
-                          前往結帳 ({cartCount})
+                          {ui.checkout || "前往結帳"} ({cartCount})
                         </button>
                         <button
                           className="rounded-xl border border-black/15 bg-white px-4 py-3 text-black hover:bg-black/5"
                           onClick={() => setCartOpen(false)}
                         >
-                          繼續購物
+                          {ui.continue || "繼續購物"}
                         </button>
                       </div>
                     </div>
@@ -1338,7 +1376,9 @@ export const SlideTabsExample = () => {
         }}
         onCartClick={() => setCartOpen(true)}
         onOrderClick={() => setShowOrderPopup(true)}
-        t={t} // ✅ 傳入翻譯資料
+        t={t}
+        locale={locale}
+        onSwitchLocale={handleSwitchLocale}
       />
     </div>
   );
@@ -1346,12 +1386,15 @@ export const SlideTabsExample = () => {
 
 export default SlideTabsExample;
 
-function EmptyCart() {
+/* ===== [修改] EmptyCart：接收 t 參數並翻譯 ===== */
+function EmptyCart({ t }) {
   return (
     <div className="grid min-h-[220px] place-items-center rounded-xl border border-dashed border-black/15 bg-gray-50/60 text-center">
       <div>
         <ShoppingCart className="mx-auto mb-2 opacity-50" size={28} />
-        <div className="text-sm text-black/60">目前沒有商品</div>
+        <div className="text-sm text-black/60">
+          {t?.cart_ui?.empty || "目前沒有商品"}
+        </div>
       </div>
     </div>
   );

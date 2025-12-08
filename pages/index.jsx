@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Marquee from "react-marquee-slider";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router"; // 用來獲取當前語言狀態
+import { useRouter } from "next/router";
 import {
   motion,
   useMotionValue,
@@ -14,7 +14,8 @@ import {
 } from "framer-motion";
 
 // Components
-import Layout from "../pages/Layout"; // 確認您的 Layout 路徑是否正確
+import Layout from "../pages/Layout";
+// 引用你的輪播元件 (請確認這個元件只負責顯示 UI，不包含資料邏輯)
 import Carousel from "../components/EmblaCarouselTravel/index";
 
 // Dynamic Imports
@@ -24,10 +25,31 @@ const MinimalPushOverlayMenu = dynamic(
 );
 
 /* =================================================================
-   1. 翻譯資料庫 (實際專案通常會放在 locales/zh-TW.json 檔案中)
+   1. 翻譯資料庫 (已整合 Beer 系列)
    ================================================================= */
 const TRANSLATIONS = {
   "zh-TW": {
+    // --- 新增：啤酒系列翻譯 ---
+    beer: {
+      honey: {
+        title: "鮮蜜釀系列",
+        description: "珍稀淡雅龍眼花蜜與清爽啤酒完美融合，令人一口就上癮！",
+      },
+      girl: {
+        title: "女孩微醺系列",
+        description: "臉先紅，心先甜；微醺讓妳更嬌甜",
+      },
+      fruit: {
+        title: "水果釀造系列",
+        description: "果香直擊、滑順爽口；每一口都是果釀的純粹與爽快",
+      },
+      craft: {
+        title: "職人釀造系列",
+        description:
+          "獲獎無數、越喝越順；從順口到醇厚，喝的就是職人的穩、準、醇",
+      },
+    },
+    // --- 原有翻譯 ---
     variety: {
       title: "VARIETY",
       subtitle: "Traditional grocery shop",
@@ -50,6 +72,30 @@ const TRANSLATIONS = {
     },
   },
   en: {
+    // --- 新增：啤酒系列翻譯 (英文) ---
+    beer: {
+      honey: {
+        title: "Honey Lager Series",
+        description:
+          "Rare, elegant longan honey perfectly blended with refreshing beer. Addictive from the first sip!",
+      },
+      girl: {
+        title: "Micro-Drunk Series",
+        description:
+          "Cheeks blush, heart sweetens; a light buzz brings out your charm.",
+      },
+      fruit: {
+        title: "Fruit Brewing Series",
+        description:
+          "Direct fruit aroma, smooth and refreshing; every sip is the pure joy of fruit brewing.",
+      },
+      craft: {
+        title: "Artisan Brewing Series",
+        description:
+          "Award-winning smoothness. From easy-drinking to full-bodied, taste the stability, precision, and richness of the craftsman.",
+      },
+    },
+    // --- 原有翻譯 ---
     variety: {
       title: "VARIETY",
       subtitle: "Traditional Grocery Shop",
@@ -77,26 +123,22 @@ const TRANSLATIONS = {
 };
 
 /* =================================================================
-   2. SSG 資料獲取 (Server Side Build Time)
+   2. SSG 資料獲取
    ================================================================= */
 export async function getStaticProps({ locale }) {
-  // 根據網址 (例如 /en 或 /zh-TW) 決定要拿哪一份資料
-  // 如果找不到對應語言，預設回傳 zh-TW
   const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
-
   return {
     props: {
-      t, // 翻譯資料
-      locale, // 當前語系代碼
+      t,
+      locale,
     },
   };
 }
 
 /* =================================================================
-   3. 動畫與功能元件 (保持不變)
+   3. 動畫與輔助元件
    ================================================================= */
 
-/* 優化版：滾動進場 */
 function FadeUp({
   children,
   className = "",
@@ -129,7 +171,6 @@ function FadeUp({
   );
 }
 
-/* SnackDropLoop */
 function SnackDropLoop({
   anchorRef,
   className,
@@ -262,7 +303,7 @@ function SnackDropLoop({
       transition={transition}
       style={{
         zIndex: z,
-        willChange: "transform, opacity", // ✅ 關鍵優化
+        willChange: "transform, opacity",
         transformOrigin: "50% 50%",
         backfaceVisibility: "hidden",
         WebkitBackfaceVisibility: "hidden",
@@ -283,7 +324,6 @@ function SnackDropLoop({
   );
 }
 
-/* AutoSwapImage */
 function AutoSwapImage({
   base,
   alt = "",
@@ -381,23 +421,63 @@ function AutoSwapImage({
 }
 
 /* =================================================================
-   4. 主頁面元件 (接收 props.t)
+   4. 主頁面元件
    ================================================================= */
 export default function Home({ t, locale }) {
-  // 如果需要做語言切換按鈕，可以用 useRouter
-  // const router = useRouter();
-  // const switchLang = () => router.push('/', '/', { locale: locale === 'en' ? 'zh-TW' : 'en' })
-
   const rightRef = useRef(null);
+
+  // --- 輪播設定 ---
+  const OPTIONS = { dragFree: true, loop: true };
+
+  // --- 定義輪播資料 (讀取 t.beer) ---
+  const SLIDES = t
+    ? [
+        {
+          image: "/images/beer/台啤-蜂蜜.webp",
+          title: t.beer.honey.title,
+          description: t.beer.honey.description,
+        },
+        {
+          image: "/images/beer/微果醺.webp",
+          title: t.beer.girl.title,
+          description: t.beer.girl.description,
+        },
+        {
+          image: "/images/beer/245A4057-已增強-雜訊減少 (1).webp",
+          title: t.beer.fruit.title,
+          description: t.beer.fruit.description,
+        },
+        {
+          image: "/images/beer/245A3705-已增強-雜訊減少.webp",
+          title: t.beer.craft.title,
+          description: t.beer.craft.description,
+        },
+        // 重複的 Slide (維持無縫輪播效果)
+        {
+          image: "/images/beer/台啤-蜂蜜.webp",
+          title: t.beer.honey.title,
+          description: t.beer.honey.description,
+        },
+        {
+          image: "/images/beer/微果醺.webp",
+          title: t.beer.girl.title,
+          description: t.beer.girl.description,
+        },
+        {
+          image: "/images/beer/245A4057-已增強-雜訊減少 (1).webp",
+          title: t.beer.fruit.title,
+          description: t.beer.fruit.description,
+        },
+        {
+          image: "/images/beer/245A3705-已增強-雜訊減少.webp",
+          title: t.beer.craft.title,
+          description: t.beer.craft.description,
+        },
+      ]
+    : [];
 
   // 中央 hotpot 旋轉邏輯
   const baseAngle = useMotionValue(0);
-  const hotpotRotate = useSpring(baseAngle, {
-    stiffness: 300,
-    damping: 18,
-    mass: 0.8,
-  });
-
   useEffect(() => {
     const stepPerWheel = 0.25;
     const onWheel = (e) =>
@@ -410,6 +490,9 @@ export default function Home({ t, locale }) {
   const dingingRef = useRef(null);
   const anchorRef = useRef(null);
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
+
+  // 如果 t 不存在，回傳 null 避免錯誤
+  if (!t) return null;
 
   return (
     <>
@@ -491,11 +574,12 @@ export default function Home({ t, locale }) {
           </div>
         </section>
 
+        {/* ======= 啤酒輪播區塊 (Beer Carousel) ======= */}
         <section className="section_beer overflow-hidden">
-          <Carousel />
+          <Carousel slides={SLIDES} options={OPTIONS} />
         </section>
 
-        {/* ======= 零食區塊 ======= */}
+        {/* ======= 零食區塊 (Variety) ======= */}
         <section
           ref={dingingRef}
           className="section_Dinging mx-auto bg-[#efefef] max-w-[1920px] relative overflow-x-hidden"
@@ -503,10 +587,9 @@ export default function Home({ t, locale }) {
           <div className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
               {/* 左側：影片區 */}
-              {/* 左側：影片區 */}
               <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
                 <video
-                  className="w-full h-full scale-[1.5] object-cover  "
+                  className="w-full h-full scale-[1.5] object-cover"
                   src="/video/灶腳.mov"
                   autoPlay
                   loop
@@ -514,7 +597,7 @@ export default function Home({ t, locale }) {
                   playsInline
                 />
               </div>
-              {/* 右側：文案區 (使用 t 變數替換文字) */}
+              {/* 右側：文案區 (使用 t.variety) */}
               <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
@@ -567,7 +650,7 @@ export default function Home({ t, locale }) {
             <FadeUp delay={0.02} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/index/about/DAV01968.jpg"
+                  src="/images/index/about/DAV01968.webp"
                   alt="有香集團"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -586,7 +669,6 @@ export default function Home({ t, locale }) {
                     />
                   </div>
                   <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
-                    {/* 使用 dangerouslySetInnerHTML 支援 <br/> 標籤 */}
                     <p
                       className="text-white text-[16px] leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: t.about.group_desc }}
@@ -600,7 +682,7 @@ export default function Home({ t, locale }) {
             <FadeUp delay={0.06} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/index/about/DAV01683.jpg"
+                  src="/images/index/about/DAV01683.webp"
                   alt="有香 Memory Corner"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -631,7 +713,7 @@ export default function Home({ t, locale }) {
             <FadeUp delay={0.1} amount={0.25} className="relative">
               <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
                 <Image
-                  src="/images/index/about/DAV01773 (1).jpg"
+                  src="/images/index/about/DAV01773 (1).webp"
                   alt="億點點 Sweet Memory"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -660,7 +742,7 @@ export default function Home({ t, locale }) {
           </div>
         </section>
 
-        {/* Video Section (保持不變) */}
+        {/* Video Section */}
         <section className="h-full w-full section-video relative">
           <video
             className="w-full h-full object-cover"

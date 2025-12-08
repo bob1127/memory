@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import Layout from "../Layout";
 import { motion, AnimatePresence } from "framer-motion";
 import { cartStore } from "@/lib/cartStore";
@@ -10,7 +11,31 @@ import { Thumbs } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/thumbs";
 
+/* =================================================================
+   1. 靜態 UI 翻譯資料庫
+   ================================================================= */
+const PAGE_TRANSLATIONS = {
+  "zh-TW": {
+    not_found: "找不到此商品",
+    add_to_cart: "加入購物車",
+    add_success_prefix: "已加入購物車：",
+    currency: "NT$",
+  },
+  en: {
+    not_found: "Product not found",
+    add_to_cart: "Add to Cart",
+    add_success_prefix: "Added to cart: ",
+    currency: "NT$",
+  },
+};
+
 export default function BeerInner({ product }) {
+  const { locale } = useRouter();
+  const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
+
+  // 判斷是否為英文模式
+  const isEn = locale === "en";
+
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [qty, setQty] = useState(1);
   const [toast, setToast] = useState(false);
@@ -19,32 +44,46 @@ export default function BeerInner({ product }) {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
-          <p>找不到此商品</p>
+          <p>{t.not_found}</p>
         </div>
       </Layout>
     );
+
+  /* ---------- 決定顯示的名稱與描述 (核心修改) ---------- */
+
+  // 1. 名稱邏輯：
+  // 如果是英文版 (isEn) 且有抓到英文名 (name_en)，就顯示英文名。
+  // 否則顯示預設中文名 (name_zh)。
+  const displayName =
+    isEn && product.name_en ? product.name_en : product.name_zh;
+
+  // 2. 描述邏輯：
+  // 如果是英文版 且 有抓到英文 HTML (desc_en)，就顯示英文 HTML。
+  // 否則顯示預設中文描述 (desc_zh)。
+  const displayDesc =
+    isEn && product.desc_en ? product.desc_en : product.desc_zh;
 
   /* ---------- 加入購物車 ---------- */
   const addToCart = () => {
     cartStore.add(
       {
         id: product.id,
-        name: product.name,
+        name: displayName, // 存入購物車時使用當前語言的名稱
         img: product.images[0],
-        price: Number(product.price || product.regular_price || 0),
+        price: Number(product.price),
       },
       qty
     );
     setToast(true);
-    setQty(1); // ✅ 加入購物車後重置數量
+    setQty(1);
     setTimeout(() => setToast(false), 2000);
   };
 
   return (
     <Layout>
-      <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8  py-[100px]">
+      <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8 py-[100px]">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
-          {/* ---------- 左：圖片區 ---------- */}
+          {/* ---------- 左：圖片區 (維持不變) ---------- */}
           <div className="lg:sticky lg:top-24 self-start">
             <div className="aspect-square rounded-2xl overflow-hidden ">
               <Swiper
@@ -61,7 +100,7 @@ export default function BeerInner({ product }) {
                     <div className="relative w-full h-full">
                       <Image
                         src={img}
-                        alt={`${product.name} - 圖片 ${idx + 1}`}
+                        alt={`${displayName} - ${idx + 1}`}
                         fill
                         priority={idx === 0}
                         className="object-contain"
@@ -106,7 +145,7 @@ export default function BeerInner({ product }) {
           <div className="flex flex-col gap-6">
             <header className="space-y-3">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight tracking-tight">
-                {product.name}
+                {displayName}
               </h1>
               {product.tags?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -122,38 +161,47 @@ export default function BeerInner({ product }) {
               )}
             </header>
 
+            {/* 價格顯示區塊 (處理特價/原價) */}
             <div className="flex items-end gap-3">
-              <p className="text-3xl font-semibold tracking-tight">
-                NT$ {product.price}
-              </p>
-              {product.regular_price &&
-                product.regular_price !== product.price && (
-                  <p className="text-neutral-400 line-through">
-                    NT$ {product.regular_price}
+              {/* 判斷是否有特價 (當 regular_price 大於 price 時) */}
+              {Number(product.regular_price) > Number(product.price) ? (
+                <>
+                  <p className="text-3xl font-semibold tracking-tight text-red-600">
+                    {t.currency} {product.price}
                   </p>
-                )}
+                  <p className="text-neutral-400 line-through text-lg mb-1">
+                    {t.currency} {product.regular_price}
+                  </p>
+                </>
+              ) : (
+                <p className="text-3xl font-semibold tracking-tight">
+                  {t.currency} {product.price}
+                </p>
+              )}
             </div>
 
-            {product.desc && (
+            {/* ✅ 顯示動態描述 (支援 HTML) */}
+            {/* 這裡會正確渲染來自 API 的 style 標籤 */}
+            {displayDesc && (
               <div
-                className="prose prose-neutral max-w-none prose-img:rounded-xl"
-                dangerouslySetInnerHTML={{ __html: product.desc }}
+                className="prose prose-neutral max-w-none prose-img:rounded-xl text-gray-600 custom-html-content"
+                dangerouslySetInnerHTML={{ __html: displayDesc }}
               />
             )}
 
-            {/* ✅ 數量 + 加入購物車 */}
+            {/* 數量 + 加入購物車 */}
             <div className="mt-2 flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-3 border border-gray-600 rounded-[10px]">
                 <button
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="w-10 h-10 rounded-full  flex items-center justify-center text-xl hover:bg-neutral-50 transition"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-xl hover:bg-neutral-50 transition"
                 >
                   −
                 </button>
                 <span className="text-lg w-10 text-center">{qty}</span>
                 <button
                   onClick={() => setQty(qty + 1)}
-                  className="w-10 h-10 rounded-full  flex items-center justify-center text-xl hover:bg-neutral-50 transition"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-xl hover:bg-neutral-50 transition"
                 >
                   +
                 </button>
@@ -164,14 +212,14 @@ export default function BeerInner({ product }) {
                 whileTap={{ scale: 0.97 }}
                 className="rounded-full bg-black text-white py-3 px-8 font-medium hover:bg-neutral-800 transition shadow-sm"
               >
-                加入購物車
+                {t.add_to_cart}
               </motion.button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ✅ Toast 通知 */}
+      {/* Toast 通知 */}
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -183,7 +231,8 @@ export default function BeerInner({ product }) {
             className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-50"
           >
             <div className="bg-[#c1a46f] text-white text-sm sm:text-base px-6 py-3 rounded-full shadow-lg flex items-center gap-2 backdrop-blur-sm">
-              已加入購物車：{product.name}
+              {t.add_success_prefix}
+              {displayName}
             </div>
           </motion.div>
         )}
@@ -192,22 +241,29 @@ export default function BeerInner({ product }) {
   );
 }
 
-/* ---------- SSG + ISR ---------- */
+/* =================================================================
+   SSG + ISR: 資料抓取
+   ================================================================= */
+
+// 1. 抓取所有路徑
 export async function getStaticPaths() {
   try {
     const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    // 這裡記得確保你的 API Route 是正確的
     const res = await fetch(`${base}/api/products/beer`);
     const data = await res.json();
     const paths = (data.items || []).map((p) => ({
       params: { slug: p.slug },
     }));
+
     return { paths, fallback: "blocking" };
   } catch (err) {
-    console.error("⚠️ getStaticPaths 無法連線 WooCommerce:", err.message);
+    console.error("⚠️ getStaticPaths 無法連線:", err.message);
     return { paths: [], fallback: "blocking" };
   }
 }
 
+// 2. 抓取單一商品詳細資料
 export async function getStaticProps({ params }) {
   const { slug } = params;
   const WC_URL = process.env.WC_URL;
@@ -215,6 +271,7 @@ export async function getStaticProps({ params }) {
   const WC_CS = process.env.WC_CS;
 
   try {
+    // 呼叫 WooCommerce API
     const res = await fetch(
       `${WC_URL}/wp-json/wc/v3/products?slug=${slug}&consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
     );
@@ -224,6 +281,7 @@ export async function getStaticProps({ params }) {
     const p = data[0];
     let finalPrice = p.price || p.sale_price || p.regular_price || "0";
 
+    // 處理變體商品價格 (Variable Product)
     if (p.type === "variable" && (!p.price || p.price === "0")) {
       const varRes = await fetch(
         `${WC_URL}/wp-json/wc/v3/products/${p.id}/variations?consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
@@ -238,13 +296,31 @@ export async function getStaticProps({ params }) {
       }
     }
 
+    // 🔴 關鍵：解析自訂欄位 (Meta Data)
+    const meta = p.meta_data || [];
+
+    // 這裡我們定義：
+    // Default (p.name/p.description) = 中文
+    // Meta (zh_product_name/zh_short_description) = 英文
+
+    const enName = pickEnName(meta); // 抓取英文名稱
+    const enDesc = pickEnDesc(meta); // 抓取英文 HTML 描述
+
     const product = {
       id: p.id,
-      name: p.name,
+
+      // 中文資料 (來自預設欄位)
+      name_zh: p.name,
+      desc_zh: p.description || "",
+
+      // 英文資料 (來自 Meta 欄位)
+      name_en: enName,
+      desc_en: enDesc,
+
+      // 價格與圖片
       price: finalPrice,
-      regular_price: p.regular_price || p.price || "0",
+      regular_price: p.regular_price || "0",
       images: p.images?.map((img) => img.src) || ["/images/beer04.png"],
-      desc: p.description || "",
       tags: p.tags?.map((t) => t.name),
     };
 
@@ -252,16 +328,22 @@ export async function getStaticProps({ params }) {
   } catch (err) {
     console.error("❌ 讀取商品錯誤:", err);
     return {
-      props: {
-        product: {
-          id: 0,
-          name: "暫無連線",
-          price: "0",
-          images: ["/images/beer04.png"],
-          desc: "<p>目前無法連接 WooCommerce API，請稍後再試。</p>",
-        },
-      },
+      props: { product: null },
       revalidate: 300,
     };
   }
+}
+
+/* --- Helpers (抓取 Meta Data) --- */
+
+// 抓取英文名稱 (對應 Meta Key: zh_product_name)
+function pickEnName(meta = []) {
+  const row = meta.find((m) => m?.key === "zh_product_name");
+  return row?.value ? String(row.value) : "";
+}
+
+// 抓取英文 HTML 描述 (對應 Meta Key: zh_short_description)
+function pickEnDesc(meta = []) {
+  const row = meta.find((m) => m?.key === "zh_short_description");
+  return row?.value ? String(row.value) : "";
 }
