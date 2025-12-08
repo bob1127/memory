@@ -502,161 +502,18 @@ export default function Home({ t, locale }) {
         >
           <div className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
-              {/* 左側：動畫區 (保持原樣) */}
+              {/* 左側：影片區 */}
+              {/* 左側：影片區 */}
               <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
-                <div className="flex justify-center">
-                  <FadeUp delay={0.05} amount={0.25} className="absolute">
-                    <Image
-                      src="/images/snack/buynow.png"
-                      width={500}
-                      height={300}
-                      className="w-[260px] sm:w-[320px] h-auto"
-                      alt="buy now"
-                    />
-                  </FadeUp>
-                </div>
-
-                <div
-                  ref={anchorRef}
-                  className="absolute left-[34%] -translate-x-1/2 bottom-[18%] w-2 h-2"
+                <video
+                  className="w-full h-full scale-[1.5] object-cover  "
+                  src="/video/灶腳.mov"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
                 />
-
-                {/* SnackDropLoops (保持不變) */}
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-[10%] sm:bottom-[30%] -translate-x-1/2 left-[-5%] sm:left-[40%] z-[9]"
-                  imgSrc="/images/灶腳商品圖/DSC05055.png"
-                  imgClassName="w-[180px] sm:w-[220px]"
-                  spawn={260}
-                  sway={90}
-                  spin={18}
-                  alt="藍色作業本"
-                  scaleStart={1.0}
-                  scaleEnd={0.7}
-                  duration={2.2}
-                  delay={0.0}
-                />
-                {/* ... 其他 SnackDropLoop 省略 (內容保持不變) ... */}
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-[7%] sm:bottom-[40%] -translate-x-1/2 left-[10%] z-[9]"
-                  imgSrc="/images/灶腳商品圖/DSC05082.png"
-                  imgClassName="w-[270px] sm:w-[320px]"
-                  spawn={260}
-                  sway={90}
-                  spin={18}
-                  alt="義美小泡芙"
-                  scaleStart={1.0}
-                  scaleEnd={0.7}
-                  duration={2.2}
-                  delay={0.0}
-                />
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-[15%] sm:bottom-[30%] -translate-x-1/2 left-[35%] sm:left-[50%] z-[9]"
-                  imgSrc="/images/灶腳商品圖/DSC05035.png"
-                  imgClassName="w-[200px] sm:w-[220px]"
-                  spawn={260}
-                  sway={90}
-                  spin={18}
-                  alt="Q果酥"
-                  scaleStart={1.0}
-                  scaleEnd={0.7}
-                  duration={2.2}
-                  delay={0.0}
-                />
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-0 sm:bottom-[20%] -translate-x-1/2 left-[30%] sm:left-[60%] z-[9]"
-                  imgSrc="/images/灶腳商品圖/DSC05051.png"
-                  imgClassName="w-[220px] sm:w-[220px]"
-                  spawn={260}
-                  sway={90}
-                  spin={18}
-                  alt="花色作業本"
-                  scaleStart={1.0}
-                  scaleEnd={0.7}
-                  duration={2.2}
-                  delay={0.0}
-                />
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-[-10%] sm:bottom-[12%] -translate-x-1/2 left-[30%] z-[9]"
-                  imgSrc="/images/灶腳商品圖/DSC05021.png"
-                  imgClassName="w-[160px] sm:w-[220px]"
-                  spawn={460}
-                  sway={-90}
-                  spin={18}
-                  alt="牛奶糖"
-                  scaleStart={1.0}
-                  scaleEnd={0.7}
-                  duration={2.2}
-                  delay={0.0}
-                />
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-[0%] -translate-x-1/2 left-[15%] sm:left-[35%] z-[9]"
-                  imgSrc="/images/灶腳商品圖/葡萄維他命.png"
-                  imgClassName="w-[70px] sm:w-[120px]"
-                  spawn={480}
-                  sway={-120}
-                  spin={-14}
-                  alt="葡萄維他命"
-                  scaleStart={1.0}
-                  scaleEnd={0.68}
-                  duration={2.35}
-                  delay={0.35}
-                />
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-[2%] -translate-x-1/2 left-[30%] sm:left-[25%] z-[60]"
-                  imgSrc="/images/灶腳商品圖/DSC05007-3.png"
-                  imgClassName="w-[300px] sm:w-[350px]"
-                  spawn={520}
-                  sway={0}
-                  alt="黑色巧克力"
-                  spin={10}
-                  scaleStart={1.0}
-                  scaleEnd={0.66}
-                  duration={2.3}
-                  delay={0.7}
-                  lockXToMouth
-                  xOffset={-240}
-                />
-                <SnackDropLoop
-                  anchorRef={anchorRef}
-                  className="w-[80%] bottom-[10%] -translate-x-1/2 left-[18%] z-[60]"
-                  imgSrc="/images/灶腳商品圖/DSC05033.png"
-                  imgClassName="w-[170px] sm:w-[220px]"
-                  spawn={500}
-                  sway={0}
-                  alt="風味糖"
-                  spin={-16}
-                  scaleStart={1.0}
-                  scaleEnd={0.64}
-                  duration={2.4}
-                  delay={1.05}
-                  lockXToMouth
-                  xOffset={-280}
-                />
-
-                <FadeUp
-                  delay={0.1}
-                  amount={0.2}
-                  className="absolute w-full bottom-[-5%] sm:bottom-[-40%] xl:bottom-[-30%] 2xl:bottom-[-20%] md:bottom-[-35%] z-[99] left-0 -translate-x-1/2"
-                >
-                  <Image
-                    src="/images/灶腳商品圖/DSC05114.png"
-                    alt="包包"
-                    placeholder="empty"
-                    loading="lazy"
-                    width={1300}
-                    height={1000}
-                    className="max-w-[1000px] w-full xl:scale-[1] scale-[1.05] h-auto"
-                  />
-                </FadeUp>
               </div>
-
               {/* 右側：文案區 (使用 t 變數替換文字) */}
               <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
