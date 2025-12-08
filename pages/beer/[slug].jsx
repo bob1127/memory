@@ -49,26 +49,24 @@ export default function BeerInner({ product }) {
       </Layout>
     );
 
-  /* ---------- 決定顯示的名稱與描述 (核心修改) ---------- */
-
-  // 1. 名稱邏輯：
-  // 如果是英文版 (isEn) 且有抓到英文名 (name_en)，就顯示英文名。
-  // 否則顯示預設中文名 (name_zh)。
+  /* ---------- 決定顯示的名稱與描述 ---------- */
   const displayName =
     isEn && product.name_en ? product.name_en : product.name_zh;
-
-  // 2. 描述邏輯：
-  // 如果是英文版 且 有抓到英文 HTML (desc_en)，就顯示英文 HTML。
-  // 否則顯示預設中文描述 (desc_zh)。
   const displayDesc =
     isEn && product.desc_en ? product.desc_en : product.desc_zh;
 
-  /* ---------- 加入購物車 ---------- */
+  /* ---------- [修改] 加入購物車 ---------- */
   const addToCart = () => {
+    // 這裡我們直接使用 getStaticProps 已經整理好的 name_zh 和 name_en
+    const zhName = product.name_zh || product.name; // fallback if empty
+    const enName = product.name_en || product.name_zh; // fallback if empty
+
     cartStore.add(
       {
         id: product.id,
-        name: displayName, // 存入購物車時使用當前語言的名稱
+        name: zhName, // Default/Fallback
+        name_zh: zhName, // ✅ 明確存入中文名
+        name_en: enName, // ✅ 明確存入英文名
         img: product.images[0],
         price: Number(product.price),
       },
@@ -83,7 +81,7 @@ export default function BeerInner({ product }) {
     <Layout>
       <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8 py-[100px]">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
-          {/* ---------- 左：圖片區 (維持不變) ---------- */}
+          {/* ---------- 左：圖片區 ---------- */}
           <div className="lg:sticky lg:top-24 self-start">
             <div className="aspect-square rounded-2xl overflow-hidden ">
               <Swiper
@@ -161,9 +159,8 @@ export default function BeerInner({ product }) {
               )}
             </header>
 
-            {/* 價格顯示區塊 (處理特價/原價) */}
+            {/* 價格顯示區塊 */}
             <div className="flex items-end gap-3">
-              {/* 判斷是否有特價 (當 regular_price 大於 price 時) */}
               {Number(product.regular_price) > Number(product.price) ? (
                 <>
                   <p className="text-3xl font-semibold tracking-tight text-red-600">
@@ -180,8 +177,7 @@ export default function BeerInner({ product }) {
               )}
             </div>
 
-            {/* ✅ 顯示動態描述 (支援 HTML) */}
-            {/* 這裡會正確渲染來自 API 的 style 標籤 */}
+            {/* 描述 */}
             {displayDesc && (
               <div
                 className="prose prose-neutral max-w-none prose-img:rounded-xl text-gray-600 custom-html-content"
@@ -242,20 +238,18 @@ export default function BeerInner({ product }) {
 }
 
 /* =================================================================
-   SSG + ISR: 資料抓取
+   SSG + ISR: 資料抓取 (保持不變)
    ================================================================= */
 
 // 1. 抓取所有路徑
 export async function getStaticPaths() {
   try {
     const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    // 這裡記得確保你的 API Route 是正確的
     const res = await fetch(`${base}/api/products/beer`);
     const data = await res.json();
     const paths = (data.items || []).map((p) => ({
       params: { slug: p.slug },
     }));
-
     return { paths, fallback: "blocking" };
   } catch (err) {
     console.error("⚠️ getStaticPaths 無法連線:", err.message);
@@ -296,28 +290,17 @@ export async function getStaticProps({ params }) {
       }
     }
 
-    // 🔴 關鍵：解析自訂欄位 (Meta Data)
+    // 解析自訂欄位
     const meta = p.meta_data || [];
-
-    // 這裡我們定義：
-    // Default (p.name/p.description) = 中文
-    // Meta (zh_product_name/zh_short_description) = 英文
-
-    const enName = pickEnName(meta); // 抓取英文名稱
-    const enDesc = pickEnDesc(meta); // 抓取英文 HTML 描述
+    const enName = pickEnName(meta);
+    const enDesc = pickEnDesc(meta);
 
     const product = {
       id: p.id,
-
-      // 中文資料 (來自預設欄位)
       name_zh: p.name,
       desc_zh: p.description || "",
-
-      // 英文資料 (來自 Meta 欄位)
       name_en: enName,
       desc_en: enDesc,
-
-      // 價格與圖片
       price: finalPrice,
       regular_price: p.regular_price || "0",
       images: p.images?.map((img) => img.src) || ["/images/beer04.png"],
@@ -334,16 +317,23 @@ export async function getStaticProps({ params }) {
   }
 }
 
-/* --- Helpers (抓取 Meta Data) --- */
+// Helper: 解碼 HTML (避免 <style> 標籤被 escape)
+function decodeHtml(html) {
+  if (!html) return "";
+  return html
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'");
+}
 
-// 抓取英文名稱 (對應 Meta Key: zh_product_name)
 function pickEnName(meta = []) {
   const row = meta.find((m) => m?.key === "zh_product_name");
   return row?.value ? String(row.value) : "";
 }
 
-// 抓取英文 HTML 描述 (對應 Meta Key: zh_short_description)
 function pickEnDesc(meta = []) {
   const row = meta.find((m) => m?.key === "zh_short_description");
-  return row?.value ? String(row.value) : "";
+  return row?.value ? decodeHtml(String(row.value)) : "";
 }

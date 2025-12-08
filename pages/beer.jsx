@@ -47,15 +47,10 @@ const PAGE_TRANSLATIONS = {
 /** 價格處理 Helper */
 const priceFromItem = (p) => {
   if (!p) return 0;
-  // Store API 回傳的價格通常是字串且含單位 (e.g., "10000" 代表 100.00)
-  // 或者有時候是 prices 物件
-
   let price = 0;
 
   // 優先使用 prices 物件 (Store API 標準)
   if (p.prices) {
-    // 價格通常是「最小單位」整數 (例如 8616 代表 86.16)
-    // 需要除以 100
     const rawPrice =
       p.prices.price || p.prices.sale_price || p.prices.regular_price;
     if (rawPrice) return Number(rawPrice) / 100;
@@ -128,21 +123,29 @@ export default function Home({ initialItems = [] }) {
       [id]: Math.max(0, Number.isFinite(+next) ? +next : 0),
     }));
 
+  /* ---------- [修改] 加入購物車 ---------- */
   const addToCart = (product) => {
     const raw = qtyMap[product.id] ?? 0;
     if (raw <= 0) return;
     const safeQty = Math.max(1, raw);
     const price = priceFromItem(product);
 
-    // 決定要存入購物車的名稱 (依據當前語言)
-    const enName = product.extensions?.custom_acf?.en_product_name;
-    // 如果是英文版且有英文名，用英文；否則用中文名 (product.name)
-    const displayName = isEn && enName ? enName : product.name;
+    // 1. 準備中文名稱 (Store API 預設名稱就是中文)
+    const zhName = product.name;
+
+    // 2. 準備英文名稱 (從我們自定義結構 extensions 裡拿，若無則 fallback 回中文)
+    const enName =
+      product.extensions?.custom_acf?.en_product_name || product.name;
+
+    // 3. 決定 Toast 顯示的名稱 (當下語言)
+    const displayName = isEn && enName ? enName : zhName;
 
     cartStore.add(
       {
         id: product.id,
-        name: displayName,
+        name: zhName, // 預設名稱 (fallback)
+        name_zh: zhName, // ✅ 明確存入中文名
+        name_en: enName, // ✅ 明確存入英文名
         img: product.img,
         price,
       },
@@ -182,13 +185,10 @@ export default function Home({ initialItems = [] }) {
     return () => clearTimeout(t);
   }, []);
 
-  // HTML 解碼 (避免 &lt;style&gt; 被印出來)
+  // HTML 解碼 (避免 <style> 被印出來)
   const decodeHtml = (html) => {
     if (!html) return "";
-    return html
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&amp;/g, "&");
+    return html.replace(/</g, "<").replace(/>/g, ">").replace(/&/g, "&");
   };
 
   /* ---------- Render ---------- */
@@ -213,7 +213,7 @@ export default function Home({ initialItems = [] }) {
           </AnimatePresence>
         </div>
 
-        {/* 跑馬燈 */}
+        {/* 跑馬燈 (省略內容以節省空間，與之前相同) */}
         <AnimatePresence>
           {showMarquee && (
             <motion.div
@@ -302,19 +302,9 @@ export default function Home({ initialItems = [] }) {
                 const q = qtyMap[p.id] ?? 0;
                 const displayPrice = priceFromItem(p);
 
-                // --- 1. 名稱處理邏輯 ---
-                // 取得英文名稱 (存在 custom_acf.en_product_name 中)
                 const enName = p.extensions?.custom_acf?.en_product_name;
-
-                // 如果是英文版(isEn)且有英文名，用英文；否則用預設(中文)名
                 const displayName = isEn && enName ? enName : p.name;
-
-                // --- 2. 描述處理邏輯 ---
-                // 取得英文描述 (存在 custom_acf.en_description 中)
                 const enDesc = p.extensions?.custom_acf?.en_description;
-
-                // 如果是英文版且有英文描述，用英文；否則用預設短描述(Store API)
-                // 記得解碼 HTML
                 const rawDesc =
                   isEn && enDesc ? enDesc : p.short_description || "";
                 const displayDesc = decodeHtml(rawDesc);
@@ -325,12 +315,9 @@ export default function Home({ initialItems = [] }) {
                     className="item flex flex-col justify-center items-center group transition"
                   >
                     <div className="item-info mb-2 text-center px-2">
-                      {/* 名稱 */}
                       <b className="block min-h-[1.5em] text-lg">
                         {displayName}
                       </b>
-
-                      {/* 價格 */}
                       {displayPrice > 0 && (
                         <p className="text-black font-medium text-sm mt-2">
                           {t.currency}
@@ -352,7 +339,6 @@ export default function Home({ initialItems = [] }) {
                       />
                     </Link>
 
-                    {/* 數量控制 */}
                     <div className="mt-4 flex items-center gap-3">
                       <button
                         onClick={() => setQty(p.id, q - 1)}
@@ -435,7 +421,6 @@ export async function getStaticProps({ locale }) {
   let initialItems = [];
 
   try {
-    // 1. 抓取基本商品列表 (Store API - 效能較好)
     const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/store/products`);
     storeURL.searchParams.set("per_page", "100");
 
@@ -445,19 +430,16 @@ export async function getStaticProps({ locale }) {
     const rawList = (await r.json()) || [];
     const list = Array.isArray(rawList) ? rawList : [];
 
-    // 取得需要查詢 Meta 的 ID 列表
     const ids = list
       .map((p) => p.id)
       .filter(Boolean)
       .slice(0, 100);
 
-    // 2. 抓取 Meta Data (V3 API) - 為了拿到英文名稱(zh_product_name)和英文描述(zh_short_description)
     let metaMap = new Map();
     if (ids.length && ck && cs) {
       const v3 = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
       v3.searchParams.set("include", ids.join(","));
       v3.searchParams.set("per_page", String(ids.length));
-      // 這裡只需要 id 和 meta_data
       v3.searchParams.set("_fields", "id,meta_data");
 
       const vr = await fetch(v3.toString(), {
@@ -477,26 +459,16 @@ export async function getStaticProps({ locale }) {
       }
     }
 
-    // 3. 合併資料
     initialItems = list.map((p) => {
       const detail = metaMap.get(p.id) || { meta: [] };
-
-      // 抓取 Meta 中的英文名稱 (key = zh_product_name)
       const enName = pickMetaValue(detail.meta, "zh_product_name");
-
-      // 抓取 Meta 中的英文描述 (key = zh_short_description)
       const enDesc = pickMetaValue(detail.meta, "zh_short_description");
 
-      // 確保結構存在
       if (!p.extensions) p.extensions = {};
       if (!p.extensions.custom_acf) p.extensions.custom_acf = {};
 
-      // 將抓到的英文資料填入自訂結構中
-      // (我們重新命名 key 比較不會搞混: zh_product_name -> en_product_name)
       p.extensions.custom_acf.en_product_name = enName;
       p.extensions.custom_acf.en_description = enDesc;
-
-      // 圖片整理
       p.img = p.images?.[0]?.src || "/images/placeholder.png";
 
       return p;
@@ -522,7 +494,6 @@ function basicAuth(ck, cs) {
   return "Basic " + Buffer.from(`${ck}:${cs}`).toString("base64");
 }
 
-// 通用 Meta 抓取 Helper
 function pickMetaValue(meta = [], targetKey) {
   const row = meta.find((m) => m?.key === targetKey && m?.value);
   return row?.value ? String(row.value) : "";

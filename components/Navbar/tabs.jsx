@@ -21,6 +21,22 @@ import { useRouter } from "next/router";
 import { cartStore } from "@/lib/cartStore";
 import { authStore } from "@/lib/authStore";
 
+/* =================== Helper: 取得多語言商品名稱 =================== */
+// 這段邏輯確保購物車能隨時切換語言
+const getCartName = (item, locale) => {
+  if (!item) return "";
+  const isEn = locale === "en";
+
+  // 1. 如果是英文版，且商品有存 name_en，就顯示 name_en
+  if (isEn && item.name_en) return item.name_en;
+
+  // 2. 如果是中文版，且商品有存 name_zh，就顯示 name_zh
+  if (!isEn && item.name_zh) return item.name_zh;
+
+  // 3. 如果都沒有 (例如舊的購物車資料)，就顯示預設的 name
+  return item.name || "";
+};
+
 /* =================== 1. 導覽列與購物車翻譯資料庫 =================== */
 const NAV_TRANSLATIONS = {
   "zh-TW": {
@@ -36,7 +52,6 @@ const NAV_TRANSLATIONS = {
     logout: "登出",
     cart: "購物車",
     language: "語言 / Language",
-    // --- 新增：購物車與彈窗翻譯 ---
     cart_ui: {
       added: "已加入購物車",
       qty: "數量",
@@ -77,7 +92,6 @@ const NAV_TRANSLATIONS = {
     logout: "Logout",
     cart: "Cart",
     language: "Language",
-    // --- 新增：購物車與彈窗翻譯 (英文) ---
     cart_ui: {
       added: "Added to Cart",
       qty: "Qty",
@@ -107,7 +121,7 @@ const NAV_TRANSLATIONS = {
   },
 };
 
-/* -------------------- 動畫 Variants (保持不變) -------------------- */
+/* -------------------- 動畫 Variants -------------------- */
 const easeOut = [0.22, 1, 0.36, 1];
 const fadeUp = {
   initial: { opacity: 0, y: 10, scale: 0.98, filter: "blur(6px)" },
@@ -162,7 +176,7 @@ const accordion = {
   expanded: { height: "auto", opacity: 1 },
 };
 
-/* ====== Login helpers (保持不變) ====== */
+/* ====== Login helpers ====== */
 function normalizeLoginPayload({ username, password }) {
   const u = String(username || "").trim();
   const p = String(password || "");
@@ -195,7 +209,7 @@ async function tryLoginFallback(store, raw) {
   }
 }
 
-/* ------------ SubMenuContent (保持不變) ------------ */
+/* ------------ SubMenuContent ------------ */
 const SubMenuContent = ({ items }) => (
   <div className="w-[230px] text-center text-[15px] leading-none">
     <div className="flex flex-col">
@@ -214,7 +228,7 @@ const SubMenuContent = ({ items }) => (
   </div>
 );
 
-/* ------- FlyoutLink (保持不變) ------- */
+/* ------- FlyoutLink ------- */
 function FlyoutLink({ label, href = "#", items }) {
   const [open, setOpen] = useState(false);
   return (
@@ -245,16 +259,25 @@ function FlyoutLink({ label, href = "#", items }) {
   );
 }
 
-/* ===== [修改] AddToCartPopup：新增 t 參數並套用翻譯 ===== */
-function AddToCartPopup({ open, item, subtotal, onClose, onCheckout, t }) {
+/* ===== [修改] AddToCartPopup：傳入 locale 以支援名稱切換 ===== */
+function AddToCartPopup({
+  open,
+  item,
+  subtotal,
+  onClose,
+  onCheckout,
+  t,
+  locale,
+}) {
   useEffect(() => {
     if (!open) return;
     const id = setTimeout(onClose, 2800);
     return () => clearTimeout(id);
   }, [open, onClose]);
 
-  // 安全存取翻譯物件
   const ui = t?.cart_ui || {};
+  // 使用 helper 取得動態名稱
+  const displayName = getCartName(item, locale);
 
   return (
     <AnimatePresence>
@@ -280,12 +303,13 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout, t }) {
               <div className="flex items-center gap-3">
                 <img
                   src={item.img}
-                  alt={item.name}
+                  alt={displayName}
                   className="h-16 w-16 shrink-0 rounded-lg bg-gray-50 object-contain ring-1 ring-black/5"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="line-clamp-2 text-sm font-medium">
-                    {item.name}
+                    {/* ✅ 這裡顯示切換後的名稱 */}
+                    {displayName}
                   </div>
                   <div className="mt-1 text-xs text-black/60">
                     {ui.qty || "數量"}：{item.qty || 1}
@@ -328,7 +352,7 @@ function AddToCartPopup({ open, item, subtotal, onClose, onCheckout, t }) {
   );
 }
 
-/* ===== Order Popup (保持不變) ===== */
+/* ===== Order Popup ===== */
 function OrderPopup({ open, onClose, children }) {
   if (!open) return null;
   return (
@@ -359,7 +383,7 @@ function OrderPopup({ open, onClose, children }) {
   );
 }
 
-/* ===== Auth Modal (保持不變) ===== */
+/* ===== Auth Modal ===== */
 function AuthModal({
   open,
   mode,
@@ -564,7 +588,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
   );
 }
 
-/* ======= 手機抽屜選單 (保持上次修正後的狀態) ======= */
+/* ======= 手機抽屜選單 ======= */
 function MobileNavSheet({
   open,
   onClose,
@@ -848,9 +872,8 @@ function MobileNavSheet({
 export const SlideTabsExample = () => {
   const router = useRouter();
   const { locale, pathname, query, asPath } = router;
-  // 取得翻譯
   const t = NAV_TRANSLATIONS[locale] || NAV_TRANSLATIONS["zh-TW"];
-  const ui = t.cart_ui || {}; // 方便下方使用的捷徑
+  const ui = t.cart_ui || {};
 
   const handleSwitchLocale = (newLocale) => {
     if (newLocale === locale) return;
@@ -1141,7 +1164,7 @@ export const SlideTabsExample = () => {
         </div>
       </OrderPopup>
 
-      {/* AddToCartPopup: 傳入 t 進行翻譯 */}
+      {/* AddToCartPopup: 傳入 locale 以支援名稱切換 */}
       <AddToCartPopup
         open={showAdded}
         item={addedItem}
@@ -1152,9 +1175,10 @@ export const SlideTabsExample = () => {
           setCartOpen(true);
         }}
         t={t}
+        locale={locale}
       />
 
-      {/* Cart Drawer: 使用翻譯 ui 變數 */}
+      {/* Cart Drawer */}
       <AnimatePresence>
         {cartOpen && (
           <>
@@ -1211,7 +1235,8 @@ export const SlideTabsExample = () => {
                               />
                               <div className="min-w-0 flex-1">
                                 <div className="line-clamp-2 text-sm font-medium">
-                                  {it.name}
+                                  {/* ✅ 這裡使用 getCartName 來切換名稱 */}
+                                  {getCartName(it, locale)}
                                 </div>
                                 <div className="mt-2 flex items-center gap-2">
                                   <button
@@ -1386,7 +1411,7 @@ export const SlideTabsExample = () => {
 
 export default SlideTabsExample;
 
-/* ===== [修改] EmptyCart：接收 t 參數並翻譯 ===== */
+/* ===== EmptyCart ===== */
 function EmptyCart({ t }) {
   return (
     <div className="grid min-h-[220px] place-items-center rounded-xl border border-dashed border-black/15 bg-gray-50/60 text-center">
