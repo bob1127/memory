@@ -4,6 +4,7 @@ import Link from "next/link";
 import Marquee from "react-marquee-slider";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
+import Head from "next/head"; // ✅ 新增 Head
 import {
   motion,
   useMotionValue,
@@ -15,7 +16,6 @@ import {
 
 // Components
 import Layout from "../pages/Layout";
-// 引用你的輪播元件 (請確認這個元件只負責顯示 UI，不包含資料邏輯)
 import Carousel from "../components/EmblaCarouselTravel/index";
 
 // Dynamic Imports
@@ -25,11 +25,17 @@ const MinimalPushOverlayMenu = dynamic(
 );
 
 /* =================================================================
-   1. 翻譯資料庫 (已整合 Beer 系列)
+   1. 翻譯資料庫 (已擴充 Meta 資料)
    ================================================================= */
 const TRANSLATIONS = {
   "zh-TW": {
-    // --- 新增：啤酒系列翻譯 ---
+    // ✅ 新增：首頁 SEO Meta
+    meta: {
+      title: "Memory Corner 有香餐飲集團 | 正宗台式料理與懷舊美味",
+      description:
+        "始於1975年，有香餐飲集團在溫哥華呈現最正宗的台灣味。旗下擁有 Memory Corner 有香、Sweet Memory 憶點點，提供台式鍋物、小吃、甜點與特色啤酒，帶您重溫家的溫度。",
+      ogImage: "/images/index/banner-06-a.png", // 使用 Hero 背景或專用縮圖
+    },
     beer: {
       honey: {
         title: "鮮蜜釀系列",
@@ -49,7 +55,6 @@ const TRANSLATIONS = {
           "獲獎無數、越喝越順；從順口到醇厚，喝的就是職人的穩、準、醇",
       },
     },
-    // --- 原有翻譯 ---
     variety: {
       title: "VARIETY",
       subtitle: "Traditional grocery shop",
@@ -72,7 +77,13 @@ const TRANSLATIONS = {
     },
   },
   en: {
-    // --- 新增：啤酒系列翻譯 (英文) ---
+    // ✅ 新增：首頁 SEO Meta (英文)
+    meta: {
+      title: "Memory Corner Group | Authentic Taiwanese Cuisine in Vancouver",
+      description:
+        "Established in 1975, Memory Corner Group brings authentic Taiwanese flavors to Vancouver. Home to Memory Corner and Sweet Memory, serving hot pots, street snacks, desserts, and craft beer.",
+      ogImage: "/images/index/banner-06-a.png",
+    },
     beer: {
       honey: {
         title: "Honey Lager Series",
@@ -95,7 +106,6 @@ const TRANSLATIONS = {
           "Award-winning smoothness. From easy-drinking to full-bodied, taste the stability, precision, and richness of the craftsman.",
       },
     },
-    // --- 原有翻譯 ---
     variety: {
       title: "VARIETY",
       subtitle: "Traditional Grocery Shop",
@@ -136,7 +146,7 @@ export async function getStaticProps({ locale }) {
 }
 
 /* =================================================================
-   3. 動畫與輔助元件
+   3. 動畫與輔助元件 (保持不變)
    ================================================================= */
 
 function FadeUp({
@@ -167,159 +177,6 @@ function FadeUp({
       style={{ willChange: "opacity, transform" }}
     >
       {children}
-    </motion.div>
-  );
-}
-
-function SnackDropLoop({
-  anchorRef,
-  className,
-  imgSrc,
-  imgClassName = "w-[400px]",
-  width = 1000,
-  height = 1000,
-  spawn = 420,
-  sway = 80,
-  spin = 10,
-  scaleStart = 1.0,
-  scaleEnd = 0.7,
-  duration = 2.2,
-  loopDelay = 0.7,
-  delay = 0.0,
-  startRot = 0,
-  z = 60,
-  lockXToMouth = true,
-  xOffset = 0,
-}) {
-  const itemRef = useRef(null);
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [delta, setDelta] = useState({ x: 0, y: 0 });
-  const [ready, setReady] = useState(false);
-
-  const measure = () => {
-    const el = itemRef.current;
-    const anchor = anchorRef.current;
-    if (!el || !anchor) return;
-    const r = el.getBoundingClientRect();
-    const a = anchor.getBoundingClientRect();
-    const elCX = r.left + r.width / 2;
-    const elCY = r.top + r.height / 2;
-    const aCX = a.left + a.width / 2;
-    const aCY = a.top + a.height / 2;
-    setDelta({ x: aCX - elCX, y: aCY - elCY });
-    setReady(true);
-  };
-
-  useLayoutEffect(() => {
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (anchorRef.current) ro.observe(anchorRef.current);
-    const onResize = () => measure();
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    const raf = requestAnimationFrame(measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (imgLoaded) requestAnimationFrame(measure);
-  }, [imgLoaded]);
-
-  const canRun = ready && imgLoaded;
-  const startY = canRun ? delta.y - Math.abs(spawn) : -Math.abs(spawn);
-  const endY = canRun ? delta.y : 0;
-  const mouthX = canRun ? delta.x + xOffset : 0;
-  const startX = lockXToMouth ? mouthX : 0;
-
-  const xKF = canRun
-    ? [startX, mouthX + sway * 0.25, mouthX - sway * 0.15, mouthX, mouthX]
-    : [startX];
-
-  const yKF = canRun
-    ? [
-        startY,
-        startY + Math.abs(spawn) * 0.66,
-        startY + Math.abs(spawn) * 0.92,
-        endY + 10,
-        endY,
-      ]
-    : [startY];
-
-  const rKF = canRun
-    ? [
-        startRot,
-        startRot + spin * 0.5,
-        startRot + spin * 0.85,
-        startRot + spin,
-        startRot + spin,
-      ]
-    : [startRot];
-
-  const sKF = canRun
-    ? [
-        scaleStart,
-        (scaleStart + scaleEnd) / 2,
-        scaleEnd * 0.95,
-        scaleEnd,
-        scaleEnd,
-      ]
-    : [scaleStart];
-
-  const oKF = canRun ? [0, 1, 1, 1, 0] : [1];
-
-  const transition = canRun
-    ? {
-        duration,
-        ease: "easeInOut",
-        times: [0, 0.6, 0.85, 0.96, 1],
-        repeat: Infinity,
-        repeatDelay: loopDelay,
-        delay,
-      }
-    : { duration: 0 };
-
-  const loopKey = canRun
-    ? `run-${Math.round(mouthX)}-${Math.round(endY)}`
-    : "wait";
-
-  return (
-    <motion.div
-      key={loopKey}
-      ref={itemRef}
-      className={`absolute pointer-events-none ${className}`}
-      initial={{
-        x: startX,
-        y: startY,
-        rotate: startRot,
-        scale: scaleStart,
-        opacity: 1,
-      }}
-      animate={{ x: xKF, y: yKF, rotate: rKF, scale: sKF, opacity: oKF }}
-      transition={transition}
-      style={{
-        zIndex: z,
-        willChange: "transform, opacity",
-        transformOrigin: "50% 50%",
-        backfaceVisibility: "hidden",
-        WebkitBackfaceVisibility: "hidden",
-        WebkitTransformStyle: "preserve-3d",
-      }}
-    >
-      <Image
-        src={imgSrc}
-        alt="snack"
-        width={width}
-        height={height}
-        loading="lazy"
-        onLoadingComplete={() => setImgLoaded(true)}
-        className={imgClassName}
-        draggable={false}
-      />
     </motion.div>
   );
 }
@@ -424,57 +281,59 @@ function AutoSwapImage({
    4. 主頁面元件
    ================================================================= */
 export default function Home({ t, locale }) {
+  // 如果 t 不存在，回傳 null 避免錯誤
+  if (!t) return null;
+
   const rightRef = useRef(null);
+  const siteUrl = "https://www.memorycorner8.com";
 
   // --- 輪播設定 ---
   const OPTIONS = { dragFree: true, loop: true };
 
-  // --- 定義輪播資料 (讀取 t.beer) ---
-  const SLIDES = t
-    ? [
-        {
-          image: "/images/beer/台啤-蜂蜜.webp",
-          title: t.beer.honey.title,
-          description: t.beer.honey.description,
-        },
-        {
-          image: "/images/beer/微果醺.webp",
-          title: t.beer.girl.title,
-          description: t.beer.girl.description,
-        },
-        {
-          image: "/images/beer/245A4057-已增強-雜訊減少 (1).webp",
-          title: t.beer.fruit.title,
-          description: t.beer.fruit.description,
-        },
-        {
-          image: "/images/beer/245A3705-已增強-雜訊減少.webp",
-          title: t.beer.craft.title,
-          description: t.beer.craft.description,
-        },
-        // 重複的 Slide (維持無縫輪播效果)
-        {
-          image: "/images/beer/台啤-蜂蜜.webp",
-          title: t.beer.honey.title,
-          description: t.beer.honey.description,
-        },
-        {
-          image: "/images/beer/微果醺.webp",
-          title: t.beer.girl.title,
-          description: t.beer.girl.description,
-        },
-        {
-          image: "/images/beer/245A4057-已增強-雜訊減少 (1).webp",
-          title: t.beer.fruit.title,
-          description: t.beer.fruit.description,
-        },
-        {
-          image: "/images/beer/245A3705-已增強-雜訊減少.webp",
-          title: t.beer.craft.title,
-          description: t.beer.craft.description,
-        },
-      ]
-    : [];
+  // --- 定義輪播資料 ---
+  const SLIDES = [
+    {
+      image: "/images/beer/台啤-蜂蜜.webp",
+      title: t.beer.honey.title,
+      description: t.beer.honey.description,
+    },
+    {
+      image: "/images/beer/微果醺.webp",
+      title: t.beer.girl.title,
+      description: t.beer.girl.description,
+    },
+    {
+      image: "/images/beer/245A4057-已增強-雜訊減少 (1).webp",
+      title: t.beer.fruit.title,
+      description: t.beer.fruit.description,
+    },
+    {
+      image: "/images/beer/245A3705-已增強-雜訊減少.webp",
+      title: t.beer.craft.title,
+      description: t.beer.craft.description,
+    },
+    // 重複 Slide 以維持無縫輪播
+    {
+      image: "/images/beer/台啤-蜂蜜.webp",
+      title: t.beer.honey.title,
+      description: t.beer.honey.description,
+    },
+    {
+      image: "/images/beer/微果醺.webp",
+      title: t.beer.girl.title,
+      description: t.beer.girl.description,
+    },
+    {
+      image: "/images/beer/245A4057-已增強-雜訊減少 (1).webp",
+      title: t.beer.fruit.title,
+      description: t.beer.fruit.description,
+    },
+    {
+      image: "/images/beer/245A3705-已增強-雜訊減少.webp",
+      title: t.beer.craft.title,
+      description: t.beer.craft.description,
+    },
+  ];
 
   // 中央 hotpot 旋轉邏輯
   const baseAngle = useMotionValue(0);
@@ -486,24 +345,111 @@ export default function Home({ t, locale }) {
     return () => window.removeEventListener("wheel", onWheel);
   }, [baseAngle]);
 
-  // Dinging 區塊
+  // Dinging 區塊 Scroll Hook
   const dingingRef = useRef(null);
-  const anchorRef = useRef(null);
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
-  // 如果 t 不存在，回傳 null 避免錯誤
-  if (!t) return null;
+  /* ========== SEO & Structured Data (JSON-LD) ========== */
+
+  // 1. WebSite Schema (這對首頁最重要，定義網站本體)
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Memory Corner 有香餐飲集團",
+    url: siteUrl,
+    description: t.meta.description,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  // 2. Organization Schema
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Memory Corner Group",
+    url: siteUrl,
+    logo: `${siteUrl}/images/index/about/有香集團-logo.png`,
+    sameAs: [
+      "https://www.facebook.com/MemoryCorner8",
+      "https://www.instagram.com/memorycorner8",
+    ],
+  };
+
+  // 3. VideoObject Schema (針對首頁下方的影片)
+  const videoSchema = {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    name: "Memory Corner | 有香影片-朋友歡聚暢飲",
+    description:
+      "Enjoy authentic Taiwanese cuisine and beer with friends at Memory Corner.",
+    thumbnailUrl: `${siteUrl}/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg`,
+    uploadDate: "2024-01-01T08:00:00+08:00", // 請替換為實際日期
+    contentUrl: `${siteUrl}/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4`,
+    embedUrl: siteUrl,
+  };
 
   return (
     <>
       <Layout>
+        {/* 1. SEO Meta Tags */}
+        <Head>
+          <title>{t.meta.title}</title>
+          <meta name="description" content={t.meta.description} />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+          {/* Open Graph */}
+          <meta property="og:type" content="website" />
+          <meta property="og:title" content={t.meta.title} />
+          <meta property="og:description" content={t.meta.description} />
+          <meta property="og:image" content={`${siteUrl}${t.meta.ogImage}`} />
+          <meta property="og:site_name" content="Memory Corner" />
+          <meta
+            property="og:locale"
+            content={locale === "zh-TW" ? "zh_TW" : "en_US"}
+          />
+          <meta
+            property="og:url"
+            content={`${siteUrl}${locale === "en" ? "/en" : ""}`}
+          />
+
+          {/* Canonical */}
+          <link
+            rel="canonical"
+            href={`${siteUrl}${locale === "en" ? "/en" : ""}`}
+          />
+
+          {/* Hreflang Tags (語言對照) */}
+          <link rel="alternate" hreflang="x-default" href={siteUrl} />
+          <link rel="alternate" hreflang="zh-TW" href={siteUrl} />
+          <link rel="alternate" hreflang="en" href={`${siteUrl}/en`} />
+        </Head>
+
+        {/* 2. Structured Data JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
+        />
+
         {/* Section Hero */}
         <section className="section-hero z-[9] pt-[0px] relative md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
             {/* 中央主標 */}
             <AutoSwapImage
               base="/images/index/banner-06"
-              alt="background"
+              alt="Memory Corner Authentic Taiwanese Cuisine Background" // SEO優化：加上具體關鍵字
               positionClass="z-10 right-[-3%] top-[10%] md:top-[-10%]"
               className="w-[80vw]"
               width={1200}
@@ -516,7 +462,7 @@ export default function Home({ t, locale }) {
             {/* 角色 */}
             <AutoSwapImage
               base="/images/index/banner-05"
-              alt="charactor"
+              alt="Memory Corner Character"
               positionClass="z-20 right-[0%] bottom-[-2%]"
               className="w-[70vw] sm:w-[55vw] lg:w-[50vw] xl:w-[52vw]"
               width={800}
@@ -530,7 +476,7 @@ export default function Home({ t, locale }) {
             {/* 筷子 */}
             <AutoSwapImage
               base="/images/index/banner-02"
-              alt="chopsticks"
+              alt="Chopsticks"
               positionClass="z-50 left-[-10%] top-[15%] rotate-[25deg] md:rotate-0 md:top-[24%]"
               className="w-[45vw] md:w-[30vw]"
               width={800}
@@ -544,7 +490,7 @@ export default function Home({ t, locale }) {
             {/* 轉動標誌 */}
             <AutoSwapImage
               base="/images/index/banner-07"
-              alt="mark"
+              alt="Memory Corner Mark"
               positionClass="z-30 left-[10%] md:left-[20%] bottom-[43%] md:bottom-[20%] xl:bottom-[17%]"
               className="w-[10vw]"
               width={800}
@@ -560,7 +506,7 @@ export default function Home({ t, locale }) {
             {/* 火鍋 */}
             <AutoSwapImage
               base="/images/index/banner-01"
-              alt="hotpot"
+              alt="Taiwanese Hot Pot"
               positionClass="z-10 left-[4%] md:left-[2%] top-[44%] sm:top-[25%] md:top-[50%] 2xl:top-[55%] -translate-y-1/2"
               className="w-[75vw] md:w-[60vw]"
               width={800}
@@ -595,9 +541,10 @@ export default function Home({ t, locale }) {
                   loop
                   muted
                   playsInline
+                  aria-label="Taiwanese traditional grocery shop video"
                 />
               </div>
-              {/* 右側：文案區 (使用 t.variety) */}
+              {/* 右側：文案區 */}
               <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
                   <div className="flex flex-col">
@@ -648,10 +595,13 @@ export default function Home({ t, locale }) {
           <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
             {/* 區塊 1 */}
             <FadeUp delay={0.02} amount={0.25} className="relative">
-              <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
+              <Link
+                href="/brand-story?tab=group"
+                className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+              >
                 <Image
                   src="/images/index/about/DAV01968.webp"
-                  alt="有香集團"
+                  alt="Memory Corner Group"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   priority={false}
@@ -675,15 +625,18 @@ export default function Home({ t, locale }) {
                     />
                   </div>
                 </div>
-              </div>
+              </Link>
             </FadeUp>
 
             {/* 區塊 2 */}
             <FadeUp delay={0.06} amount={0.25} className="relative">
-              <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
+              <Link
+                href="/brand-story?tab=youxiang"
+                className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+              >
                 <Image
                   src="/images/index/about/DAV01683.webp"
-                  alt="有香 Memory Corner"
+                  alt="Memory Corner Restaurant"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover"
@@ -706,15 +659,18 @@ export default function Home({ t, locale }) {
                     />
                   </div>
                 </div>
-              </div>
+              </Link>
             </FadeUp>
 
             {/* 區塊 3 */}
             <FadeUp delay={0.1} amount={0.25} className="relative">
-              <div className="group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]">
+              <Link
+                href="/brand-story?tab=memory"
+                className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+              >
                 <Image
                   src="/images/index/about/DAV01773 (1).webp"
-                  alt="億點點 Sweet Memory"
+                  alt="Sweet Memory"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover"
@@ -737,7 +693,7 @@ export default function Home({ t, locale }) {
                     />
                   </div>
                 </div>
-              </div>
+              </Link>
             </FadeUp>
           </div>
         </section>
@@ -762,8 +718,6 @@ export default function Home({ t, locale }) {
           </video>
         </section>
 
-        <section></section>
-
         {/* APP Operation Section */}
         <section className="section_app_operation bg-[#f7f7f7] relative overflow-hidden">
           <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
@@ -787,7 +741,7 @@ export default function Home({ t, locale }) {
                         <Image
                           src="/images/more-btn.png"
                           width={400}
-                          alt="more-btn"
+                          alt="Learn more about our App"
                           height={400}
                           loading="lazy"
                           className="w-[200px] mx-auto sm:mx-0 group-hover:scale-105 scale-100 duration-300 h-auto"

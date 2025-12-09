@@ -3,16 +3,16 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { motion, AnimatePresence } from "framer-motion";
-import Layout from "./Layout"; // 請確認您的 Layout 路徑
+import Layout from "./Layout";
 
 /* ========== 1. 資料庫與翻譯內容 (i18n Data) ========== */
-// 為了版面整潔，建議實際專案將此物件移至 locales/zh-TW.json 與 locales/en.json
 const TRANSLATIONS = {
   "zh-TW": {
     meta: {
-      title: "品牌故事 | 有香 Memory Corner",
+      title: "品牌故事 | Memory Corner 有香餐飲集團",
       description:
-        "有香餐飲集團始於1975年，傳承台灣經典美味。旗下包含有香 Memory Corner、Sweet Memory 憶點點等品牌，在北美傳遞家的溫度。",
+        "有香餐飲集團始於1975年，傳承台灣經典美味。旗下包含有香 Memory Corner、Sweet Memory 憶點點等品牌，在北美傳遞家的溫度與正宗台式料理。",
+      ogImage: "/images/brand-story/集團/集團banner.png", // 設定分享時的縮圖
     },
     tabs: [
       { id: "group", label: "關於集團" },
@@ -27,6 +27,7 @@ const TRANSLATIONS = {
       store_no_data: "此品牌目前無相關門市資訊",
       preparing: "籌備中",
       stay_tuned: "敬請期待更多美味故事...",
+      home: "首頁", // 用於麵包屑
     },
     content: {
       group: {
@@ -98,7 +99,6 @@ const TRANSLATIONS = {
         },
       },
     },
-    // 門市資料 (建議也做多語系)
     stores: {
       group: [
         {
@@ -115,10 +115,14 @@ const TRANSLATIONS = {
       youxiang: [
         {
           id: "store-youxiang-van",
-          name: "Vancouver",
+          name: "Memory Corner 有香 (Vancouver)",
           tel: "(604) 284-5434",
           addrLine1: "1110-4651 Garden City Rd",
           addrLine2: "Richmond BC V6X 2K4",
+          postalCode: "V6X 2K4",
+          addressLocality: "Richmond",
+          addressRegion: "BC",
+          streetAddress: "1110-4651 Garden City Rd",
           hours: "11:30 AM–10:30 PM",
           img: "/images/brand-story/memory-corner-01.png",
           mapUrl:
@@ -132,6 +136,10 @@ const TRANSLATIONS = {
           tel: "(604) 370 - 2882",
           addrLine1: "8080 Leslie Rd",
           addrLine2: "Richmond, BC V6X 4A8",
+          postalCode: "V6X 4A8",
+          addressLocality: "Richmond",
+          addressRegion: "BC",
+          streetAddress: "8080 Leslie Rd",
           hours: "11:30 AM–12:30 AM",
           img: "/images/brand-story/憶點點/DSC07015.jpg",
           mapUrl:
@@ -143,9 +151,10 @@ const TRANSLATIONS = {
   },
   en: {
     meta: {
-      title: "Brand Story | Memory Corner",
+      title: "Brand Story | Memory Corner Group",
       description:
         "Established in 1975, Memory Corner Group brings authentic Taiwanese cuisine to North America. Home to Memory Corner and Sweet Memory.",
+      ogImage: "/images/brand-story/集團/集團banner.png",
     },
     tabs: [
       { id: "group", label: "Group" },
@@ -160,17 +169,18 @@ const TRANSLATIONS = {
       store_no_data: "No store information available yet.",
       preparing: "Coming Soon",
       stay_tuned: "Stay tuned for more delicious stories...",
+      home: "Home",
     },
     content: {
       group: {
         bannerAlt: "Group Origin",
         title: "The Origin of Memory Corner Group",
         paragraphs: [
-          "The story of Memory Corner Group began in 1975 in Kaohsiung, Taiwan. Grandpa Wu, determined to improve his family's life, left his stable job to open a small restaurant. He cycled three hours every morning to learn traditional Taiwanese mutton cooking. His dedication made Wu's Mutton Hot Pot a treasure among Kaohsiung gourmets.",
-          "As time passed, Grandpa Wu passed his unique recipe to Papa Wu, and the restaurant became a renowned classic in Kaohsiung.",
-          "Later, the family immigrated to Canada, and the restaurant closed, becoming a regret for Grandpa Wu. However, the legacy didn't end there. Growing up in Canada, the eldest grandson aspired to be a chef, never forgetting his grandfather's craft. After years of hard work, he decided to revive the family flavor in North America, founding the 'Memory Corner Group'.",
-          "The name 'Memory Corner' (You Xiang) comes from the names of Grandpa and Grandma, carrying deep respect and longing for family heritage. It is not just a name, but an extension of emotion and family memory.",
-          "Memory Corner Group hopes this family flavor will warm every customer's heart, letting Taiwanese food culture bloom in North America, delivering the warmth of home and belonging.",
+          "The story of Memory Corner Group began in 1975 in Kaohsiung, Taiwan...",
+          "As time passed, Grandpa Wu passed his unique recipe to Papa Wu...",
+          "Later, the family immigrated to Canada, and the restaurant closed...",
+          "The name 'Memory Corner' (You Xiang) comes from the names of Grandpa and Grandma...",
+          "Memory Corner Group hopes this family flavor will warm every customer's heart...",
         ],
       },
       youxiang: {
@@ -180,9 +190,9 @@ const TRANSLATIONS = {
           caption:
             "Every brick and tile in the old house inherits forty years of history.",
           paragraphs: [
-            "'Memory Corner' symbolizes the scent of firewood, soy sauce, and broth on the dining table—the truest taste of family reunion. From day one, we wanted to serve not standard commercial dishes, but home-cooked meals that remind you of family.",
-            "We specialize in hot pots, braised dishes, and Taiwanese sides, insisting on seasonal ingredients and family recipes. We don't pursue flashy plating; we only care that the first bite reminds you: 'Ah, this is the taste I know.'",
-            "Whether you come alone for noodles or gather with friends for hot pot, Memory Corner hopes to be your second dining table away from home.",
+            "'Memory Corner' symbolizes the scent of firewood, soy sauce...",
+            "We specialize in hot pots, braised dishes, and Taiwanese sides...",
+            "Whether you come alone for noodles or gather with friends for hot pot...",
           ],
         },
         glory: {
@@ -191,8 +201,8 @@ const TRANSLATIONS = {
             "Every award on the wall represents the heritage of the old house.",
           title: "Honoring Heritage,<br />Keeping the Passion",
           paragraphs: [
-            "Over the years, Memory Corner has won various awards and recognition. Behind every medal is the team's repeated testing in the kitchen.",
-            "To us, awards are not just halos, but reminders—reminders not to get lost in applause, but to keep our original persistence and passion for cooking.",
+            "Over the years, Memory Corner has won various awards...",
+            "To us, awards are not just halos, but reminders...",
           ],
         },
         classic: {
@@ -200,7 +210,7 @@ const TRANSLATIONS = {
           title:
             "This door is open quietly at Memory Corner,<br />Waiting for you to enter,<br />And meet the beauty of Taiwan.",
           paragraphs: [
-            "The store collects various nostalgic Taiwanese items. Every display hides a common childhood memory of Taiwanese people. The retro atmosphere takes you into a time tunnel, smelling the familiar scents of old streets.",
+            "The store collects various nostalgic Taiwanese items...",
           ],
         },
       },
@@ -209,9 +219,9 @@ const TRANSLATIONS = {
         origin: {
           label: "【ORIGIN】",
           paragraphs: [
-            "The origin of 'Sweet Memory' implies those sweet moments hidden deep in the heart that last forever.",
-            "In search of its Chinese name, 'Yi Dian Dian' (Reminiscing a little) emerged. Why not 'A Little Bit'? Because the power of memory is never just a little bit; it can cross time and bring infinite energy.",
-            "Sweet Memory is not just a restaurant, but a time station, carrying the warm memories of Father Wu's hand-baked desserts and ancient savory dishes.",
+            "The origin of 'Sweet Memory' implies those sweet moments...",
+            "In search of its Chinese name, 'Yi Dian Dian' emerged...",
+            "Sweet Memory is not just a restaurant, but a time station...",
           ],
         },
         persist: {
@@ -220,7 +230,7 @@ const TRANSLATIONS = {
             "Every brick and tile in the old house inherits forty years of history.",
           title: "Good Old Taste,<br />Starts from Preparation",
           paragraphs: [
-            "Made fresh daily with heart, preserving the purest old-time flavor. Hand-made desserts and savory foods, real ingredients, tasting that bite of happiness memory.",
+            "Made fresh daily with heart, preserving the purest old-time flavor...",
           ],
         },
         classic: {
@@ -229,9 +239,7 @@ const TRANSLATIONS = {
             "Every brick and tile in the old house inherits forty years of history.",
           title:
             "We invite you to walk into deep memory,<br />Tasting those familiar but distant childhood flavors",
-          paragraphs: [
-            "At Sweet Memory, we treat you with sincerity. Wherever you come from, every guest can find that warmth in memory through a bite of dessert or ancient flavor.",
-          ],
+          paragraphs: ["At Sweet Memory, we treat you with sincerity..."],
         },
       },
     },
@@ -251,10 +259,14 @@ const TRANSLATIONS = {
       youxiang: [
         {
           id: "store-youxiang-van",
-          name: "Vancouver",
+          name: "Memory Corner (Vancouver)",
           tel: "(604) 284-5434",
           addrLine1: "1110-4651 Garden City Rd",
           addrLine2: "Richmond BC V6X 2K4",
+          postalCode: "V6X 2K4",
+          addressLocality: "Richmond",
+          addressRegion: "BC",
+          streetAddress: "1110-4651 Garden City Rd",
           hours: "11:30 AM–10:30 PM",
           img: "/images/brand-story/memory-corner-01.png",
           mapUrl:
@@ -268,6 +280,10 @@ const TRANSLATIONS = {
           tel: "(604) 370 - 2882",
           addrLine1: "8080 Leslie Rd",
           addrLine2: "Richmond, BC V6X 4A8",
+          postalCode: "V6X 4A8",
+          addressLocality: "Richmond",
+          addressRegion: "BC",
+          streetAddress: "8080 Leslie Rd",
           hours: "11:30 AM–12:30 AM",
           img: "/images/brand-story/憶點點/DSC07015.jpg",
           mapUrl:
@@ -298,7 +314,7 @@ function FadeUp({ children, delay = 0, className = "" }) {
       className={className}
       initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, amount: 0.1 }} // 讓滑動時觸發
+      viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.8, delay, ease: easeOut }}
     >
       {children}
@@ -333,7 +349,6 @@ const ContentGroup = ({ t }) => (
 
 const ContentYouxiang = ({ t }) => (
   <div className="space-y-10">
-    {/* 緣起 */}
     <div className="border-t border-[#c9b79a] pt-6">
       <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
         {t.content.youxiang.origin.label}
@@ -360,7 +375,6 @@ const ContentYouxiang = ({ t }) => (
       </div>
     </div>
 
-    {/* 光采 */}
     <div className="border-t pt-6">
       <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
         {t.content.youxiang.glory.label}
@@ -394,7 +408,6 @@ const ContentYouxiang = ({ t }) => (
       </div>
     </div>
 
-    {/* 老味道 */}
     <div className="border-t border-[#c9b79a] pt-6">
       <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
         {t.content.youxiang.classic.label}
@@ -428,7 +441,6 @@ const ContentMemory = ({ t }) => (
         {t.content.memory.mainTitle}
       </h1>
 
-      {/* 緣起 */}
       <div className="border-b border-[#7b5b33] mb-4 mt-8">
         <h2 className="mb-4 text-xl md:text-2xl font-semibold tracking-[0.4em] text-[#7b5b33]">
           {t.content.memory.origin.label}
@@ -449,7 +461,6 @@ const ContentMemory = ({ t }) => (
         ))}
       </div>
 
-      {/* 堅持 */}
       <div className="border-b border-[#7b5b33] mb-4">
         <h2 className="mb-4 mt-8 text-xl md:text-2xl font-semibold tracking-[0.4em] text-[#7b5b33]">
           {t.content.memory.persist.label}
@@ -485,7 +496,6 @@ const ContentMemory = ({ t }) => (
         </div>
       </div>
 
-      {/* 老味道 */}
       <div className="border-b border-[#7b5b33] mb-4">
         <h2 className="mb-4 mt-8 text-xl md:text-2xl font-semibold tracking-[0.4em] text-[#7b5b33]">
           {t.content.memory.classic.label}
@@ -572,11 +582,11 @@ function StoreCard({ store }) {
 /* ========== 5. 主頁面元件 ========== */
 export default function BrandStoryPage({ t, locale }) {
   const router = useRouter();
+  const siteUrl = "https://www.memorycorner8.com"; // 您的網站網址
+  const currentPath = router.asPath.split("?")[0]; // 移除 query params
 
-  // Pages Router: 使用 router.query 取得參數
+  // Tabs Logic
   const tabFromUrl = router.query.tab;
-
-  // 驗證 Tab 是否有效
   const activeTab = useMemo(() => {
     const defaultTab = "youxiang";
     if (!tabFromUrl) return defaultTab;
@@ -585,7 +595,6 @@ export default function BrandStoryPage({ t, locale }) {
   }, [tabFromUrl, t.tabs]);
 
   const handleTabClick = (id) => {
-    // 使用 shallow routing 切換 tab，不重新執行 getStaticProps
     router.push(
       { pathname: router.pathname, query: { ...router.query, tab: id } },
       undefined,
@@ -625,7 +634,9 @@ export default function BrandStoryPage({ t, locale }) {
 
   const getFooterBg = () => "/images/brand-story/DAV01915.png";
 
-  /* ========== SEO & Structured Data 結構化資料 ========== */
+  /* ========== SEO & Structured Data (JSON-LD) ========== */
+
+  // 1. Breadcrumb Schema
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -633,48 +644,117 @@ export default function BrandStoryPage({ t, locale }) {
       {
         "@type": "ListItem",
         position: 1,
-        name: locale === "en" ? "Home" : "首頁",
-        item: `https://www.memorycorner8.com${locale === "en" ? "/en" : ""}`,
+        name: t.ui.home,
+        item: `${siteUrl}${locale === "en" ? "/en" : ""}`,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: t.meta.title,
-        item: `https://www.memorycorner8.com${router.asPath}`,
+        item: `${siteUrl}${currentPath}`,
       },
     ],
   };
 
+  // 2. Organization Schema
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Memory Corner 有香餐飲集團",
-    url: "https://www.memorycorner8.com",
-    logo: "https://www.memorycorner8.com/logo.png", // 請替換成實際 Logo URL
-    description: t.meta.description,
+    name: "Memory Corner / 有香餐飲集團",
+    url: siteUrl,
+    logo: `${siteUrl}/images/logo/有香餐飲集團-logo.png`, // 請確認路徑
     foundingDate: "1975",
+    description: t.meta.description,
     sameAs: [
       "https://www.facebook.com/MemoryCorner8",
       "https://www.instagram.com/memorycorner8",
     ],
   };
 
+  // 3. AboutPage Schema (告訴 Google 這是介紹頁)
+  const aboutPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    mainEntity: {
+      "@type": "Organization",
+      "@id": "#organization", // 連結到上方的 Organization
+    },
+    name: t.meta.title,
+    description: t.meta.description,
+    inLanguage: locale,
+  };
+
+  // 4. LocalBusiness Schema (列出所有分店，提升在地搜尋)
+  // 我們從 t.stores 中提取所有分店資料
+  const allStores = [
+    ...t.stores.youxiang,
+    ...t.stores.memory,
+    ...t.stores.group,
+  ];
+
+  const storesSchema = allStores.map((store) => ({
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: store.name,
+    image: `${siteUrl}${store.img}`,
+    telephone: store.tel,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: store.streetAddress || store.addrLine1,
+      addressLocality: store.addressLocality || "Richmond",
+      addressRegion: store.addressRegion || "BC",
+      postalCode: store.postalCode,
+      addressCountry: "CA",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      // 如果有經緯度可以加在這裡，目前先省略
+      latitude: "",
+      longitude: "",
+    },
+    url: store.mapUrl,
+  }));
+
   return (
     <Layout>
-      {/* 1. SEO Meta Tags */}
+      {/* SEO Head */}
       <Head>
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />
-        <meta property="og:type" content="website" />
+        <meta property="og:image" content={`${siteUrl}${t.meta.ogImage}`} />
+        <meta property="og:site_name" content="Memory Corner" />
+        <meta
+          property="og:locale"
+          content={locale === "zh-TW" ? "zh_TW" : "en_US"}
+        />
+        <meta property="og:url" content={`${siteUrl}${currentPath}`} />
+
+        <link rel="canonical" href={`${siteUrl}${currentPath}`} />
+
+        {/* Hreflang Tags: 告訴 Google 不同語言版本的網址 */}
         <link
-          rel="canonical"
-          href={`https://www.memorycorner8.com${router.asPath}`}
+          rel="alternate"
+          hreflang="x-default"
+          href={`${siteUrl}/brand-story`}
+        />
+        <link
+          rel="alternate"
+          hreflang="zh-TW"
+          href={`${siteUrl}/brand-story`}
+        />
+        <link
+          rel="alternate"
+          hreflang="en"
+          href={`${siteUrl}/en/brand-story`}
         />
       </Head>
 
-      {/* 2. Structured Data JSON-LD */}
+      {/* JSON-LD Scripts */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
@@ -683,6 +763,18 @@ export default function BrandStoryPage({ t, locale }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageSchema) }}
+      />
+      {/* 注入所有分店的 Schema */}
+      {storesSchema.map((schema, index) => (
+        <script
+          key={index}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
 
       <main className="min-h-screen text-[#3b2a1a] bg-[#f0e3cd] relative ">
         {/* Header 背景圖 */}

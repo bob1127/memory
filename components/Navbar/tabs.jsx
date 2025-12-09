@@ -367,7 +367,7 @@ function OrderPopup({ open, onClose, children }) {
       >
         <motion.div
           variants={modalCard}
-          className="relative w-full max-w-[1560px] bg-[#dcdedd] p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
+          className="relative w-full max-w-[1560px] bg-[#dcdedd] p-6 shadow-2xl overflow-y-auto max-h-[98vh]"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -1155,6 +1155,95 @@ export const SlideTabsExample = () => {
         <div className="w-full sm:block hidden">
           <Image
             src="/images/online-store/desktop-01.png"
+            alt=""
+            className="w-full"
+            placeholder="empty"
+            width={1920}
+            height={600}
+          />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4">
+          {/* 第一個區塊 (有連結) */}
+          <div className="overflow-hidden p-2 sm:p-5">
+            <Link
+              href="https://h5.posking.ca/#/shop?id=598"
+              className="block w-full h-full"
+              target="_blank"
+            >
+              <Image
+                src="/images/online-store/desktop-02.png"
+                alt=""
+                className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                placeholder="empty"
+                width={1920}
+                height={600}
+              />
+            </Link>
+          </div>
+
+          {/* 第二個區塊 */}
+          <div className="overflow-hidden p-2 sm:p-5">
+            <Link
+              href="https://h5.posking.ca/#/shop?form=OW&id=624&lid=20&mid=27"
+              className="block w-full h-full"
+              target="_blank"
+            >
+              {" "}
+              <Image
+                src="/images/online-store/desktop-03.png"
+                alt=""
+                className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                placeholder="empty"
+                width={1920}
+                height={600}
+              />
+            </Link>
+          </div>
+
+          {/* 第三個區塊 */}
+          <div className="overflow-hidden p-2 sm:p-5">
+            <Link
+              href="https://h5.posking.ca/#/shop?id=609"
+              className="block w-full h-full"
+              target="_blank"
+            >
+              {" "}
+              <Image
+                src="/images/online-store/desktop-04.png"
+                alt=""
+                className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                placeholder="empty"
+                width={1920}
+                height={600}
+              />{" "}
+            </Link>
+          </div>
+
+          {/* 第四個區塊 */}
+          <div className="overflow-hidden p-2 sm:p-5">
+            <Image
+              src="/images/online-store/desktop-05.png"
+              alt=""
+              className="w-full h-auto duration-300 scale-100 hover:scale-105"
+              placeholder="empty"
+              width={1920}
+              height={600}
+            />
+          </div>
+        </div>
+        <div className="w-full sm:block hidden p-5 overflow-hidden">
+          <Image
+            src="/images/online-store/desktop-06.png"
+            alt=""
+            className="w-full hover:scale-105 scale-100 duration-300"
+            placeholder="empty"
+            width={1920}
+            height={600}
+          />
+        </div>
+        <div className="w-full   ">
+          <Image
+            src="/images/online-store/desktop-07.png"
             alt=""
             className="w-full"
             placeholder="empty"
