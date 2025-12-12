@@ -4,7 +4,7 @@ import Link from "next/link";
 import Marquee from "react-marquee-slider";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import Head from "next/head"; // ✅ 新增 Head
+import Head from "next/head";
 import {
   motion,
   useMotionValue,
@@ -25,16 +25,15 @@ const MinimalPushOverlayMenu = dynamic(
 );
 
 /* =================================================================
-   1. 翻譯資料庫 (已擴充 Meta 資料)
+   1. 翻譯資料庫
    ================================================================= */
 const TRANSLATIONS = {
   "zh-TW": {
-    // ✅ 新增：首頁 SEO Meta
     meta: {
       title: "Memory Corner 有香餐飲集團 | 正宗台式料理與懷舊美味",
       description:
         "始於1975年，有香餐飲集團在溫哥華呈現最正宗的台灣味。旗下擁有 Memory Corner 有香、Sweet Memory 憶點點，提供台式鍋物、小吃、甜點與特色啤酒，帶您重溫家的溫度。",
-      ogImage: "/images/index/banner-06-a.png", // 使用 Hero 背景或專用縮圖
+      ogImage: "/images/index/banner-06-a.png",
     },
     beer: {
       honey: {
@@ -77,7 +76,6 @@ const TRANSLATIONS = {
     },
   },
   en: {
-    // ✅ 新增：首頁 SEO Meta (英文)
     meta: {
       title: "Memory Corner Group | Authentic Taiwanese Cuisine in Vancouver",
       description:
@@ -146,7 +144,7 @@ export async function getStaticProps({ locale }) {
 }
 
 /* =================================================================
-   3. 動畫與輔助元件 (保持不變)
+   3. 動畫與輔助元件
    ================================================================= */
 
 function FadeUp({
@@ -195,22 +193,26 @@ function AutoSwapImage({
   rotateInfinite = false,
   rotateDuration = 16,
   priority = false,
+  forceShowB,
 }) {
   const prefersReduced = useReducedMotion?.();
-  const [showB, setShowB] = useState(false);
+  const [internalShowB, setInternalShowB] = useState(false);
+
+  const isControlled = forceShowB !== undefined;
+  const showB = isControlled ? forceShowB : internalShowB;
 
   useEffect(() => {
-    if (prefersReduced) return;
+    if (isControlled || prefersReduced) return;
     const first = setTimeout(
-      () => setShowB((v) => !v),
+      () => setInternalShowB((v) => !v),
       initialDelay || interval
     );
-    const timer = setInterval(() => setShowB((v) => !v), interval);
+    const timer = setInterval(() => setInternalShowB((v) => !v), interval);
     return () => {
       clearTimeout(first);
       clearInterval(timer);
     };
-  }, [interval, initialDelay, prefersReduced]);
+  }, [interval, initialDelay, prefersReduced, isControlled]);
 
   const srcA = `${base}-a.png`;
   const srcB = `${base}-b.png`;
@@ -277,20 +279,129 @@ function AutoSwapImage({
   return <div className={`absolute ${positionClass}`}>{content}</div>;
 }
 
+function RotatingSplitImage({
+  baseA,
+  baseB,
+  alt = "",
+  className = "",
+  interval = 6000,
+  initialDelay = 0,
+  rotateDuration = 16,
+  priority = false,
+  forceShowB,
+}) {
+  const prefersReduced = useReducedMotion?.();
+  const [internalShowB, setInternalShowB] = useState(false);
+
+  const isControlled = forceShowB !== undefined;
+  const showB = isControlled ? forceShowB : internalShowB;
+
+  useEffect(() => {
+    if (isControlled || prefersReduced) return;
+    const first = setTimeout(() => {
+      setInternalShowB((v) => !v);
+      const timer = setInterval(() => setInternalShowB((v) => !v), interval);
+      return () => clearInterval(timer);
+    }, initialDelay || interval);
+    return () => clearTimeout(first);
+  }, [interval, initialDelay, prefersReduced, isControlled]);
+
+  const currentBase = showB ? baseB : baseA;
+  const bgSrc = `${currentBase}-01.png`;
+  const fgSrc = `${currentBase}-02.png`;
+
+  const swapTransition = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.8, ease: "easeInOut" },
+  };
+
+  return (
+    <motion.div
+      className={`absolute pointer-events-none aspect-square ${className}`}
+      initial={{ opacity: 0, x: -24 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{
+        duration: 1.05,
+        ease: [0.16, 1, 0.3, 1],
+        delay: initialDelay / 1000,
+      }}
+    >
+      <div className="relative w-full h-full flex items-center justify-center">
+        {/* 背景層：旋轉 */}
+        <motion.div
+          className="absolute inset-0 w-full h-full flex items-center justify-center"
+          animate={{ rotate: 360 }}
+          transition={{
+            repeat: Infinity,
+            ease: "linear",
+            duration: rotateDuration,
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={showB ? "bgB" : "bgA"}
+              className="absolute inset-0 w-full h-full"
+              {...swapTransition}
+            >
+              <Image
+                src={bgSrc}
+                alt={`${alt} Background`}
+                width={400}
+                height={400}
+                className="w-full h-full object-contain"
+                priority={priority}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+
+        {/* 前景層：固定 */}
+        <div className="absolute inset-0 w-full h-full z-10 flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={showB ? "fgB" : "fgA"}
+              className="w-full h-full flex items-center justify-center"
+              {...swapTransition}
+            >
+              <Image
+                src={fgSrc}
+                alt={`${alt} Foreground`}
+                width={400}
+                height={400}
+                className="w-full h-full object-contain scale-90"
+                priority={priority}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 /* =================================================================
    4. 主頁面元件
    ================================================================= */
 export default function Home({ t, locale }) {
-  // 如果 t 不存在，回傳 null 避免錯誤
   if (!t) return null;
 
   const rightRef = useRef(null);
   const siteUrl = "https://www.memorycorner8.com";
 
-  // --- 輪播設定 ---
+  // 全域 A/B 循環狀態控制 (讓背景與標誌同步)
+  const [globalIsB, setGlobalIsB] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setGlobalIsB((prev) => !prev);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, []);
+
   const OPTIONS = { dragFree: true, loop: true };
 
-  // --- 定義輪播資料 ---
   const SLIDES = [
     {
       image: "/images/beer/台啤-蜂蜜.webp",
@@ -312,7 +423,6 @@ export default function Home({ t, locale }) {
       title: t.beer.craft.title,
       description: t.beer.craft.description,
     },
-    // 重複 Slide 以維持無縫輪播
     {
       image: "/images/beer/台啤-蜂蜜.webp",
       title: t.beer.honey.title,
@@ -335,7 +445,6 @@ export default function Home({ t, locale }) {
     },
   ];
 
-  // 中央 hotpot 旋轉邏輯
   const baseAngle = useMotionValue(0);
   useEffect(() => {
     const stepPerWheel = 0.25;
@@ -345,13 +454,10 @@ export default function Home({ t, locale }) {
     return () => window.removeEventListener("wheel", onWheel);
   }, [baseAngle]);
 
-  // Dinging 區塊 Scroll Hook
   const dingingRef = useRef(null);
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
   /* ========== SEO & Structured Data (JSON-LD) ========== */
-
-  // 1. WebSite Schema (這對首頁最重要，定義網站本體)
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -365,7 +471,6 @@ export default function Home({ t, locale }) {
     },
   };
 
-  // 2. Organization Schema
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -378,7 +483,6 @@ export default function Home({ t, locale }) {
     ],
   };
 
-  // 3. VideoObject Schema (針對首頁下方的影片)
   const videoSchema = {
     "@context": "https://schema.org",
     "@type": "VideoObject",
@@ -386,7 +490,7 @@ export default function Home({ t, locale }) {
     description:
       "Enjoy authentic Taiwanese cuisine and beer with friends at Memory Corner.",
     thumbnailUrl: `${siteUrl}/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg`,
-    uploadDate: "2024-01-01T08:00:00+08:00", // 請替換為實際日期
+    uploadDate: "2024-01-01T08:00:00+08:00",
     contentUrl: `${siteUrl}/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4`,
     embedUrl: siteUrl,
   };
@@ -394,13 +498,10 @@ export default function Home({ t, locale }) {
   return (
     <>
       <Layout>
-        {/* 1. SEO Meta Tags */}
         <Head>
           <title>{t.meta.title}</title>
           <meta name="description" content={t.meta.description} />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-          {/* Open Graph */}
           <meta property="og:type" content="website" />
           <meta property="og:title" content={t.meta.title} />
           <meta property="og:description" content={t.meta.description} />
@@ -414,20 +515,15 @@ export default function Home({ t, locale }) {
             property="og:url"
             content={`${siteUrl}${locale === "en" ? "/en" : ""}`}
           />
-
-          {/* Canonical */}
           <link
             rel="canonical"
             href={`${siteUrl}${locale === "en" ? "/en" : ""}`}
           />
-
-          {/* Hreflang Tags (語言對照) */}
           <link rel="alternate" hreflang="x-default" href={siteUrl} />
           <link rel="alternate" hreflang="zh-TW" href={siteUrl} />
           <link rel="alternate" hreflang="en" href={`${siteUrl}/en`} />
         </Head>
 
-        {/* 2. Structured Data JSON-LD */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
@@ -446,10 +542,10 @@ export default function Home({ t, locale }) {
         {/* Section Hero */}
         <section className="section-hero z-[9] pt-[0px] relative md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
           <div className="relative h-full w-full">
-            {/* 中央主標 */}
+            {/* 中央主標 - 綁定全域狀態 forceShowB */}
             <AutoSwapImage
               base="/images/index/banner-06"
-              alt="Memory Corner Authentic Taiwanese Cuisine Background" // SEO優化：加上具體關鍵字
+              alt="Memory Corner Authentic Taiwanese Cuisine Background"
               positionClass="z-10 right-[-3%] top-[10%] md:top-[-10%]"
               className="w-[80vw]"
               width={1200}
@@ -457,6 +553,7 @@ export default function Home({ t, locale }) {
               interval={7000}
               enterFrom="none"
               priority={true}
+              forceShowB={globalIsB} // ✅ 與全域同步
             />
 
             {/* 角色 */}
@@ -487,20 +584,17 @@ export default function Home({ t, locale }) {
               offset={28}
             />
 
-            {/* 轉動標誌 */}
-            <AutoSwapImage
-              base="/images/index/banner-07"
-              alt="Memory Corner Mark"
-              positionClass="z-30 left-[10%] md:left-[20%] bottom-[43%] md:bottom-[20%] xl:bottom-[17%]"
-              className="w-[10vw]"
-              width={800}
-              height={500}
+            {/* 轉動標誌 - 綁定全域狀態 forceShowB */}
+            <RotatingSplitImage
+              baseA="/images/index/banner-07-a"
+              baseB="/images/index/banner-07-b"
+              alt="Memory Corner Seal Mark"
+              className="z-30 left-[10%] md:left-[20%] bottom-[30%] md:bottom-[15%] xl:bottom-[10%] w-[16vw] sm:w-[10vw]"
               interval={7000}
               initialDelay={3600}
-              enterFrom="left"
-              offset={24}
-              rotateInfinite
               rotateDuration={16}
+              priority={true}
+              forceShowB={globalIsB} // ✅ 與全域同步
             />
 
             {/* 火鍋 */}
@@ -532,11 +626,11 @@ export default function Home({ t, locale }) {
         >
           <div className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
-              {/* 左側：影片區 */}
+              {/* 左側：影片區 (已設定自動播放影片) */}
               <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
                 <video
                   className="w-full h-full scale-[1.5] object-cover"
-                  src="/video/灶腳.mov"
+                  src="/video/灶腳.webm"
                   autoPlay
                   loop
                   muted
