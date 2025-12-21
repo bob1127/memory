@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react"; // 1. 補上 useEffect
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -47,42 +47,44 @@ const stripHtml = (html) => {
 /* =================================================================
    Frontend Component
    ================================================================= */
-// 2. 接收 redirectDestination prop
 export default function BeerInner({
   product,
   linkedChineseId,
   names,
   redirectDestination,
 }) {
-  const { locale, asPath, replace } = useRouter(); // 3. 拿出 replace 方法
+  const { locale, asPath, replace } = useRouter();
 
-  // 4. 新增：客戶端轉址邏輯
+  // 1. 【修正】所有的 Hooks (useState, useEffect) 必須在條件判斷 (if/return) 之前宣告
+  const [thumbsSwiper, setThumbsSwiper] = useState(null);
+  const [qty, setQty] = useState(1);
+  const [toast, setToast] = useState(false);
+
+  // 2. 【修正】處理轉址的 useEffect 也要放在最上面
   useEffect(() => {
     if (redirectDestination) {
       replace(redirectDestination);
     }
   }, [redirectDestination, replace]);
 
-  // 如果需要轉址，先回傳 null 避免閃爍 (或顯示 Loading)
+  // 3. 【修正】所有的 Hooks 都執行完畢後，才能進行條件 return
+  // 如果需要轉址，先回傳 null 避免閃爍
   if (redirectDestination) return null;
 
+  // 如果沒有產品資料，回傳 null (或可改為 404 UI)
   if (!product) return null;
 
   const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
   const isEn = locale === "en";
 
-  const [thumbsSwiper, setThumbsSwiper] = useState(null);
-  const [qty, setQty] = useState(1);
-  const [toast, setToast] = useState(false);
-
   // --- 顯示與 SEO 邏輯 ---
 
-  // 1. 確保名稱符合當前語系
+  // 確保名稱符合當前語系
   const currentDisplayName = isEn
     ? names?.en || product.name
     : names?.zh || product.name;
 
-  // 2. SEO Description 優先抓取「簡短說明 (short_description)」
+  // SEO Description 優先抓取「簡短說明 (short_description)」
   const rawSeoDesc = product.short_description || product.description;
   const cleanSeoDesc = stripHtml(rawSeoDesc).substring(0, 160);
 
@@ -190,7 +192,7 @@ export default function BeerInner({
           <meta property="og:locale" content="zh_TW" key="og:locale" />
         )}
 
-        {/* 3. Twitter Card (這段是剛剛漏掉的，必須加上才能覆蓋中文) */}
+        {/* 3. Twitter Card */}
         <meta
           name="twitter:card"
           content="summary_large_image"
@@ -496,7 +498,7 @@ export async function getStaticProps({ params, locale }) {
       }
     }
 
-    // 5. 修改：移除 return redirect，改為設定變數
+    // 設定轉址目標
     let redirectDestination = null;
 
     if (locale === "en" && productLang === "zh-TW") {
@@ -545,10 +547,9 @@ export async function getStaticProps({ params, locale }) {
         product,
         linkedChineseId: linkedChineseId || product.id,
         names: names,
-        // 6. 將轉址目標傳給前端
         redirectDestination,
       },
-      revalidate: 60,
+      revalidate: 10,
     };
   } catch (err) {
     console.error("❌ getStaticProps Error:", err);
