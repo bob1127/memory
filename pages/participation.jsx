@@ -389,7 +389,7 @@ export default function FranchiseInfoPage({ t, locale }) {
                             </h3>
                           </FadeUp>
                           <FadeUp delay={0.12}>
-                            <p className="mt-6 max-w-[560px] leading-relaxed text-stone-800/90">
+                            <p className="mt-6 max-w-[560px] text-lg leading-relaxed text-stone-800/90">
                               {feature.desc}
                             </p>
                           </FadeUp>
@@ -467,7 +467,7 @@ export default function FranchiseInfoPage({ t, locale }) {
                     href={t.ctaLink}
                     title={t.cta}
                     className="
-                      inline-block bg-stone-800 text-[#dd8b34] px-8 py-3 font-semibold text-lg
+                      inline-block bg-stone-800 text-[#dd8b34] rounded-full px-8 py-3 font-semibold text-lg
                       shadow-[4px_4px_0_0_#7d7d7c] 
                       transition-all duration-200 
                       hover:translate-x-[-2px] hover:translate-y-[-2px] 

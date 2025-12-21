@@ -505,13 +505,13 @@ export const SlideTabsExample = () => {
                 <Link
                   href="https://corner-rouge.vercel.app/"
                   target="_blank"
-                  className="group relative overflow-hidden rounded-full border border-white/30 bg-[#9c2121] px-5 py-2 text-[15px] text-white hover:bg-[#881b1b] transition-colors shadow-sm"
+                  className="rounded-full  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
                 >
                   <span className="relative z-10">{t.group_buy}</span>
                 </Link>
                 <button
                   onClick={() => setShowOrderPopup(true)}
-                  className="rounded-full border border-white/30 bg-[#9c2121] px-5 py-2 text-[15px] text-white hover:bg-[#881b1b] transition-colors shadow-sm"
+                  className="rounded-full  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
                 >
                   {t.order_online}
                 </button>
@@ -1407,7 +1407,7 @@ function MobileNavSheet({
                   <Link
                     href={cta.groupBuy.href}
                     target="_blank"
-                    className="rounded-xl bg-[#9c2121] px-2 py-2.5 text-center text-sm font-medium text-white hover:bg-[#881b1b]"
+                    className="rounded-full flex justify-center  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
                     onClick={onClose}
                   >
                     {t.group_buy}
@@ -1417,7 +1417,7 @@ function MobileNavSheet({
                       onOrderClick?.();
                       onClose?.();
                     }}
-                    className="rounded-xl border border-[#9c2121] text-[#9c2121] bg-white px-2 py-2.5 text-center text-sm font-medium hover:bg-red-50"
+                    className="rounded-full  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
                   >
                     {t.order_online}
                   </button>

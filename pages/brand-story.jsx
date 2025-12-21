@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import Layout from "./Layout";
 
 /* ========== 設定網域 (使用環境變數) ========== */
-// 優先使用環境變數，若無則 fallback
 const SITE_DOMAIN =
   process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
 
@@ -23,12 +22,32 @@ const TRANSLATIONS = {
       siteName: "有香餐飲集團 Memory Corner",
       ogLocale: "zh_TW",
     },
-    // ★★★ 重要：這裡是新增的 Logo 設定，請確保有複製到 ★★★
     brandLogos: {
-      group: "/images/brand-story/有香logo.png", // 請確認集團 Logo 路徑
-      youxiang: "/images/brand-story/有香logo.png", // 請確認有香 Logo 路徑
-      memory: "/images/brand-story/憶點點logo.png", // 請確認憶點點 Logo 路徑
-      corner: "/images/brand-story/有香灶腳logo.png", // 請確認灶腳 Logo 路徑
+      group: "/images/brand-story/有香logo.png",
+      youxiang: "/images/brand-story/有香logo.png",
+      memory: "/images/brand-story/憶點點logo.png",
+      corner: "/images/brand-story/有香灶腳logo.png",
+    },
+    brandList: {
+      title: "旗下品牌",
+      desc: "有香餐飲集團匯聚多元品牌，從經典台菜、懷舊甜品到便利即時料理，用心傳承台灣飲食文化，全方位滿足您的味蕾。",
+      logos: [
+        {
+          src: "/images/brand-story/有香logo.png",
+          alt: "Memory Corner 有香",
+          width: 140,
+        },
+        {
+          src: "/images/brand-story/憶點點logo.png",
+          alt: "Sweet Memory 憶點點",
+          width: 140,
+        },
+        {
+          src: "/images/brand-story/有香灶腳logo.png",
+          alt: "Kitchen Corner 有香ㄟ灶腳",
+          width: 140,
+        },
+      ],
     },
     tabs: [
       { id: "group", label: "關於集團" },
@@ -175,7 +194,7 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "",
           hours: "11:00 AM–08:00 PM",
-          img: "/images/brand-story/DSC07330.webp", // 灶腳圖片
+          img: "/images/brand-story/DSC07330.webp",
           mapUrl: "#",
         },
       ],
@@ -192,12 +211,32 @@ const TRANSLATIONS = {
       siteName: "Memory Corner Group",
       ogLocale: "en_US",
     },
-    // ★★★ 英文版也要加入 brandLogos ★★★
     brandLogos: {
       group: "/images/brand-story/有香logo.png",
       youxiang: "/images/brand-story/有香logo.png",
       memory: "/images/brand-story/憶點點logo.png",
       corner: "/images/brand-story/有香灶腳logo.png",
+    },
+    brandList: {
+      title: "OUR BRANDS",
+      desc: "Memory Corner Group brings together diverse brands, from classic Taiwanese cuisine and nostalgic desserts to convenient instant meals, satisfying your taste buds in every way.",
+      logos: [
+        {
+          src: "/images/brand-story/有香logo.png",
+          alt: "Memory Corner",
+          width: 140,
+        },
+        {
+          src: "/images/brand-story/憶點點logo.png",
+          alt: "Sweet Memory",
+          width: 140,
+        },
+        {
+          src: "/images/brand-story/有香灶腳logo.png",
+          alt: "Kitchen Corner",
+          width: 140,
+        },
+      ],
     },
     tabs: [
       { id: "group", label: "Group" },
@@ -401,7 +440,7 @@ function FadeUp({ children, delay = 0, className = "" }) {
 
 /* ========== 4. 內容組件 (Content Components) ========== */
 
-// 集團內容：含跑馬燈 (Marquee)
+// 【修改點 1】集團內容：將「旗下品牌」區塊移至此處底部
 const ContentGroup = ({ t }) => (
   <div className="space-y-8">
     <div className="border-t border-[#c9b79a] pt-6">
@@ -414,10 +453,9 @@ const ContentGroup = ({ t }) => (
             transition={{
               repeat: Infinity,
               ease: "linear",
-              duration: 25, // 控制速度
+              duration: 25,
             }}
           >
-            {/* 第一張圖 */}
             <div className="min-w-full relative h-[300px] md:h-[520px]">
               <Image
                 src="/images/brand-story/集團/集團banner.webp"
@@ -427,7 +465,6 @@ const ContentGroup = ({ t }) => (
                 priority
               />
             </div>
-            {/* 第二張圖 (無縫接軌用) */}
             <div className="min-w-full relative h-[300px] md:h-[520px]">
               <Image
                 src="/images/brand-story/集團/集團banner.webp"
@@ -449,6 +486,42 @@ const ContentGroup = ({ t }) => (
         ))}
       </div>
     </div>
+
+    {/* 【移入】旗下品牌列表 (僅顯示於集團 Tab) */}
+    {t.brandList && (
+      <FadeUp delay={0.2}>
+        <section className="mt-16 pt-16 border-t border-[#c9b79a]">
+          <div className="max-w-4xl mx-auto text-center px-4">
+            {/* 標題 */}
+            <h3 className="text-3xl font-bold mb-6 tracking-[0.2em] text-[#3b2a1a]">
+              {t.brandList.title}
+            </h3>
+
+            {/* 文字描述 */}
+            <p className="mb-12 text-[#5c4e42] text-[16px] leading-8 tracking-widest max-w-2xl mx-auto">
+              {t.brandList.desc}
+            </p>
+
+            {/* 品牌 Logo 列表 */}
+            <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20">
+              {t.brandList.logos.map((logo, index) => (
+                <div
+                  key={index}
+                  className="relative w-[140px] h-[80px] grayscale hover:grayscale-0 transition-all duration-500 opacity-80 hover:opacity-100 hover:scale-110"
+                >
+                  <Image
+                    src={logo.src}
+                    alt={logo.alt}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </FadeUp>
+    )}
   </div>
 );
 
@@ -633,7 +706,6 @@ const ContentMemory = ({ t }) => (
   </div>
 );
 
-// 有香ㄟ灶腳
 const ContentCorner = ({ t }) => (
   <div className="space-y-10">
     <div className="border-t border-[#c9b79a] pt-6">
@@ -665,7 +737,6 @@ const ContentCorner = ({ t }) => (
 );
 
 function StoreCard({ store }) {
-  // LocalBusiness Microdata
   return (
     <div
       className="border border-[#c9b79a] bg-[#f7ecdd]"
@@ -726,17 +797,14 @@ function StoreCard({ store }) {
 export default function BrandStoryPage({ t, locale }) {
   const router = useRouter();
 
-  // URL 處理 (使用環境變數 SITE_DOMAIN)
   const currentPath = router.asPath.split("?")[0];
   const canonicalUrl = `${SITE_DOMAIN}${
     currentPath === "/" ? "" : currentPath
   }`;
 
-  // Hreflang 邏輯
   const zhUrl = `${SITE_DOMAIN}/brand-story`;
   const enUrl = `${SITE_DOMAIN}/en/brand-story`;
 
-  // Tabs Logic
   const tabFromUrl = router.query.tab;
   const activeTab = useMemo(() => {
     const defaultTab = "youxiang";
@@ -768,9 +836,7 @@ export default function BrandStoryPage({ t, locale }) {
     }
   };
 
-  // ★★★ 修復 Crash 的關鍵：加入防呆機制，避免翻譯檔漏掉 brandLogos 導致崩潰 ★★★
-  const brandLogos = t.brandLogos || {}; // 確保 brandLogos 是物件
-  // 若找不到對應 tab 的圖片，提供一個預設路徑避免空白或錯誤
+  const brandLogos = t.brandLogos || {};
   const currentBrandLogo =
     brandLogos[activeTab] || "/images/logo/memory-corner-logo.png";
 
@@ -783,7 +849,7 @@ export default function BrandStoryPage({ t, locale }) {
       case "memory":
         return "/images/brand-story/憶點點/DSC07015.webp";
       case "corner":
-        return "/images/brand-story/DSC07330.webp"; // 灶腳背景圖
+        return "/images/brand-story/DSC07330.webp";
       default:
         return "/images/index/about/DAV01968.jpg";
     }
@@ -791,15 +857,13 @@ export default function BrandStoryPage({ t, locale }) {
 
   const getFooterBg = () => "/images/brand-story/DAV01915.png";
 
-  /* ========== SEO & Structured Data (JSON-LD) ========== */
-
   const allStores = [
     ...t.stores.youxiang,
     ...t.stores.memory,
     ...t.stores.corner,
   ].filter((s) => s.name);
 
-  // 1. Breadcrumb Schema
+  // Schema Definitions
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -819,7 +883,6 @@ export default function BrandStoryPage({ t, locale }) {
     ],
   };
 
-  // 2. Organization Schema
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -846,7 +909,6 @@ export default function BrandStoryPage({ t, locale }) {
     })),
   };
 
-  // 3. LocalBusiness Schema
   const storesSchemas = allStores.map((store) => ({
     "@context": "https://schema.org",
     "@type": "Restaurant",
@@ -875,13 +937,10 @@ export default function BrandStoryPage({ t, locale }) {
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
         <meta name="keywords" content={t.meta.keywords} />
-
         <link rel="canonical" href={canonicalUrl} />
-
         <link rel="alternate" hreflang="x-default" href={zhUrl} />
         <link rel="alternate" hreflang="zh-TW" href={zhUrl} />
         <link rel="alternate" hreflang="en" href={enUrl} />
-
         <meta property="og:type" content="website" />
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />
@@ -889,7 +948,6 @@ export default function BrandStoryPage({ t, locale }) {
         <meta property="og:site_name" content={t.meta.siteName} />
         <meta property="og:locale" content={t.meta.ogLocale} />
         <meta property="og:url" content={canonicalUrl} />
-
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdList) }}
@@ -897,14 +955,12 @@ export default function BrandStoryPage({ t, locale }) {
       </Head>
 
       <main className="min-h-screen text-[#3b2a1a] bg-[#f0e3cd] relative ">
-        {/* Header 背景圖 */}
         <div
           className="absolute top-0 opacity-15 left-0 w-full z-[1] h-[550px] bg-center bg-cover bg-no-repeat transition-all duration-700"
           style={{ backgroundImage: `url('${getHeaderBg()}')` }}
         />
 
         <div className="mx-auto max-w-[1380px] z-50 relative px-4 pb-20 pt-[200px]">
-          {/* Tabs 按鈕 */}
           <FadeUp>
             <div
               className="mb-8 flex flex-wrap justify-center gap-3"
@@ -940,11 +996,10 @@ export default function BrandStoryPage({ t, locale }) {
             </div>
           </FadeUp>
 
-          {/* 品牌 Logo 區 (已修改為動態圖片) */}
           <FadeUp delay={0.05}>
             <section className="mt-10 sm:mb-[10px] mb-10 xl:mb-[10px] relative">
               <div className="absolute z-50 left-1/2 -translate-x-1/2 w-screen pointer-events-none bg-gradient-to-t from-[#f0e3cd] to-transparent h-72 bottom-[50px] sm:bottom-[-0px] md:h-52 md:bottom-[-100px]" />
-              <div className="mx-auto  w-full relative z-[99999]  py-6">
+              <div className="mx-auto w-full relative z-[99999] py-6">
                 <div className="space-y-[3px]">
                   <div className="h-[2px] bg-[#2b211a]" />
                   <div className="h-[2px] bg-[#2b211a]" />
@@ -956,8 +1011,6 @@ export default function BrandStoryPage({ t, locale }) {
 
                   <div className="flex items-center gap-10">
                     <div className="hidden h-16 w-px bg-[#2b211a] md:block" />
-
-                    {/* Logo 動態切換 */}
                     <div className="flex flex-col items-center justify-center min-w-[200px] min-h-[80px]">
                       <AnimatePresence mode="wait">
                         <motion.div
@@ -977,7 +1030,6 @@ export default function BrandStoryPage({ t, locale }) {
                         </motion.div>
                       </AnimatePresence>
                     </div>
-
                     <div className="hidden h-16 w-px bg-[#2b211a] md:block" />
                   </div>
 
@@ -995,7 +1047,6 @@ export default function BrandStoryPage({ t, locale }) {
 
           {/* 主要內容區 */}
           <section className="relative grid gap-10 md:grid-cols-[280px,minmax(0,1fr)] bg-[#f0e3cd]">
-            {/* 左欄 Sticky 門市列表 */}
             <aside className="sticky md:top-28 self-start">
               <FadeUp delay={0.08}>
                 <div className="space-y-8">
@@ -1012,7 +1063,6 @@ export default function BrandStoryPage({ t, locale }) {
               </FadeUp>
             </aside>
 
-            {/* 右欄 動態切換內容 */}
             <div className="space-y-10 z-10">
               <AnimatePresence mode="wait">
                 <motion.article
@@ -1029,22 +1079,20 @@ export default function BrandStoryPage({ t, locale }) {
                 </motion.article>
               </AnimatePresence>
 
-              {/* 底部「更多訊息」連結 */}
               <FadeUp delay={0.1}>
                 <section className="mt-10 border-t border-[#c9b79a] pt-8">
-                  <button className="flex items-center gap-3 text-sm tracking-[0.35em] text-[#7b5b33] hover:text-[#5a4225] transition-colors">
+                  <button className="flex justify-center items-center gap-3 py-4 text-sm tracking-[0.35em] text-[#dba839] bg-stone-800 rounded-full w-[200px] transition-colors">
                     <span>{t.ui.more_info}</span>
-                    <span className="inline-block h-[1px] w-24 bg-[#7b5b33]" />
-                    <span className="inline-block h-2 w-2 rounded-full border border-[#7b5b33]" />
                   </button>
                 </section>
               </FadeUp>
             </div>
           </section>
+
+          {/* 【已移除】原本位於此處的品牌列表區塊，已移動至 ContentGroup 內 */}
         </div>
 
-        {/* Footer 背景圖 */}
-        <div className=" h-[130px] lg:h-[330px]">
+        <div className="h-[130px] lg:h-[330px]">
           <div
             className="absolute bottom-[0px] opacity-25 left-0 w-full z-[0] h-[150px] lg:h-[350px] bg-center bg-cover bg-no-repeat transition-all duration-700 pointer-events-none"
             style={{ backgroundImage: `url('${getFooterBg()}')` }}

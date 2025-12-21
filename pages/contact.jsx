@@ -391,7 +391,11 @@ export default function ContactPage({ t, locale }) {
 
               {/* 送出按鈕 */}
               <div className="actions">
-                <button type="submit" className="button" disabled={loading}>
+                <button
+                  type="submit"
+                  className="bg-stone-800 text-[#e19d37] rounded-full py-4 w-[200px]"
+                  disabled={loading}
+                >
                   {loading ? t.form.submitting : t.form.submit}
                 </button>
                 <p className="note">{t.form.note}</p>
