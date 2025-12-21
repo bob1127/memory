@@ -2,10 +2,15 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { ReactLenis } from "@studio-freight/react-lenis";
 import { motion, useReducedMotion } from "framer-motion";
-import Layout from "./Layout"; // 請確認 Layout 路徑
-import ParallaxImage from "../components/ParallaxImage"; // 請確認 ParallaxImage 路徑
+import Layout from "./Layout";
+import ParallaxImage from "../components/ParallaxImage";
+
+/* ========== 設定網域 (SEO 用) ========== */
+// 請務必修改為您的實際網域 (不含結尾斜線)
+const SITE_DOMAIN = "https://www.memory-dining.com";
 
 /* ========== 1. i18n 資料 ========== */
 const TRANSLATIONS = {
@@ -14,6 +19,10 @@ const TRANSLATIONS = {
       title: "加盟說明與常見問題 | 有香餐飲集團",
       description:
         "了解有香餐飲集團的加盟優勢。我們提供統一品牌形象、創新研發團隊、專業培訓與擴店經驗。查看加盟費用、食材採購等常見問題解答。",
+      keywords:
+        "有香餐飲集團, 加盟, 餐飲創業, 中央廚房, 台灣美食加盟, 溫哥華餐飲",
+      siteName: "有香餐飲集團 Memory Dining Group", // 網站名稱中文化
+      ogLocale: "zh_TW", // FB/IG 用的語系代碼
     },
     hero: {
       title: "為什麼選擇加盟有香？",
@@ -25,19 +34,19 @@ const TRANSLATIONS = {
         tag: "品牌",
         title: "品牌統一形象",
         desc: "加盟店將融入有香集團品牌形象，有助於新店建立穩固的顧客忠誠度。",
-        img: "/images/participation/DSC06648.jpg",
+        img: "/images/participation/C0262 - frame at 0m0s.webp",
       },
       {
         tag: "研發",
         title: "研發團隊不斷創新",
         desc: "以傳統工法為基礎，融合創新思維，用心打造每一道能代表品牌精神的料理。",
-        img: "/images/participation/DSC05470.jpg",
+        img: "/images/participation/炒菜.png",
       },
       {
         tag: "培訓",
         title: "專業員工培訓 與擴店經驗",
         desc: "提供豐富且專業的員工培訓流程，並將多年的擴店經驗完整傳授給加盟店，確保營運效率和品質。",
-        img: "/images/participation/C0262 - frame at 0m0s.jpg",
+        img: "/images/participation/DSC06648.webp",
       },
     ],
     slogan: {
@@ -84,12 +93,17 @@ const TRANSLATIONS = {
     ],
     cta: "立即了解",
     ctaLink: "/participation-form",
+    breadcrumb: "加盟說明",
   },
   en: {
     meta: {
       title: "Franchise Info & FAQ | Memory Dining Group",
       description:
         "Discover the advantages of franchising with Memory Dining Group. We offer unified branding, innovative R&D, and professional training. Find answers to FAQs about costs and supplies.",
+      keywords:
+        "Memory Dining Group, Franchise, Restaurant Business, Central Kitchen, Taiwanese Cuisine",
+      siteName: "Memory Dining Group", // 英文網站名稱
+      ogLocale: "en_US", // 英文語系代碼
     },
     hero: {
       title: "Why Choose Memory Dining Group?",
@@ -101,19 +115,19 @@ const TRANSLATIONS = {
         tag: "Brand",
         title: "Unified Brand Image",
         desc: "Franchise stores will integrate into the Memory Group brand image, helping new stores build solid customer loyalty.",
-        img: "/images/participation/DSC06648.jpg",
+        img: "/images/participation/C0262 - frame at 0m0s.webp",
       },
       {
         tag: "R&D",
         title: "Innovative R&D Team",
         desc: "Based on traditional methods infused with innovative thinking, we carefully craft every dish to represent the brand spirit.",
-        img: "/images/participation/DSC05470.jpg",
+        img: "/images/participation/炒菜.webp",
       },
       {
         tag: "Training",
         title: "Professional Training & Experience",
         desc: "We provide rich and professional staff training processes and impart years of expansion experience to franchisees to ensure operational efficiency and quality.",
-        img: "/images/participation/C0262 - frame at 0m0s.jpg",
+        img: "/images/participation/DSC06648.webp",
       },
     ],
     slogan: {
@@ -159,7 +173,8 @@ const TRANSLATIONS = {
       },
     ],
     cta: "Learn More",
-    ctaLink: "/participation-form", // 若有英文版表單可改連結
+    ctaLink: "/participation-form",
+    breadcrumb: "Franchise Info",
   },
 };
 
@@ -206,10 +221,34 @@ function FadeUp({
 
 /* ========== 4. 頁面組件 ========== */
 export default function FranchiseInfoPage({ t, locale }) {
-  /* --- FAQ 結構化資料 --- */
+  const router = useRouter();
+
+  // 取得目前完整路徑 (Canonical URL)
+  const currentPath = router.asPath; // 例如: "/franchise-info" 或 "/en/franchise-info"
+  const canonicalUrl = `${SITE_DOMAIN}${
+    currentPath === "/" ? "" : currentPath
+  }`;
+
+  // 構建不同語言版本的 URL (hreflang 用)
+  // 假設 defaultLocale 是 "zh-TW" 且不顯示前綴，英文版有 "/en" 前綴
+  // 實際路徑需根據您的 next.config.js 設定，這裡使用通用邏輯：
+  const pathWithoutLocale = router.asPath.replace(`/${locale}`, "") || "/";
+  const zhUrl = `${SITE_DOMAIN}${
+    pathWithoutLocale === "/" ? "" : pathWithoutLocale
+  }`; // 中文 (Default)
+  const enUrl = `${SITE_DOMAIN}/en${
+    pathWithoutLocale === "/" ? "" : pathWithoutLocale
+  }`; // 英文
+
+  const ogImage = `${SITE_DOMAIN}/images/participation/C0262 - frame at 0m0s.webp`;
+
+  /* --- 結構化資料 (JSON-LD) --- */
+
+  // 1. FAQ Schema
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    inLanguage: locale, // 加入語言標記
     mainEntity: t.faq.map((item) => ({
       "@type": "Question",
       name: item.q,
@@ -220,16 +259,81 @@ export default function FranchiseInfoPage({ t, locale }) {
     })),
   };
 
+  // 2. Breadcrumb Schema
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: locale === "en" ? "Home" : "首頁",
+        item: `${SITE_DOMAIN}/${locale === "en" ? "en" : ""}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: t.breadcrumb,
+        item: canonicalUrl,
+      },
+    ],
+  };
+
+  // 3. Organization Schema
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: "Memory Dining Group",
+    alternateName: "有香餐飲集團",
+    url: SITE_DOMAIN,
+    logo: `${SITE_DOMAIN}/logo.png`,
+    description: t.meta.description, // 描述也會隨語言切換
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Vancouver",
+      addressCountry: "CA",
+    },
+  };
+
+  const jsonLd = [faqSchema, breadcrumbSchema, organizationSchema];
+
   return (
     <Layout>
       <Head>
+        {/* --- 基本 Meta (全動態) --- */}
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
+        <meta name="keywords" content={t.meta.keywords} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="index, follow" />
+        {/* --- 語言替換 (Hreflang) 關鍵 --- */}
+        <link rel="alternate" hreflang="zh-TW" href={zhUrl} />
+        <link rel="alternate" hreflang="en" href={enUrl} />
+        <link rel="alternate" hreflang="x-default" href={zhUrl} />
+        {/* --- Open Graph / Facebook (全動態) --- */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={t.meta.title} />
+        <meta property="og:description" content={t.meta.description} />
+        <meta property="og:site_name" content={t.meta.siteName} />{" "}
+        {/* 這裡現在會切換了 */}
+        <meta property="og:locale" content={t.meta.ogLocale} />{" "}
+        {/* 這裡現在會切換了 */}
+        {/* 圖片通常共用，但 Alt 必須切換 */}
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:alt" content={t.hero.title} />
+        {/* --- Twitter Card --- */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={t.meta.title} />
+        <meta name="twitter:description" content={t.meta.description} />
+        <meta name="twitter:image" content={ogImage} />
+        {/* --- JSON-LD 注入 --- */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </Head>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
 
       <ReactLenis root>
         <div className="bg-[#ede5d6]">
@@ -237,10 +341,10 @@ export default function FranchiseInfoPage({ t, locale }) {
           <div className="py-14 sm:py-16"></div>
 
           {/* ============ Why Section ============ */}
-          <section className="section_why">
+          <section className="section_why relative z-10">
             <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               {/* 標題區 */}
-              <div className="flex flex-col items-center text-center">
+              <header className="flex flex-col items-center text-center">
                 <FadeUp>
                   <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#3b2a1a]">
                     {t.hero.title}
@@ -251,68 +355,73 @@ export default function FranchiseInfoPage({ t, locale }) {
                     {t.hero.desc}
                   </p>
                 </FadeUp>
-              </div>
+              </header>
 
               <h2 className="text-[32px] mt-20 mx-auto font-bold text-center text-[#3b2a1a]">
                 {t.hero.subtitle}
               </h2>
 
               {/* Features List */}
-              {t.features.map((feature, index) => {
-                const isEven = index % 2 === 0;
-                return (
-                  <div
-                    key={index}
-                    className="mt-16 lg:mt-20 grid grid-cols-1 lg:grid-cols-2 items-center gap-y-10 gap-x-12"
-                  >
-                    {/* 文字區塊 */}
-                    <div
-                      className={`flex justify-center ${
-                        !isEven ? "lg:order-1" : ""
-                      }`}
+              <div className="mt-16 lg:mt-20 space-y-24">
+                {t.features.map((feature, index) => {
+                  const isEven = index % 2 === 0;
+                  return (
+                    <article
+                      key={index}
+                      className="grid grid-cols-1 lg:grid-cols-2 items-center gap-y-10 gap-x-12"
                     >
-                      <div className="flex flex-col">
-                        <FadeUp
-                          delay={0.04}
-                          className="tag border border-black/20 rounded-full px-3 py-1 w-auto min-w-[100px] flex justify-center mb-5 text-sm"
-                        >
-                          {feature.tag}
-                        </FadeUp>
-                        <FadeUp delay={0.08}>
-                          <h3 className="text-3xl sm:text-4xl font-bold text-[#3b2a1a]">
-                            {feature.title}
-                          </h3>
-                        </FadeUp>
-                        <FadeUp delay={0.12}>
-                          <p className="mt-6 max-w-[560px] leading-relaxed text-stone-800/90">
-                            {feature.desc}
-                          </p>
-                        </FadeUp>
+                      {/* 文字區塊 */}
+                      <div
+                        className={`flex justify-center ${
+                          !isEven ? "lg:order-1" : ""
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <FadeUp
+                            delay={0.04}
+                            className="tag border border-black/20 bg-stone-800 text-[#efa33f] rounded-full px-3 py-1 w-auto max-w-[150px] flex justify-center mb-5 text-sm font-medium"
+                          >
+                            {feature.tag}
+                          </FadeUp>
+                          <FadeUp delay={0.08}>
+                            <h3 className="text-3xl sm:text-4xl font-bold text-[#3b2a1a]">
+                              {feature.title}
+                            </h3>
+                          </FadeUp>
+                          <FadeUp delay={0.12}>
+                            <p className="mt-6 max-w-[560px] leading-relaxed text-stone-800/90">
+                              {feature.desc}
+                            </p>
+                          </FadeUp>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* 圖片區塊 (Parallax) */}
-                    <FadeUp
-                      delay={0.08}
-                      amount={0.25}
-                      className={!isEven ? "order-1 lg:order-none" : ""}
-                    >
-                      <div className="relative w-full aspect-[4/3] overflow-hidden shadow-sm">
-                        <ParallaxImage src={feature.img} alt={feature.title} />
-                      </div>
-                    </FadeUp>
-                  </div>
-                );
-              })}
+                      {/* 圖片區塊 (Parallax) */}
+                      <FadeUp
+                        delay={0.08}
+                        amount={0.25}
+                        className={!isEven ? "order-1 lg:order-none" : ""}
+                      >
+                        <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg shadow-lg">
+                          <ParallaxImage
+                            src={feature.img}
+                            alt={feature.title}
+                          />
+                        </div>
+                      </FadeUp>
+                    </article>
+                  );
+                })}
+              </div>
 
               {/* Slogan & FAQ Title */}
               <div className="mt-20 lg:mt-24 flex flex-col items-center text-center">
                 <FadeUp>
-                  <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#3b2a1a]">
+                  <p className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#3b2a1a]">
                     {t.slogan.line1}
                     <br />
                     {t.slogan.line2}
-                  </h2>
+                  </p>
                   <h2 className="text-4xl mt-3 sm:text-5xl font-extrabold tracking-tight text-[#c91e1e]">
                     {t.slogan.faq}
                   </h2>
@@ -322,7 +431,10 @@ export default function FranchiseInfoPage({ t, locale }) {
           </section>
 
           {/* ============ FAQ Section ============ */}
-          <section className="">
+          <section
+            className="section_faq"
+            aria-label="Frequently Asked Questions"
+          >
             <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-6 pb-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mt-8">
                 {t.faq.map((item, index) => (
@@ -331,7 +443,7 @@ export default function FranchiseInfoPage({ t, locale }) {
                       <h3 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-[#3b2a1a]">
                         {item.q}
                       </h3>
-                      <div className="leading-relaxed text-stone-800/90 space-y-4">
+                      <div className="leading-relaxed text-stone-800/90 space-y-4 text-base">
                         {item.a.map((ans, i) => (
                           <p key={i}>{ans}</p>
                         ))}
@@ -353,14 +465,14 @@ export default function FranchiseInfoPage({ t, locale }) {
                 <div className="flex justify-center mt-12">
                   <Link
                     href={t.ctaLink}
+                    title={t.cta}
                     className="
-                      inline-block bg-[#fe3232] text-white px-8 py-3 font-semibold text-lg
-                      border-2 border-[#b51d1d]
-                      shadow-[4px_4px_0_0_#b51d1d] 
+                      inline-block bg-stone-800 text-[#dd8b34] px-8 py-3 font-semibold text-lg
+                      shadow-[4px_4px_0_0_#7d7d7c] 
                       transition-all duration-200 
                       hover:translate-x-[-2px] hover:translate-y-[-2px] 
-                      hover:shadow-[6px_6px_0_0_#b51d1d]
-                      active:translate-x-[1px] active:translate-y-[1px] active:shadow-[2px_2px_0_0_#b51d1d]
+                      hover:shadow-[6px_6px_0_0_#7d7d7c]
+                      active:translate-x-[1px] active:translate-y-[1px] active:shadow-[2px_2px_0_0_#7d7d7c]
                     "
                   >
                     {t.cta}

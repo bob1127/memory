@@ -1,31 +1,25 @@
-import { useState, useEffect } from "react"; // 保留 useState 和 useEffect (雖然 useEffect 變得空了)
-// ❌ 移除 import AOS from "aos";
-// ❌ 移除 import "aos/dist/aos.css";
+import { useState, useEffect } from "react"; 
 import { NextUIProvider } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import Navbar from "@/components/Navbar/Navbar.jsx";
 import Banner from "@/components/banner";
 import Image from "next/image";
 import Footer from "@/components/ui/footer.jsx";
-import Head from "next/head";
+import Head from "next/head"; // 這裡保留引用，但只放技術設定
 import Sidebar from "@/components/Sidebar.js";
 import { UserProvider } from "../components/context/UserContext";
 
 export default function RootLayout({ children }) {
-  const [sidebarProduct, setSidebarProduct] = useState(null); // 儲存購物車資料
+  const [sidebarProduct, setSidebarProduct] = useState(null); 
 
-  // 輔助函數：模擬獲取變體 ID
   const getVariantId = (selectedAttributes) => {
-    // 這裡應有實際的邏輯來根據屬性組合生成/查找 ID
     return selectedAttributes.map(attr => attr.value).join('-');
   };
   
-  // handleAddToCart 用於更新 sidebarProduct
   const handleAddToCart = (product, quantity, selectedAttributes) => {
-    const totalPrice = product.price * quantity; // 計算總價
-    const variantId = getVariantId(selectedAttributes); // 根據選擇的屬性獲取變體 ID
+    const totalPrice = product.price * quantity; 
+    const variantId = getVariantId(selectedAttributes); 
 
-    // 更新 sidebarProduct 狀態
     setSidebarProduct({
       name: product.name,
       price: product.price,
@@ -34,41 +28,20 @@ export default function RootLayout({ children }) {
       variant: selectedAttributes,
       variantId,
     });
-    
-    // 顯示購物車側邊欄（根據需求控制顯示）
-    // 注意：setIsSidebarOpen 需要在狀態中定義，這裡暫時假設它存在
-    // setIsSidebarOpen(true); 
   };
-
-  // ❌ 移除整個 AOS 相關的 useEffect 區塊
-  /*
-  useEffect(() => {
-    AOS.init({
-      once: true,
-      disable: "phone",
-      duration: 700,
-      easing: "ease-out-cubic",
-    });
-  }, []);
-  */
 
   return (
     <>
       <Head>
-        <title>有香-MemoryCorner｜台灣傳統小吃、台灣美食｜Memory Dining Group - 有香餐飲集團有限公司</title>
-        <meta name="description" content="香餐飲集團2022年正式開放加盟，一起將手作匠心美食推至全北美，用正港台灣料理感動大家的味蕾!" />
-        <meta name="keywords" content="產品, 購物, 優惠" />
-        <meta name="author" content="" />
+        {/* 1. 移除 Title, Description, Keywords, OG tags
+             原因：這些應該由每個頁面 (如 FranchiseInfoPage) 自己決定，
+             放在這裡會導致重複或覆蓋掉頁面的設定。
+        */}
+        
+        {/* 2. 只保留全站共用的「技術性」設定 */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/logo.ico" />
-        <meta property="og:title" content="香餐飲集團2022年正式開放加盟，一起將手作匠心美食推至全北美，用正港台灣料理感動大家的味蕾!" />
-        <meta property="og:description" content="香餐飲集團2022年正式開放加盟，一起將手作匠心美食推至全北美，用正港台灣料理感動大家的味蕾!" />
-        <meta property="og:image" content="/default-og-image.jpg" />
-        <meta property="og:url" content="https://www.starislandbaby.com" />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="香餐飲集團2022年正式開放加盟，一起將手作匠心美食推至全北美，用正港台灣料理感動大家的味蕾!" />
-        <meta name="twitter:description" content="香餐飲集團2022年正式開放加盟，一起將手作匠心美食推至全北美，用正港台灣料理感動大家的味蕾!" />
-        <meta name="twitter:image" content="/default-og-image.jpg" />
+        <meta name="author" content="Memory Dining Group" />
       </Head>
 
       <div className="">
@@ -77,7 +50,12 @@ export default function RootLayout({ children }) {
             <UserProvider>
               <Navbar />
               <Sidebar sidebarProduct={sidebarProduct} onAddToCart={handleAddToCart} />
+              
+              {/* 頁面內容 (包含頁面自己的 <Head>) 會在這裡渲染 
+                 這樣就不會被 Layout 的舊 Head 干擾了 
+              */}
               {children}
+              
             </UserProvider>
           </NextThemesProvider>
         </NextUIProvider>

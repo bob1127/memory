@@ -5,6 +5,11 @@ import Head from "next/head";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "./Layout";
 
+/* ========== 設定網域 (使用環境變數) ========== */
+// 優先使用環境變數，若無則 fallback
+const SITE_DOMAIN =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
+
 /* ========== 1. 資料庫與翻譯內容 (i18n Data) ========== */
 const TRANSLATIONS = {
   "zh-TW": {
@@ -12,7 +17,18 @@ const TRANSLATIONS = {
       title: "品牌故事 | Memory Corner 有香餐飲集團",
       description:
         "有香餐飲集團始於1975年，傳承台灣經典美味。旗下包含有香 Memory Corner、Sweet Memory 憶點點等品牌，在北美傳遞家的溫度與正宗台式料理。",
-      ogImage: "/images/brand-story/集團/集團banner.png", // 設定分享時的縮圖
+      keywords:
+        "有香餐飲集團, Memory Corner, 台灣料理, 溫哥華美食, 品牌故事, 憶點點",
+      ogImage: "/images/brand-story/集團/集團banner.webp",
+      siteName: "有香餐飲集團 Memory Corner",
+      ogLocale: "zh_TW",
+    },
+    // ★★★ 重要：這裡是新增的 Logo 設定，請確保有複製到 ★★★
+    brandLogos: {
+      group: "/images/brand-story/有香logo.png", // 請確認集團 Logo 路徑
+      youxiang: "/images/brand-story/有香logo.png", // 請確認有香 Logo 路徑
+      memory: "/images/brand-story/憶點點logo.png", // 請確認憶點點 Logo 路徑
+      corner: "/images/brand-story/有香灶腳logo.png", // 請確認灶腳 Logo 路徑
     },
     tabs: [
       { id: "group", label: "關於集團" },
@@ -27,11 +43,12 @@ const TRANSLATIONS = {
       store_no_data: "此品牌目前無相關門市資訊",
       preparing: "籌備中",
       stay_tuned: "敬請期待更多美味故事...",
-      home: "首頁", // 用於麵包屑
+      home: "首頁",
+      breadcrumb: "品牌故事",
     },
     content: {
       group: {
-        bannerAlt: "集團緣起",
+        bannerAlt: "有香餐飲集團緣起 - 台灣高雄",
         title: "有香餐飲集團的緣起",
         paragraphs: [
           "有香餐飲集團的故事始於1975年台灣高雄，吳爺爺為了提升家人的生活，毅然放棄穩定高薪的工作，創立了小餐館。他每日清晨騎腳踏車跋涉三小時，拜師學習台灣傳統羊肉料理。這份對美食的執著，讓吳家羊肉鍋成為高雄饕客們心中的珍寶。",
@@ -98,24 +115,24 @@ const TRANSLATIONS = {
           ],
         },
       },
+      corner: {
+        origin: {
+          label: "【緣起】",
+          title: "台味便利店 好吃、好玩、古早味",
+          caption: "台味便利店，傳遞台灣人情味。",
+          paragraphs: [
+            "有香ㄟ灶腳(Old Memory Kitchen)是有香餐飲集團為了嚴格控管產品製程、追求極致品質，於2022年成立。",
+            "門店販售各式各樣台灣人氣零食、懷舊童玩、熱銷冷凍台味美食，讓你不用飛到台灣，在這裡就能一站買齊所有想念的台灣味！",
+            "我們也打造了台味便利店網路商城，只要動動手指，台式小吃的香氣就能從冰箱復刻、童年的好玩更能輕鬆採買。用最熟悉、最療癒的台灣味，陪你過每一天。",
+          ],
+        },
+      },
     },
     stores: {
-      group: [
-        {
-          id: "store-group-1",
-          name: "Group Flagship",
-          tel: "(000) 123-4567",
-          addrLine1: "123 Example St",
-          addrLine2: "Vancouver BC 000 000",
-          hours: "11:00 AM–10:00 PM",
-          img: "/images/brand-story/memory-corner-01.png",
-          mapUrl: "https://www.google.com/maps",
-        },
-      ],
       youxiang: [
         {
           id: "store-youxiang-van",
-          name: "Memory Corner 有香 (Vancouver)",
+          name: "Memory Corner 有香 (Richmond)",
           tel: "(604) 284-5434",
           addrLine1: "1110-4651 Garden City Rd",
           addrLine2: "Richmond BC V6X 2K4",
@@ -141,12 +158,27 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "8080 Leslie Rd",
           hours: "11:30 AM–12:30 AM",
-          img: "/images/brand-story/憶點點/DSC07015.jpg",
+          img: "/images/brand-story/憶點點/DSC07015.webp",
           mapUrl:
             "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
         },
       ],
-      corner: [],
+      corner: [
+        {
+          id: "store-corner-1",
+          name: "Kitchen Corner 有香ㄟ灶腳",
+          tel: "(604) 000 - 0000",
+          addrLine1: "Coming Soon",
+          addrLine2: "Vancouver, BC",
+          postalCode: "",
+          addressLocality: "Vancouver",
+          addressRegion: "BC",
+          streetAddress: "",
+          hours: "11:00 AM–08:00 PM",
+          img: "/images/brand-story/DSC07330.webp", // 灶腳圖片
+          mapUrl: "#",
+        },
+      ],
     },
   },
   en: {
@@ -154,7 +186,18 @@ const TRANSLATIONS = {
       title: "Brand Story | Memory Corner Group",
       description:
         "Established in 1975, Memory Corner Group brings authentic Taiwanese cuisine to North America. Home to Memory Corner and Sweet Memory.",
-      ogImage: "/images/brand-story/集團/集團banner.png",
+      keywords:
+        "Memory Corner Group, Taiwanese Cuisine, Vancouver Food, Brand Story, Sweet Memory",
+      ogImage: "/images/brand-story/集團/集團banner.webp",
+      siteName: "Memory Corner Group",
+      ogLocale: "en_US",
+    },
+    // ★★★ 英文版也要加入 brandLogos ★★★
+    brandLogos: {
+      group: "/images/brand-story/有香logo.png",
+      youxiang: "/images/brand-story/有香logo.png",
+      memory: "/images/brand-story/憶點點logo.png",
+      corner: "/images/brand-story/有香灶腳logo.png",
     },
     tabs: [
       { id: "group", label: "Group" },
@@ -170,6 +213,7 @@ const TRANSLATIONS = {
       preparing: "Coming Soon",
       stay_tuned: "Stay tuned for more delicious stories...",
       home: "Home",
+      breadcrumb: "Brand Story",
     },
     content: {
       group: {
@@ -242,6 +286,20 @@ const TRANSLATIONS = {
           paragraphs: ["At Sweet Memory, we treat you with sincerity..."],
         },
       },
+      corner: {
+        origin: {
+          label: "【ORIGIN】",
+          title:
+            "Taiwanese Convenience Store Delicious, Fun, Old-Fashioned Flavours",
+          caption:
+            "Taiwanese Convenience Store, conveying the warmth of Taiwanese hospitality.",
+          paragraphs: [
+            "Old Memory Kitchen was established in 2022 by the Youxiang Catering Group to rigorously control product processes and pursue the highest standards of quality.",
+            "Our shop stocks an array of popular Taiwanese snacks, nostalgic childhood toys, and best-selling frozen Taiwanese delicacies. No need to fly to Taiwan – find all the flavours you crave right here in one convenient location!",
+            "We've also created an online Taiwanese-style convenience store. With just a few taps, the aromas of Taiwanese snacks can be recreated straight from your fridge, while the fun of childhood can be effortlessly rediscovered. Let the most familiar, most comforting flavours of Taiwan accompany you through every day.",
+          ],
+        },
+      },
     },
     stores: {
       group: [
@@ -251,6 +309,10 @@ const TRANSLATIONS = {
           tel: "(000) 123-4567",
           addrLine1: "123 Example St",
           addrLine2: "Vancouver BC 000 000",
+          postalCode: "V0V 0V0",
+          addressLocality: "Vancouver",
+          addressRegion: "BC",
+          streetAddress: "123 Example St",
           hours: "11:00 AM–10:00 PM",
           img: "/images/brand-story/memory-corner-01.png",
           mapUrl: "https://www.google.com/maps",
@@ -259,7 +321,7 @@ const TRANSLATIONS = {
       youxiang: [
         {
           id: "store-youxiang-van",
-          name: "Memory Corner (Vancouver)",
+          name: "Memory Corner (Richmond)",
           tel: "(604) 284-5434",
           addrLine1: "1110-4651 Garden City Rd",
           addrLine2: "Richmond BC V6X 2K4",
@@ -285,12 +347,27 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "8080 Leslie Rd",
           hours: "11:30 AM–12:30 AM",
-          img: "/images/brand-story/憶點點/DSC07015.jpg",
+          img: "/images/brand-story/憶點點/DSC07015.webp",
           mapUrl:
             "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
         },
       ],
-      corner: [],
+      corner: [
+        {
+          id: "store-corner-1",
+          name: "Kitchen Corner",
+          tel: "(604) 000 - 0000",
+          addrLine1: "Coming Soon",
+          addrLine2: "Vancouver, BC",
+          postalCode: "",
+          addressLocality: "Vancouver",
+          addressRegion: "BC",
+          streetAddress: "",
+          hours: "11:00 AM–08:00 PM",
+          img: "/images/brand-story/DSC07330.webp",
+          mapUrl: "#",
+        },
+      ],
     },
   },
 };
@@ -323,18 +400,46 @@ function FadeUp({ children, delay = 0, className = "" }) {
 }
 
 /* ========== 4. 內容組件 (Content Components) ========== */
+
+// 集團內容：含跑馬燈 (Marquee)
 const ContentGroup = ({ t }) => (
   <div className="space-y-8">
     <div className="border-t border-[#c9b79a] pt-6">
-      <div className="mb-6 border border-[#c9b79a] flex flex-row bg-white">
-        <Image
-          src="/images/brand-story/集團/集團banner.png"
-          alt={t.content.group.bannerAlt}
-          width={880}
-          height={520}
-          className="h-auto w-full object-cover"
-        />
+      {/* 跑馬燈容器 */}
+      <div className="mb-6 border border-[#c9b79a] bg-white overflow-hidden relative">
+        <div className="w-full relative flex whitespace-nowrap overflow-hidden">
+          <motion.div
+            className="flex min-w-full"
+            animate={{ x: "-100%" }}
+            transition={{
+              repeat: Infinity,
+              ease: "linear",
+              duration: 25, // 控制速度
+            }}
+          >
+            {/* 第一張圖 */}
+            <div className="min-w-full relative h-[300px] md:h-[520px]">
+              <Image
+                src="/images/brand-story/集團/集團banner.webp"
+                alt={t.content.group.bannerAlt}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            {/* 第二張圖 (無縫接軌用) */}
+            <div className="min-w-full relative h-[300px] md:h-[520px]">
+              <Image
+                src="/images/brand-story/集團/集團banner.webp"
+                alt={t.content.group.bannerAlt}
+                fill
+                className="object-cover"
+              />
+            </div>
+          </motion.div>
+        </div>
       </div>
+
       <div className="space-y-4 text-[16px] flex flex-col justify-center items-center max-w-[700px] mx-auto leading-8 tracking-[0.05em] text-[#3b2a1a]">
         <h1 className="mb-6 text-4xl font-bold leading-relaxed md:text-5xl text-center">
           {t.content.group.title}
@@ -358,8 +463,8 @@ const ContentYouxiang = ({ t }) => (
       </h1>
       <div className="mb-2 border border-[#c9b79a] bg-white">
         <Image
-          src="/images/brand-story/DSC06790.jpg"
-          alt="Origin"
+          src="/images/brand-story/DSC06790.webp"
+          alt="Memory Corner Origin"
           width={880}
           height={520}
           className="h-auto w-full object-cover"
@@ -384,7 +489,7 @@ const ContentYouxiang = ({ t }) => (
           <div className="border border-[#c9b79a] bg-white">
             <Image
               src="/images/brand-story/memory-corner-02.png"
-              alt="Glory"
+              alt="Memory Corner Glory"
               width={880}
               height={520}
               className="h-auto w-full object-cover"
@@ -414,8 +519,8 @@ const ContentYouxiang = ({ t }) => (
       </h2>
       <div className="border border-[#c9b79a] bg-white">
         <Image
-          src="/images/brand-story/DAV01968.jpg"
-          alt="Classic"
+          src="/images/brand-story/DAV01968.webp"
+          alt="Memory Corner Classic"
           width={880}
           height={520}
           className="h-auto w-full object-cover"
@@ -448,8 +553,8 @@ const ContentMemory = ({ t }) => (
       </div>
       <div className="mb-2 border border-[#c9b79a] bg-white">
         <Image
-          src="/images/brand-story/憶點點/DSC07015.jpg"
-          alt="Origin"
+          src="/images/brand-story/憶點點/DSC07015.webp"
+          alt="Sweet Memory Origin"
           width={880}
           height={520}
           className="h-auto w-full object-cover"
@@ -470,8 +575,8 @@ const ContentMemory = ({ t }) => (
         <div className="md:w-1/2">
           <div className="border border-[#c9b79a] bg-white">
             <Image
-              src="/images/brand-story/憶點點/DSC07378.jpg"
-              alt="Persist"
+              src="/images/brand-story/憶點點/DSC07378.webp"
+              alt="Sweet Memory Persistence"
               width={880}
               height={520}
               className="h-auto w-full object-cover"
@@ -504,8 +609,8 @@ const ContentMemory = ({ t }) => (
       <div>
         <div className="border border-[#c9b79a] bg-white">
           <Image
-            src="/images/brand-story/憶點點/DSC06868.jpg"
-            alt="Classic"
+            src="/images/brand-story/憶點點/DSC06868.webp"
+            alt="Sweet Memory Classic"
             width={880}
             height={520}
             className="h-auto w-full object-cover"
@@ -528,25 +633,51 @@ const ContentMemory = ({ t }) => (
   </div>
 );
 
+// 有香ㄟ灶腳
 const ContentCorner = ({ t }) => (
-  <div className="space-y-8 min-h-[300px] flex items-center justify-center border-t border-[#c9b79a] pt-6">
-    <div className="text-center">
-      <h2 className="mb-4 text-xl font-bold tracking-[0.2em] text-[#7b5b33]">
-        {t.ui.preparing}
+  <div className="space-y-10">
+    <div className="border-t border-[#c9b79a] pt-6">
+      <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
+        {t.content.corner.origin.label}
       </h2>
-      <p className="text-sm tracking-widest text-gray-500">{t.ui.stay_tuned}</p>
+      <h1 className="mb-6 text-2xl font-bold leading-relaxed md:text-5xl">
+        {t.content.corner.origin.title}
+      </h1>
+      <div className="mb-2 border border-[#c9b79a] bg-white">
+        <Image
+          src="/images/brand-story/DSC07330.webp"
+          alt="Kitchen Corner"
+          width={880}
+          height={520}
+          className="h-auto w-full object-cover"
+        />
+      </div>
+      <p className="mb-4 text-[11px] tracking-[0.2em] text-[#7b5b33]">
+        {t.content.corner.origin.caption}
+      </p>
+      <div className="space-y-3 text-[16px] leading-relaxed tracking-[0.05em] text-[#3b2a1a]">
+        {t.content.corner.origin.paragraphs.map((p, i) => (
+          <p key={i}>{p}</p>
+        ))}
+      </div>
     </div>
   </div>
 );
 
 function StoreCard({ store }) {
+  // LocalBusiness Microdata
   return (
-    <div className="border border-[#c9b79a] bg-[#f7ecdd]">
+    <div
+      className="border border-[#c9b79a] bg-[#f7ecdd]"
+      itemScope
+      itemType="https://schema.org/Restaurant"
+    >
       <a
         href={store.mapUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="block border-b border-[#c9b79a]"
+        itemProp="url"
       >
         <Image
           src={store.img}
@@ -554,6 +685,7 @@ function StoreCard({ store }) {
           width={400}
           height={260}
           className="h-auto w-full object-cover"
+          itemProp="image"
         />
       </a>
       <div className="px-4 pb-4 pt-3">
@@ -562,17 +694,28 @@ function StoreCard({ store }) {
           target="_blank"
           rel="noopener noreferrer"
           className="block bg-[#4b2c1d] px-4 py-1 text-center text-sm font-semibold text-white hover:bg-[#613625] transition-colors"
+          itemProp="name"
         >
           {store.name}
         </a>
-        <div className="mt-3 space-y-1 text-xs leading-relaxed">
-          <p>{store.tel}</p>
+        <div
+          className="mt-3 space-y-1 text-xs leading-relaxed"
+          itemProp="address"
+          itemScope
+          itemType="https://schema.org/PostalAddress"
+        >
+          <p itemProp="telephone">{store.tel}</p>
           <p>
-            {store.addrLine1}
+            <span itemProp="streetAddress">{store.streetAddress}</span>
             <br />
-            {store.addrLine2}
+            <span itemProp="addressLocality">
+              {store.addressLocality}
+            </span>, <span itemProp="addressRegion">{store.addressRegion}</span>{" "}
+            <span itemProp="postalCode">{store.postalCode}</span>
           </p>
-          <p>{store.hours}</p>
+          <p itemProp="openingHours" content={store.hours}>
+            {store.hours}
+          </p>
         </div>
       </div>
     </div>
@@ -582,8 +725,16 @@ function StoreCard({ store }) {
 /* ========== 5. 主頁面元件 ========== */
 export default function BrandStoryPage({ t, locale }) {
   const router = useRouter();
-  const siteUrl = "https://www.memorycorner8.com"; // 您的網站網址
-  const currentPath = router.asPath.split("?")[0]; // 移除 query params
+
+  // URL 處理 (使用環境變數 SITE_DOMAIN)
+  const currentPath = router.asPath.split("?")[0];
+  const canonicalUrl = `${SITE_DOMAIN}${
+    currentPath === "/" ? "" : currentPath
+  }`;
+
+  // Hreflang 邏輯
+  const zhUrl = `${SITE_DOMAIN}/brand-story`;
+  const enUrl = `${SITE_DOMAIN}/en/brand-story`;
 
   // Tabs Logic
   const tabFromUrl = router.query.tab;
@@ -617,6 +768,12 @@ export default function BrandStoryPage({ t, locale }) {
     }
   };
 
+  // ★★★ 修復 Crash 的關鍵：加入防呆機制，避免翻譯檔漏掉 brandLogos 導致崩潰 ★★★
+  const brandLogos = t.brandLogos || {}; // 確保 brandLogos 是物件
+  // 若找不到對應 tab 的圖片，提供一個預設路徑避免空白或錯誤
+  const currentBrandLogo =
+    brandLogos[activeTab] || "/images/logo/memory-corner-logo.png";
+
   const getHeaderBg = () => {
     switch (activeTab) {
       case "group":
@@ -624,9 +781,9 @@ export default function BrandStoryPage({ t, locale }) {
       case "youxiang":
         return "/images/index/about/DAV01968.jpg";
       case "memory":
-        return "/images/brand-story/憶點點/DSC07015.jpg";
+        return "/images/brand-story/憶點點/DSC07015.webp";
       case "corner":
-        return "/images/brand-story/memory-corner-01.png";
+        return "/images/brand-story/DSC07330.webp"; // 灶腳背景圖
       default:
         return "/images/index/about/DAV01968.jpg";
     }
@@ -635,6 +792,12 @@ export default function BrandStoryPage({ t, locale }) {
   const getFooterBg = () => "/images/brand-story/DAV01915.png";
 
   /* ========== SEO & Structured Data (JSON-LD) ========== */
+
+  const allStores = [
+    ...t.stores.youxiang,
+    ...t.stores.memory,
+    ...t.stores.corner,
+  ].filter((s) => s.name);
 
   // 1. Breadcrumb Schema
   const breadcrumbSchema = {
@@ -645,13 +808,13 @@ export default function BrandStoryPage({ t, locale }) {
         "@type": "ListItem",
         position: 1,
         name: t.ui.home,
-        item: `${siteUrl}${locale === "en" ? "/en" : ""}`,
+        item: `${SITE_DOMAIN}/${locale === "en" ? "en" : ""}`,
       },
       {
         "@type": "ListItem",
         position: 2,
-        name: t.meta.title,
-        item: `${siteUrl}${currentPath}`,
+        name: t.ui.breadcrumb,
+        item: canonicalUrl,
       },
     ],
   };
@@ -661,120 +824,77 @@ export default function BrandStoryPage({ t, locale }) {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Memory Corner / 有香餐飲集團",
-    url: siteUrl,
-    logo: `${siteUrl}/images/logo/有香餐飲集團-logo.png`, // 請確認路徑
+    url: SITE_DOMAIN,
+    logo: `${SITE_DOMAIN}/logo.png`,
     foundingDate: "1975",
     description: t.meta.description,
     sameAs: [
       "https://www.facebook.com/MemoryCorner8",
       "https://www.instagram.com/memorycorner8",
     ],
+    subOrganization: allStores.map((store) => ({
+      "@type": "Restaurant",
+      name: store.name,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: store.streetAddress,
+        addressLocality: store.addressLocality,
+        addressRegion: store.addressRegion,
+        postalCode: store.postalCode,
+        addressCountry: "CA",
+      },
+    })),
   };
 
-  // 3. AboutPage Schema (告訴 Google 這是介紹頁)
-  const aboutPageSchema = {
-    "@context": "https://schema.org",
-    "@type": "AboutPage",
-    mainEntity: {
-      "@type": "Organization",
-      "@id": "#organization", // 連結到上方的 Organization
-    },
-    name: t.meta.title,
-    description: t.meta.description,
-    inLanguage: locale,
-  };
-
-  // 4. LocalBusiness Schema (列出所有分店，提升在地搜尋)
-  // 我們從 t.stores 中提取所有分店資料
-  const allStores = [
-    ...t.stores.youxiang,
-    ...t.stores.memory,
-    ...t.stores.group,
-  ];
-
-  const storesSchema = allStores.map((store) => ({
+  // 3. LocalBusiness Schema
+  const storesSchemas = allStores.map((store) => ({
     "@context": "https://schema.org",
     "@type": "Restaurant",
     name: store.name,
-    image: `${siteUrl}${store.img}`,
+    image: `${SITE_DOMAIN}${store.img}`,
     telephone: store.tel,
+    url: store.mapUrl,
     address: {
       "@type": "PostalAddress",
-      streetAddress: store.streetAddress || store.addrLine1,
-      addressLocality: store.addressLocality || "Richmond",
-      addressRegion: store.addressRegion || "BC",
+      streetAddress: store.streetAddress,
+      addressLocality: store.addressLocality,
+      addressRegion: store.addressRegion,
       postalCode: store.postalCode,
       addressCountry: "CA",
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      // 如果有經緯度可以加在這裡，目前先省略
-      latitude: "",
-      longitude: "",
-    },
-    url: store.mapUrl,
+    priceRange: "$$",
+    servesCuisine: "Taiwanese",
+    openingHours: store.hours,
   }));
+
+  const jsonLdList = [breadcrumbSchema, organizationSchema, ...storesSchemas];
 
   return (
     <Layout>
-      {/* SEO Head */}
       <Head>
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
+        <meta name="keywords" content={t.meta.keywords} />
 
-        {/* Open Graph */}
+        <link rel="canonical" href={canonicalUrl} />
+
+        <link rel="alternate" hreflang="x-default" href={zhUrl} />
+        <link rel="alternate" hreflang="zh-TW" href={zhUrl} />
+        <link rel="alternate" hreflang="en" href={enUrl} />
+
         <meta property="og:type" content="website" />
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />
-        <meta property="og:image" content={`${siteUrl}${t.meta.ogImage}`} />
-        <meta property="og:site_name" content="Memory Corner" />
-        <meta
-          property="og:locale"
-          content={locale === "zh-TW" ? "zh_TW" : "en_US"}
-        />
-        <meta property="og:url" content={`${siteUrl}${currentPath}`} />
+        <meta property="og:image" content={`${SITE_DOMAIN}${t.meta.ogImage}`} />
+        <meta property="og:site_name" content={t.meta.siteName} />
+        <meta property="og:locale" content={t.meta.ogLocale} />
+        <meta property="og:url" content={canonicalUrl} />
 
-        <link rel="canonical" href={`${siteUrl}${currentPath}`} />
-
-        {/* Hreflang Tags: 告訴 Google 不同語言版本的網址 */}
-        <link
-          rel="alternate"
-          hreflang="x-default"
-          href={`${siteUrl}/brand-story`}
-        />
-        <link
-          rel="alternate"
-          hreflang="zh-TW"
-          href={`${siteUrl}/brand-story`}
-        />
-        <link
-          rel="alternate"
-          hreflang="en"
-          href={`${siteUrl}/en/brand-story`}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdList) }}
         />
       </Head>
-
-      {/* JSON-LD Scripts */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageSchema) }}
-      />
-      {/* 注入所有分店的 Schema */}
-      {storesSchema.map((schema, index) => (
-        <script
-          key={index}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      ))}
 
       <main className="min-h-screen text-[#3b2a1a] bg-[#f0e3cd] relative ">
         {/* Header 背景圖 */}
@@ -786,12 +906,20 @@ export default function BrandStoryPage({ t, locale }) {
         <div className="mx-auto max-w-[1380px] z-50 relative px-4 pb-20 pt-[200px]">
           {/* Tabs 按鈕 */}
           <FadeUp>
-            <div className="mb-8 flex flex-wrap justify-center gap-3">
+            <div
+              className="mb-8 flex flex-wrap justify-center gap-3"
+              role="tablist"
+              aria-label="Brand Stories Tabs"
+            >
               {t.tabs.map((tab) => {
                 const isActive = tab.id === activeTab;
                 return (
                   <button
                     key={tab.id}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`panel-${tab.id}`}
+                    id={`tab-${tab.id}`}
                     onClick={() => handleTabClick(tab.id)}
                     className={`
                       relative px-10 py-2.5 text-sm tracking-[0.25em]
@@ -812,11 +940,11 @@ export default function BrandStoryPage({ t, locale }) {
             </div>
           </FadeUp>
 
-          {/* 品牌 Logo 區 (純視覺，不變) */}
+          {/* 品牌 Logo 區 (已修改為動態圖片) */}
           <FadeUp delay={0.05}>
-            <section className="mt-10 sm:mb-[100px] mb-10 xl:mb-[160px] relative">
+            <section className="mt-10 sm:mb-[10px] mb-10 xl:mb-[10px] relative">
               <div className="absolute z-50 left-1/2 -translate-x-1/2 w-screen pointer-events-none bg-gradient-to-t from-[#f0e3cd] to-transparent h-72 bottom-[50px] sm:bottom-[-0px] md:h-52 md:bottom-[-100px]" />
-              <div className="mx-auto max-w-[960px] relative z-[99999] px-4 py-6">
+              <div className="mx-auto  w-full relative z-[99999]  py-6">
                 <div className="space-y-[3px]">
                   <div className="h-[2px] bg-[#2b211a]" />
                   <div className="h-[2px] bg-[#2b211a]" />
@@ -825,18 +953,34 @@ export default function BrandStoryPage({ t, locale }) {
                   <div className="text-[15px] tracking-[0.6em] text-[#2b211a]">
                     {t.ui.salty_sweet}
                   </div>
+
                   <div className="flex items-center gap-10">
                     <div className="hidden h-16 w-px bg-[#2b211a] md:block" />
-                    <div className="flex flex-col items-center">
-                      <span className="text-[34px] leading-none tracking-[0.55em] text-[#2b211a]">
-                        有 香
-                      </span>
-                      <span className="mt-2 text-sm font-medium uppercase tracking-[0.4em] text-[#2b211a]">
-                        Memory Corner
-                      </span>
+
+                    {/* Logo 動態切換 */}
+                    <div className="flex flex-col items-center justify-center min-w-[200px] min-h-[80px]">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={activeTab}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Image
+                            src={currentBrandLogo}
+                            alt={`${activeTab} logo`}
+                            width={200}
+                            height={80}
+                            className="object-contain h-auto w-auto max-h-[80px]"
+                          />
+                        </motion.div>
+                      </AnimatePresence>
                     </div>
+
                     <div className="hidden h-16 w-px bg-[#2b211a] md:block" />
                   </div>
+
                   <div className="text-[15px] tracking-[0.6em] text-[#2b211a]">
                     {t.ui.taiwan_snack}
                   </div>
@@ -873,6 +1017,9 @@ export default function BrandStoryPage({ t, locale }) {
               <AnimatePresence mode="wait">
                 <motion.article
                   key={activeTab}
+                  role="tabpanel"
+                  id={`panel-${activeTab}`}
+                  aria-labelledby={`tab-${activeTab}`}
                   initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 16, filter: "blur(6px)" }}

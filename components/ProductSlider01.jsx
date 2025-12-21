@@ -5,7 +5,7 @@ import SplitType from "split-type";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import Carousel from "../components/EmblaCarouselTravel/index";
+import Carousel from "../components/EmblaCarouselBeer/index";
 
 const makeHref = (cta = {}) => {
   if (cta.tel) return `tel:${String(cta.tel).replace(/[\s-]/g, "")}`;

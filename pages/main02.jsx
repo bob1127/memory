@@ -6,7 +6,7 @@ import Image from "next/image";
 import Layout from "./Layout";
 import Marquee from "react-marquee-slider";
 import Link from "next/link";
-import Carousel from "../components/EmblaCarouselTravel/index";
+import Carousel from "../components/EmblaCarouselBeer/index";
 import TestimonialsEmbla from "../components/TestimonialsEmbla";
 import { motion } from "framer-motion";
 

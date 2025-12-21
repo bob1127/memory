@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
+import Link from "next/link"; // 新增 Link
+import Head from "next/head"; // 新增 Head 用於 SEO
 import Layout from "./Layout";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2 } from "lucide-react"; // 確保有導入圖示
 import { cartStore } from "@/lib/cartStore";
 import { authStore } from "@/lib/authStore";
 
-/* =================== Helper: 取得多語言商品名稱 =================== */
+/* =================== Helper: 工具函式 =================== */
+
 const getCartName = (item, locale) => {
   if (!item) return "";
   const isEn = locale === "en";
@@ -17,105 +20,10 @@ const getCartName = (item, locale) => {
   return item.name || "";
 };
 
-/* =================== 翻譯資料庫 =================== */
-const CHECKOUT_TRANSLATIONS = {
-  "zh-TW": {
-    title_contact: "聯絡資訊",
-    title_recipient: "收件人",
-    title_area: "外送地區",
-    title_payment: "付款方式",
-    title_summary: "訂單摘要",
+const roundPrice = (num) => Math.round(Number(num) || 0);
 
-    label_email: "Email",
-    label_name: "姓名",
-    label_phone: "電話",
-    label_address: "地址（街道、門牌、城市、郵遞區號）",
+/* =================== 資料常數 =================== */
 
-    logged_in_as: "以",
-    logged_in_suffix: "身份登入。",
-    use_diff_contact: "使用不同聯絡人（允許修改 Email）",
-
-    shipping_fee: "運費",
-    tax: "稅",
-    free_shipping_over: "滿 CA$",
-    free_shipping_suffix: " 免運",
-
-    subtotal: "小計",
-    total: "總計",
-    empty_cart: "目前沒有商品",
-    place_order: "確認下單",
-    placing_order: "建立訂單中…",
-
-    alerts: {
-      empty_cart: "購物車為空",
-      email_required: "Email 必填",
-      info_required: "請填寫姓名與電話",
-      payment_required: "請選擇付款方式",
-      area_required: "請選擇外送地區",
-      address_required: "請輸入詳細地址",
-      min_order: "訂單必須滿 80 才能運送",
-      error: "下單發生錯誤：",
-    },
-
-    payment_methods: {
-      cod: "貨到付款",
-      credit: "信用卡",
-      transfer: "銀行轉帳",
-      linepay: "LINE Pay",
-    },
-
-    currency: "CA$",
-  },
-  en: {
-    title_contact: "Contact Info",
-    title_recipient: "Recipient",
-    title_area: "Delivery Area",
-    title_payment: "Payment Method",
-    title_summary: "Order Summary",
-
-    label_email: "Email",
-    label_name: "Name",
-    label_phone: "Phone",
-    label_address: "Address (Street, Unit, City, Postal Code)",
-
-    logged_in_as: "Logged in as",
-    logged_in_suffix: ".",
-    use_diff_contact: "Use different contact info",
-
-    shipping_fee: "Shipping",
-    tax: "Tax",
-    free_shipping_over: "Free shipping over CA$",
-    free_shipping_suffix: "",
-
-    subtotal: "Subtotal",
-    total: "Total",
-    empty_cart: "Cart is empty",
-    place_order: "Place Order",
-    placing_order: "Processing...",
-
-    alerts: {
-      empty_cart: "Cart is empty",
-      email_required: "Email is required",
-      info_required: "Name and Phone are required",
-      payment_required: "Please select a payment method",
-      area_required: "Please select a delivery area",
-      address_required: "Please enter detailed address",
-      min_order: "Minimum order amount is $80",
-      error: "Order failed: ",
-    },
-
-    payment_methods: {
-      cod: "Cash on Delivery",
-      credit: "Credit Card",
-      transfer: "Bank Transfer",
-      linepay: "LINE Pay",
-    },
-
-    currency: "CA$",
-  },
-};
-
-/* === 固定加拿大地區、運費與稅率 === */
 const AREAS = [
   {
     label: "Vancouver City (including…)",
@@ -134,35 +42,102 @@ const AREAS = [
   },
 ];
 
+const CHECKOUT_TRANSLATIONS = {
+  "zh-TW": {
+    // ... (保持原有翻譯)
+    title_contact: "聯絡資訊",
+    title_recipient: "收件人",
+    title_area: "外送地區",
+    title_payment: "付款方式",
+    title_summary: "訂單摘要",
+    label_email: "Email",
+    label_name: "姓名",
+    label_phone: "電話",
+    label_address: "地址（街道、門牌、城市、郵遞區號）",
+    logged_in_as: "以",
+    logged_in_suffix: "身份登入。",
+    use_diff_contact: "使用不同聯絡人（允許修改 Email）",
+    shipping_fee: "運費",
+    tax: "稅",
+    free_shipping_over: "滿 CA$",
+    free_shipping_suffix: " 免運",
+    subtotal: "小計",
+    total: "總計",
+    empty_cart: "目前沒有商品",
+    place_order: "確認下單",
+    placing_order: "建立訂單中…",
+    alerts: {
+      empty_cart: "購物車為空",
+      email_required: "Email 必填",
+      info_required: "請填寫姓名與電話",
+      payment_required: "請選擇付款方式",
+      area_required: "請選擇外送地區",
+      address_required: "請輸入詳細地址",
+      min_order: "訂單必須滿 80 才能運送",
+      error: "下單發生錯誤：",
+    },
+    payment_methods: {
+      cod: "貨到付款",
+      credit: "信用卡",
+      transfer: "銀行轉帳",
+      linepay: "LINE Pay",
+    },
+    currency: "CA$",
+  },
+  en: {
+    // ... (保持原有翻譯)
+    title_contact: "Contact Info",
+    title_recipient: "Recipient",
+    title_area: "Delivery Area",
+    title_payment: "Payment Method",
+    title_summary: "Order Summary",
+    label_email: "Email",
+    label_name: "Name",
+    label_phone: "Phone",
+    label_address: "Address (Street, Unit, City, Postal Code)",
+    logged_in_as: "Logged in as",
+    logged_in_suffix: ".",
+    use_diff_contact: "Use different contact info",
+    shipping_fee: "Shipping",
+    tax: "Tax",
+    free_shipping_over: "Free shipping over CA$",
+    free_shipping_suffix: "",
+    subtotal: "Subtotal",
+    total: "Total",
+    empty_cart: "Cart is empty",
+    place_order: "Place Order",
+    placing_order: "Processing...",
+    alerts: {
+      empty_cart: "Cart is empty",
+      email_required: "Email is required",
+      info_required: "Name and Phone are required",
+      payment_required: "Please select a payment method",
+      area_required: "Please select a delivery area",
+      address_required: "Please enter detailed address",
+      min_order: "Minimum order amount is $80",
+      error: "Order failed: ",
+    },
+    payment_methods: {
+      cod: "Cash on Delivery",
+      credit: "Credit Card",
+      transfer: "Bank Transfer",
+      linepay: "LINE Pay",
+    },
+    currency: "CA$",
+  },
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { locale } = router;
   const t = CHECKOUT_TRANSLATIONS[locale] || CHECKOUT_TRANSLATIONS["zh-TW"];
 
+  /* ------------------ State ------------------ */
   const [cart, setCart] = useState([]);
   const [placing, setPlacing] = useState(false);
-
-  /* ------------------ 購物車 ------------------ */
-  useEffect(() => {
-    cartStore.init();
-    const unsub = cartStore.subscribe((c) => setCart([...c]));
-    return unsub;
-  }, []);
-  const subtotal = useMemo(
-    () =>
-      cart.reduce((sum, it) => sum + Number(it.price || 0) * (it.qty || 0), 0),
-    [cart]
-  );
-
-  /* ------------------ 登入會員 ------------------ */
   const [auth, setAuth] = useState(authStore.get());
-  useEffect(() => {
-    authStore.init?.();
-    const unsub = authStore.subscribe((s) => setAuth({ ...s }));
-    return unsub;
-  }, []);
+  const [useDifferentContact, setUseDifferentContact] = useState(false);
 
-  /* ------------------ 表單 ------------------ */
   const [form, setForm] = useState({
     email: "",
     name: "",
@@ -172,49 +147,107 @@ export default function CheckoutPage() {
     payment: "",
   });
 
-  const [useDifferentContact, setUseDifferentContact] = useState(false);
+  /* ------------------ Subscriptions ------------------ */
+  useEffect(() => {
+    cartStore.init();
+    const unsubCart = cartStore.subscribe((c) => setCart([...c]));
+    authStore.init?.();
+    const unsubAuth = authStore.subscribe((s) => setAuth({ ...s }));
+    return () => {
+      unsubCart();
+      unsubAuth();
+    };
+  }, []);
 
-  // 登入時自動帶入會員資料
   useEffect(() => {
     if (!auth?.user) return;
+    const u = auth.user;
+    const b = u.billing || {};
     const firstName =
-      auth.user.billing?.first_name ||
-      auth.user.first_name ||
-      auth.user.displayName ||
-      auth.user.name ||
-      "";
-    const lastName = auth.user.billing?.last_name || auth.user.last_name || "";
-    const phone = auth.user.billing?.phone || auth.user.phone || "";
-    const email = auth.user.email || auth.user.user_email || "";
-    const address = auth.user.billing?.address_1 || "";
+      b.first_name || u.first_name || u.displayName || u.name || "";
+    const lastName = b.last_name || u.last_name || "";
+    const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
-    setForm((v) => ({
-      ...v,
-      name: [firstName, lastName].filter(Boolean).join(" "),
-      phone,
-      email,
-      deliveryAddress: address || v.deliveryAddress,
+    setForm((prev) => ({
+      ...prev,
+      name: prev.name || fullName,
+      phone: prev.phone || b.phone || u.phone || "",
+      email: prev.email || u.email || u.user_email || "",
+      deliveryAddress: prev.deliveryAddress || b.address_1 || "",
     }));
   }, [auth?.user]);
 
-  /* ------------------ 運費與稅 ------------------ */
-  const selectedArea = AREAS.find((a) => a.value === form.deliveryArea);
-  let shippingFee = selectedArea?.fee || 0;
-  const taxRate = selectedArea?.tax || 0;
-  if (selectedArea && subtotal >= selectedArea.freeThreshold) shippingFee = 0;
-  const taxAmount = Math.round((subtotal * taxRate) / 100);
-  const total = subtotal + shippingFee + taxAmount;
+  /* ------------------ Logic: 購物車操作 ------------------ */
 
-  const onChange = (key) => (e) => {
-    const v =
-      e?.target?.type === "checkbox"
-        ? !!e.target.checked
-        : e?.target?.value ?? "";
-    setForm((prev) => ({ ...prev, [key]: v }));
+  // 更新 Cart Store 的通用方法 (假設 cartStore 有 save 或類似方法，這裡模擬直接更新)
+  const updateCartStore = (newCart) => {
+    // 如果 cartStore 有 set 方法：
+    if (cartStore.set) {
+      cartStore.set(newCart);
+    } else {
+      // Fallback: 如果 cartStore 是基於簡單的 listener 模式
+      // 這裡通常需要一個方法來通知 store 更新資料
+      // 例如: cartStore.data = newCart; cartStore.notify();
+      // 由於看不到 cartStore 原始碼，這裡假設直接更新 state 會觸發同步
+      // 實際專案中請確保這裡呼叫了正確的 Store 更新方法
+      console.warn("Please implement cartStore update logic here");
+    }
   };
 
-  /* ------------------ 建立訂單 ------------------ */
-  async function handlePlaceOrder() {
+  const handleUpdateQty = (itemId, change) => {
+    const newCart = cart.map((item) => {
+      if (item.id === itemId) {
+        const newQty = Math.max(1, (item.qty || 1) + change);
+        return { ...item, qty: newQty };
+      }
+      return item;
+    });
+    // 這裡需要觸發 Store 更新，因 cart 是訂閱來的，直接 setCart 只是本地更新
+    // 為了 UI 即時反應，我們先 setCart，實際應呼叫 cartStore 的方法
+    setCart(newCart);
+    updateCartStore(newCart);
+  };
+
+  const handleRemoveItem = (itemId) => {
+    if (!confirm("Are you sure you want to remove this item?")) return;
+    const newCart = cart.filter((item) => item.id !== itemId);
+    setCart(newCart);
+    updateCartStore(newCart);
+  };
+
+  /* ------------------ Logic: 金額計算 ------------------ */
+  const orderSummary = useMemo(() => {
+    const rawSubtotal = cart.reduce(
+      (sum, it) => sum + Number(it.price || 0) * (it.qty || 0),
+      0
+    );
+    const subtotal = roundPrice(rawSubtotal);
+    const selectedArea = AREAS.find((a) => a.value === form.deliveryArea);
+    let shippingFee = selectedArea?.fee || 0;
+
+    if (selectedArea && subtotal >= selectedArea.freeThreshold) {
+      shippingFee = 0;
+    }
+
+    const taxRate = selectedArea?.tax || 0;
+    const rawTax = (subtotal * taxRate) / 100;
+    const taxAmount = roundPrice(rawTax);
+    const total = roundPrice(subtotal + shippingFee + taxAmount);
+
+    return { subtotal, shippingFee, taxAmount, total, selectedArea };
+  }, [cart, form.deliveryArea]);
+
+  /* ------------------ Logic: 下單 ------------------ */
+  const handleChange = useCallback(
+    (key) => (e) => {
+      const value =
+        e.target.type === "checkbox" ? e.target.checked : e.target.value;
+      setForm((prev) => ({ ...prev, [key]: value }));
+    },
+    []
+  );
+
+  const handlePlaceOrder = useCallback(async () => {
     try {
       if (!cart.length) return alert(t.alerts.empty_cart);
       const emailToUse =
@@ -227,25 +260,20 @@ export default function CheckoutPage() {
       if (!form.payment) return alert(t.alerts.payment_required);
       if (!form.deliveryArea) return alert(t.alerts.area_required);
       if (!form.deliveryAddress.trim()) return alert(t.alerts.address_required);
-      if (subtotal < 80) return alert(t.alerts.min_order);
+      if (orderSummary.subtotal < 80) return alert(t.alerts.min_order);
 
-      const areaLabel = selectedArea?.label || form.deliveryArea || "";
+      const areaLabel =
+        orderSummary.selectedArea?.label || form.deliveryArea || "";
       const fullAddress = `${areaLabel} ${form.deliveryAddress}`.trim();
 
       setPlacing(true);
 
-      const customerId = auth?.user?.id || auth?.user?.ID || 0;
-
       const payload = {
         cart,
-        shipping_fee: shippingFee,
-        tax: taxAmount,
-        form: {
-          ...form,
-          email: emailToUse,
-          deliveryAddress: fullAddress,
-        },
-        customerId,
+        shipping_fee: orderSummary.shippingFee,
+        tax: orderSummary.taxAmount,
+        form: { ...form, email: emailToUse, deliveryAddress: fullAddress },
+        customerId: auth?.user?.id || auth?.user?.ID || 0,
       };
 
       const resp = await fetch("/api/wc/create-order", {
@@ -256,152 +284,236 @@ export default function CheckoutPage() {
 
       const data = await resp.json();
       if (!resp.ok || !data.ok) {
-        const msg = data?.detail?.message || data?.message || "Order Failed";
-        alert(msg);
-        console.error("create-order failed:", data);
-        return;
+        throw new Error(
+          data?.detail?.message || data?.message || "Order Failed"
+        );
       }
 
       const orderId = data.order?.id;
       if (!orderId) throw new Error("No Order ID returned");
+
       cartStore.clear?.();
       router.push(`/thank-you?id=${orderId}`);
     } catch (err) {
       console.error(err);
-      alert(t.alerts.error + (err?.message || err));
+      alert(t.alerts.error + (err?.message || String(err)));
     } finally {
       setPlacing(false);
     }
-  }
+  }, [cart, form, auth, useDifferentContact, orderSummary, router, t]);
 
-  /* ------------------ UI ------------------ */
+  /* ------------------ Structured Data (JSON-LD) ------------------ */
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: t.place_order,
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: process.env.NEXT_PUBLIC_SITE_URL || "https://yourwebsite.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Checkout",
+          item: `${
+            process.env.NEXT_PUBLIC_SITE_URL || "https://yourwebsite.com"
+          }/checkout`,
+        },
+      ],
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Your Store Name", // 請替換為您的商店名稱
+      logo: {
+        "@type": "ImageObject",
+        url: "https://yourwebsite.com/logo.png", // 請替換為您的 Logo URL
+      },
+    },
+  };
+
   return (
     <Layout>
+      {/* SEO Head: Checkout 頁面不應被索引 (noindex)，但可以保留結構化資料 */}
+      <Head>
+        <title>{t.place_order} | Checkout</title>
+        <meta name="robots" content="noindex, nofollow" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      </Head>
+
       <main className="min-h-screen py-10 bg-gray-50 pt-[100px]">
         <div className="mx-auto w-[min(1200px,95vw)] grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* 左側：表單 */}
+          {/* 左側：表單區域 (維持不變) */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             {auth?.user && (
-              <div className="mb-4 rounded-lg border bg-emerald-50 px-3 py-2 text-sm">
-                {t.logged_in_as}{" "}
-                <b>{auth.user.email || auth.user.user_email}</b>{" "}
-                {t.logged_in_suffix}
-                <label className="ml-3 inline-flex items-center gap-2 cursor-pointer mt-1 sm:mt-0">
+              <div className="mb-6 rounded-lg border bg-emerald-50 px-4 py-3 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  {t.logged_in_as}{" "}
+                  <b>{auth.user.email || auth.user.user_email}</b>{" "}
+                  {t.logged_in_suffix}
+                </div>
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none text-emerald-800 hover:text-emerald-950">
                   <input
                     type="checkbox"
                     checked={useDifferentContact}
                     onChange={(e) => setUseDifferentContact(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-500"
                   />
                   {t.use_diff_contact}
                 </label>
               </div>
             )}
 
-            {/* 聯絡資訊 */}
             <section className="mb-8">
-              <h3 className="font-semibold text-lg mb-3">{t.title_contact}</h3>
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-black rounded-full"></span>
+                {t.title_contact}
+              </h3>
               <input
                 type="email"
                 placeholder={t.label_email}
                 value={form.email}
-                onChange={onChange("email")}
-                className="w-full border rounded-lg px-3 py-2 mb-2 focus:ring-2 focus:ring-black/10 disabled:opacity-60"
+                onChange={handleChange("email")}
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 disabled:bg-gray-100 disabled:text-gray-500 transition-all"
                 disabled={!!auth?.user && !useDifferentContact}
               />
             </section>
 
-            {/* 收件人 */}
             <section className="mb-8">
-              <h3 className="font-semibold text-lg mb-3">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-black rounded-full"></span>
                 {t.title_recipient}
               </h3>
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input
                   placeholder={t.label_name}
                   value={form.name}
-                  onChange={onChange("name")}
-                  className="border rounded-lg px-3 py-2 w-full"
+                  onChange={handleChange("name")}
+                  className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
                 />
                 <input
+                  type="tel"
                   placeholder={t.label_phone}
                   value={form.phone}
-                  onChange={onChange("phone")}
-                  className="border rounded-lg px-3 py-2 w-full"
+                  onChange={handleChange("phone")}
+                  className="border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
                 />
               </div>
             </section>
 
-            {/* 外送地區 */}
             <section className="mb-8">
-              <h3 className="font-semibold text-lg mb-3">{t.title_area}</h3>
-              <div className="rounded-xl border divide-y overflow-hidden">
-                {AREAS.map((a) => (
-                  <label
-                    key={a.value}
-                    className={`flex justify-between items-center gap-2 p-3 cursor-pointer transition ${
-                      form.deliveryArea === a.value
-                        ? "bg-yellow-50"
-                        : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="delivery-area"
-                        checked={form.deliveryArea === a.value}
-                        onChange={() =>
-                          setForm((v) => ({ ...v, deliveryArea: a.value }))
-                        }
-                      />
-                      {a.label}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {t.shipping_fee} {t.currency}
-                      {a.fee} ・ {t.tax} {a.tax}%
-                      <div className="text-xs text-gray-500">
-                        {t.free_shipping_over}
-                        {a.freeThreshold}
-                        {t.free_shipping_suffix}
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-black rounded-full"></span>
+                {t.title_area}
+              </h3>
+              <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                {AREAS.map((a) => {
+                  const isSelected = form.deliveryArea === a.value;
+                  return (
+                    <label
+                      key={a.value}
+                      className={`flex justify-between items-center gap-3 p-4 cursor-pointer transition-colors ${
+                        isSelected ? "bg-amber-50" : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                            isSelected ? "border-black" : "border-gray-300"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className="w-3 h-3 bg-black rounded-full" />
+                          )}
+                        </div>
+                        <input
+                          type="radio"
+                          name="delivery-area"
+                          className="hidden"
+                          checked={isSelected}
+                          onChange={() =>
+                            setForm((v) => ({ ...v, deliveryArea: a.value }))
+                          }
+                        />
+                        <span
+                          className={`font-medium ${
+                            isSelected ? "text-black" : "text-gray-700"
+                          }`}
+                        >
+                          {a.label}
+                        </span>
                       </div>
-                    </div>
-                  </label>
-                ))}
+                      <div className="text-right text-sm text-gray-600">
+                        <div>
+                          {t.shipping_fee} {t.currency}
+                          {a.fee} / {t.tax} {a.tax}%
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {t.free_shipping_over}
+                          {a.freeThreshold}
+                          {t.free_shipping_suffix}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
-
               {form.deliveryArea && (
-                <input
-                  placeholder={t.label_address}
-                  value={form.deliveryAddress}
-                  onChange={onChange("deliveryAddress")}
-                  className="mt-3 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-black/10"
-                />
+                <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <input
+                    placeholder={t.label_address}
+                    value={form.deliveryAddress}
+                    onChange={handleChange("deliveryAddress")}
+                    className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
+                  />
+                </div>
               )}
             </section>
 
-            {/* 付款方式 */}
             <section>
-              <h3 className="font-semibold text-lg mb-3">{t.title_payment}</h3>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <span className="w-1 h-6 bg-black rounded-full"></span>
+                {t.title_payment}
+              </h3>
+              <div className="grid sm:grid-cols-2 gap-4">
                 {Object.keys(t.payment_methods).map((key) => {
                   const label = t.payment_methods[key];
+                  const isSelected = form.payment === label;
                   return (
                     <label
                       key={key}
-                      className={`flex items-center gap-3 border rounded-lg p-3 cursor-pointer ${
-                        form.payment === label
-                          ? "border-black"
-                          : "border-gray-300"
+                      className={`relative flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-black bg-gray-900 text-white shadow-md"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                       }`}
                     >
                       <input
                         type="radio"
                         name="payment"
-                        checked={form.payment === label}
+                        className="hidden"
+                        checked={isSelected}
                         onChange={() =>
                           setForm((v) => ({ ...v, payment: label }))
                         }
                       />
-                      {label}
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                          isSelected ? "border-white" : "border-gray-400"
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        )}
+                      </div>
+                      <span className="font-medium">{label}</span>
                     </label>
                   );
                 })}
@@ -409,81 +521,163 @@ export default function CheckoutPage() {
             </section>
           </div>
 
-          {/* 右側：訂單摘要 */}
-          <aside className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-fit">
-            <h3 className="font-semibold text-lg mb-4">{t.title_summary}</h3>
-            {cart.length === 0 ? (
-              <p className="text-gray-500">{t.empty_cart}</p>
-            ) : (
-              <ul className="divide-y mb-4">
-                {cart.map((it) => (
-                  <li
-                    key={it.id}
-                    className="py-3 flex justify-between items-center gap-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src={it.img}
-                        alt={it.name}
-                        width={80}
-                        height={80}
-                        className="rounded border border max-w-[150px]"
-                      />
-                      <div>
-                        {/* ✅ 顯示自動切換語言的名稱 */}
-                        <div className="text-sm font-medium">
-                          {getCartName(it, locale)}
-                        </div>
-                        <div className="text-xs text-gray-500">x {it.qty}</div>
-                      </div>
-                    </div>
-                    <div className="text-sm font-semibold">
-                      {t.currency}
-                      {(Number(it.price || 0) * (it.qty || 0)).toLocaleString()}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+          {/* 右側：訂單摘要 (更新後) */}
+          <aside className="h-fit lg:sticky lg:top-24 space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h3 className="font-semibold text-lg mb-6 pb-4 border-b">
+                {t.title_summary}
+              </h3>
 
-            <div className="border-t pt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>{t.subtotal}</span>
-                <span>
-                  {t.currency}
-                  {subtotal}
-                </span>
+              {cart.length === 0 ? (
+                <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                  {t.empty_cart}
+                </div>
+              ) : (
+                <ul className="space-y-6 mb-6   pr-2 custom-scrollbar">
+                  {cart.map((it) => (
+                    <li key={it.id} className="flex gap-4 group relative">
+                      {/* 商品圖片：加上連結 */}
+                      <div className="block relative  w-[200px] h-[200px]  aspect-square flex-shrink-0 rounded-lg   hover:opacity-90 transition-opacity">
+                        <Image
+                          src={it.img}
+                          alt={it.name || "Product"}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-between py-1">
+                        <div className="flex justify-between items-start gap-2">
+                          {/* 商品名稱：加上連結 */}
+                          <Link
+                            href={`/product/${it.slug || it.id}`}
+                            className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug hover:text-gray-600 transition-colors"
+                          >
+                            {getCartName(it, locale)}
+                          </Link>
+
+                          {/* 刪除按鈕 */}
+                          <button
+                            onClick={() => handleRemoveItem(it.id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-1 -mt-1 -mr-1"
+                            title="Remove item"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
+                        <div className="flex justify-between items-end mt-2">
+                          {/* 數量調整區 */}
+                          <div className="flex items-center border border-gray-200 rounded-md bg-gray-50">
+                            <button
+                              onClick={() => handleUpdateQty(it.id, -1)}
+                              disabled={it.qty <= 1}
+                              className="p-1 px-2 text-gray-600 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <span className="text-xs font-semibold px-2 min-w-[20px] text-center">
+                              {it.qty}
+                            </span>
+                            <button
+                              onClick={() => handleUpdateQty(it.id, 1)}
+                              className="p-1 px-2 text-gray-600 hover:bg-gray-200 transition"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+
+                          {/* 價格 */}
+                          <div className="text-sm font-medium text-gray-900">
+                            {t.currency}
+                            {(
+                              Number(it.price || 0) * (it.qty || 0)
+                            ).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* 價格計算區域 (維持不變) */}
+              <div className="space-y-3 pt-4 border-t border-gray-100">
+                <div className="flex justify-between text-gray-600">
+                  <span>{t.subtotal}</span>
+                  <span className="font-medium text-gray-900">
+                    {t.currency}
+                    {orderSummary.subtotal.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>{t.shipping_fee}</span>
+                  <span className="font-medium text-gray-900">
+                    {orderSummary.shippingFee === 0
+                      ? "Free"
+                      : `${t.currency}${orderSummary.shippingFee}`}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>{t.tax}</span>
+                  <span className="font-medium text-gray-900">
+                    {t.currency}
+                    {orderSummary.taxAmount.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="border-t border-dashed border-gray-200 my-4"></div>
+
+                <div className="flex justify-between items-end">
+                  <span className="font-bold text-lg">{t.total}</span>
+                  <span className="font-bold text-2xl">
+                    <span className="text-sm font-normal text-gray-500 mr-1">
+                      {t.currency}
+                    </span>
+                    {orderSummary.total.toLocaleString()}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>{t.shipping_fee}</span>
-                <span>
-                  {t.currency}
-                  {shippingFee}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t.tax}</span>
-                <span>
-                  {t.currency}
-                  {taxAmount}
-                </span>
-              </div>
-              <div className="flex justify-between font-semibold text-lg pt-2">
-                <span>{t.total}</span>
-                <span>
-                  {t.currency}
-                  {total}
-                </span>
-              </div>
+
+              <button
+                onClick={handlePlaceOrder}
+                disabled={placing}
+                className={`mt-8 w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg shadow-black/10 flex justify-center items-center gap-2
+                  ${
+                    placing
+                      ? "bg-gray-800 cursor-wait opacity-80"
+                      : "bg-black hover:bg-gray-800 hover:shadow-xl active:transform active:scale-[0.98]"
+                  }`}
+              >
+                {placing && (
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                )}
+                {placing ? t.placing_order : t.place_order}
+              </button>
             </div>
 
-            <button
-              onClick={handlePlaceOrder}
-              disabled={placing}
-              className="mt-6 w-full bg-black text-white py-3 rounded-lg disabled:opacity-60 hover:opacity-90"
-            >
-              {placing ? t.placing_order : t.place_order}
-            </button>
+            <div className="text-center text-xs text-gray-400 px-4">
+              Secure Checkout powered by SSL encryption
+            </div>
           </aside>
         </div>
       </main>

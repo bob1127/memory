@@ -14,7 +14,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import Carousel from "../components/EmblaCarouselTravel/index";
+import Carousel from "../components/EmblaCarouselBeer/index";
 
 // GSAP 註冊（SplitText 現在免費，確保使用 3.13+）
 if (typeof window !== "undefined" && !gsap.core.globals()._menu_once_) {

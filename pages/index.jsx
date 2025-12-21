@@ -1,4 +1,4 @@
-import { useRef, useEffect, useLayoutEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Marquee from "react-marquee-slider";
@@ -8,7 +8,6 @@ import Head from "next/head";
 import {
   motion,
   useMotionValue,
-  useSpring,
   AnimatePresence,
   useScroll,
   useReducedMotion,
@@ -16,13 +15,11 @@ import {
 
 // Components
 import Layout from "../pages/Layout";
-import Carousel from "../components/EmblaCarouselTravel/index";
+import Carousel from "../components/EmblaCarouselBeer/index";
 
-// Dynamic Imports
-const MinimalPushOverlayMenu = dynamic(
-  () => import("@/components/MinimalPushOverlayMenu"),
-  { ssr: false }
-);
+// 網址設定 (優先讀取環境變數，Fallback 為正式網址)
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
 
 /* =================================================================
    1. 翻譯資料庫
@@ -30,9 +27,11 @@ const MinimalPushOverlayMenu = dynamic(
 const TRANSLATIONS = {
   "zh-TW": {
     meta: {
-      title: "Memory Corner 有香餐飲集團 | 正宗台式料理與懷舊美味",
+      title: "Memory Corner 有香餐飲集團 | 溫哥華正宗台式料理與懷舊美味",
       description:
-        "始於1975年，有香餐飲集團在溫哥華呈現最正宗的台灣味。旗下擁有 Memory Corner 有香、Sweet Memory 憶點點，提供台式鍋物、小吃、甜點與特色啤酒，帶您重溫家的溫度。",
+        "始於1975年，有香餐飲集團在溫哥華呈現最正宗的台灣味。旗下擁有 Memory Corner 有香、Sweet Memory 憶點點，提供台式鍋物、羊肉爐、鹽酥雞、傳統小吃、甜點與特色精釀啤酒，帶您重溫家的溫度。",
+      keywords:
+        "溫哥華台灣菜, 溫哥華台式料理, 羊肉爐, 鹽酥雞, 台灣啤酒, 有香, 憶點點, Vancouver Taiwanese Food",
       ogImage: "/images/index/banner-06-a.png",
     },
     beer: {
@@ -79,7 +78,9 @@ const TRANSLATIONS = {
     meta: {
       title: "Memory Corner Group | Authentic Taiwanese Cuisine in Vancouver",
       description:
-        "Established in 1975, Memory Corner Group brings authentic Taiwanese flavors to Vancouver. Home to Memory Corner and Sweet Memory, serving hot pots, street snacks, desserts, and craft beer.",
+        "Established in 1975, Memory Corner Group brings authentic Taiwanese flavors to Vancouver. Home to Memory Corner and Sweet Memory, serving hot pots, street snacks, crispy chicken, desserts, and craft beer.",
+      keywords:
+        "Vancouver Taiwanese Food, Richmond Taiwanese Restaurant, Hot Pot, Bubble Tea, Popcorn Chicken, Craft Beer",
       ogImage: "/images/index/banner-06-a.png",
     },
     beer: {
@@ -131,7 +132,7 @@ const TRANSLATIONS = {
 };
 
 /* =================================================================
-   2. SSG 資料獲取
+   2. SSG 資料獲取 (Static Site Generation)
    ================================================================= */
 export async function getStaticProps({ locale }) {
   const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
@@ -188,8 +189,6 @@ function AutoSwapImage({
   height = 500,
   interval = 6000,
   initialDelay = 0,
-  enterFrom = "none",
-  offset = 40,
   rotateInfinite = false,
   rotateDuration = 16,
   priority = false,
@@ -197,7 +196,6 @@ function AutoSwapImage({
 }) {
   const prefersReduced = useReducedMotion?.();
   const [internalShowB, setInternalShowB] = useState(false);
-
   const isControlled = forceShowB !== undefined;
   const showB = isControlled ? forceShowB : internalShowB;
 
@@ -217,27 +215,16 @@ function AutoSwapImage({
   const srcA = `${base}-a.png`;
   const srcB = `${base}-b.png`;
 
-  const dxIn =
-    enterFrom === "left" ? -offset : enterFrom === "right" ? offset : 0;
-  const dxOut =
-    enterFrom === "left" ? offset : enterFrom === "right" ? -offset : 0;
-
   const content = (
     <AnimatePresence initial={false} mode="wait">
       <motion.div
         key={showB ? "B" : "A"}
-        initial={{
-          opacity: 0,
-          x: dxIn,
-        }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{
-          opacity: 0,
-          x: dxOut,
-        }}
-        transition={{ duration: 1.05, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 1.05, ease: "easeInOut" }}
         style={{
-          willChange: "transform, opacity",
+          willChange: "opacity",
           backfaceVisibility: "hidden",
           position: "relative",
           width: "100%",
@@ -292,7 +279,6 @@ function RotatingSplitImage({
 }) {
   const prefersReduced = useReducedMotion?.();
   const [internalShowB, setInternalShowB] = useState(false);
-
   const isControlled = forceShowB !== undefined;
   const showB = isControlled ? forceShowB : internalShowB;
 
@@ -329,7 +315,6 @@ function RotatingSplitImage({
       }}
     >
       <div className="relative w-full h-full flex items-center justify-center">
-        {/* 背景層：旋轉 */}
         <motion.div
           className="absolute inset-0 w-full h-full flex items-center justify-center"
           animate={{ rotate: 360 }}
@@ -357,7 +342,6 @@ function RotatingSplitImage({
           </AnimatePresence>
         </motion.div>
 
-        {/* 前景層：固定 */}
         <div className="absolute inset-0 w-full h-full z-10 flex items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
@@ -387,11 +371,9 @@ function RotatingSplitImage({
 export default function Home({ t, locale }) {
   if (!t) return null;
 
-  const rightRef = useRef(null);
-  const siteUrl = "https://www.memorycorner8.com";
-
-  // 全域 A/B 循環狀態控制 (讓背景與標誌同步)
   const [globalIsB, setGlobalIsB] = useState(false);
+  const dingingRef = useRef(null);
+  useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -401,7 +383,6 @@ export default function Home({ t, locale }) {
   }, []);
 
   const OPTIONS = { dragFree: true, loop: true };
-
   const SLIDES = [
     {
       image: "/images/beer/台啤-蜂蜜.webp",
@@ -445,54 +426,87 @@ export default function Home({ t, locale }) {
     },
   ];
 
-  const baseAngle = useMotionValue(0);
-  useEffect(() => {
-    const stepPerWheel = 0.25;
-    const onWheel = (e) =>
-      baseAngle.set(baseAngle.get() + e.deltaY * stepPerWheel);
-    window.addEventListener("wheel", onWheel, { passive: true });
-    return () => window.removeEventListener("wheel", onWheel);
-  }, [baseAngle]);
+  /* ========== 完整結構化資料 (Structured Data) ========== */
 
-  const dingingRef = useRef(null);
-  useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
-
-  /* ========== SEO & Structured Data (JSON-LD) ========== */
+  // 1. 網站 Schema
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Memory Corner 有香餐飲集團",
-    url: siteUrl,
-    description: t.meta.description,
+    url: SITE_URL,
     potentialAction: {
       "@type": "SearchAction",
-      target: `${siteUrl}/search?q={search_term_string}`,
+      target: `${SITE_URL}/search?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };
 
+  // 2. 組織/集團 Schema
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Memory Corner Group",
-    url: siteUrl,
-    logo: `${siteUrl}/images/index/about/有香集團-logo.png`,
+    url: SITE_URL,
+    logo: `${SITE_URL}/images/index/about/有香集團-logo.png`,
     sameAs: [
       "https://www.facebook.com/MemoryCorner8",
       "https://www.instagram.com/memorycorner8",
     ],
   };
 
+  // 3. 餐廳 (LocalBusiness) Schema - 這是實體店最重要的 SEO
+  const restaurantSchema = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: "Memory Corner 有香",
+    image: [
+      `${SITE_URL}/images/index/banner-06-a.png`,
+      `${SITE_URL}/images/index/about/DAV01683.webp`,
+    ],
+    priceRange: "$$",
+    servesCuisine: "Taiwanese",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "6900 No. 3 Rd", // 範例地址，請確認正確地址
+      addressLocality: "Richmond",
+      addressRegion: "BC",
+      postalCode: "V6Y 2C5",
+      addressCountry: "CA",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 49.166, // 範例座標
+      longitude: -123.13,
+    },
+    url: SITE_URL,
+    telephone: "+16042845434", // 範例電話
+  };
+
+  // 4. 影片 Schema
   const videoSchema = {
     "@context": "https://schema.org",
     "@type": "VideoObject",
     name: "Memory Corner | 有香影片-朋友歡聚暢飲",
     description:
       "Enjoy authentic Taiwanese cuisine and beer with friends at Memory Corner.",
-    thumbnailUrl: `${siteUrl}/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg`,
+    thumbnailUrl: `${SITE_URL}/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg`,
     uploadDate: "2024-01-01T08:00:00+08:00",
-    contentUrl: `${siteUrl}/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4`,
-    embedUrl: siteUrl,
+    contentUrl: `${SITE_URL}/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4`,
+    embedUrl: SITE_URL,
+  };
+
+  // 5. 網頁 Schema
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: t.meta.title,
+    description: t.meta.description,
+    url: `${SITE_URL}${locale === "en" ? "/en" : ""}`,
+    inLanguage: locale === "zh-TW" ? "zh-TW" : "en",
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}${t.meta.ogImage}`,
+    },
   };
 
   return (
@@ -501,11 +515,13 @@ export default function Home({ t, locale }) {
         <Head>
           <title>{t.meta.title}</title>
           <meta name="description" content={t.meta.description} />
+          <meta name="keywords" content={t.meta.keywords} />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
+
           <meta property="og:type" content="website" />
           <meta property="og:title" content={t.meta.title} />
           <meta property="og:description" content={t.meta.description} />
-          <meta property="og:image" content={`${siteUrl}${t.meta.ogImage}`} />
+          <meta property="og:image" content={`${SITE_URL}${t.meta.ogImage}`} />
           <meta property="og:site_name" content="Memory Corner" />
           <meta
             property="og:locale"
@@ -513,108 +529,116 @@ export default function Home({ t, locale }) {
           />
           <meta
             property="og:url"
-            content={`${siteUrl}${locale === "en" ? "/en" : ""}`}
+            content={`${SITE_URL}${locale === "en" ? "/en" : ""}`}
           />
+
           <link
             rel="canonical"
-            href={`${siteUrl}${locale === "en" ? "/en" : ""}`}
+            href={`${SITE_URL}${locale === "en" ? "/en" : ""}`}
           />
-          <link rel="alternate" hreflang="x-default" href={siteUrl} />
-          <link rel="alternate" hreflang="zh-TW" href={siteUrl} />
-          <link rel="alternate" hreflang="en" href={`${siteUrl}/en`} />
-        </Head>
+          <link rel="alternate" hreflang="x-default" href={SITE_URL} />
+          <link rel="alternate" hreflang="zh-TW" href={SITE_URL} />
+          <link rel="alternate" hreflang="en" href={`${SITE_URL}/en`} />
 
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
-        />
+          {/* Inject Structured Data */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(organizationSchema),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(restaurantSchema),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+          />
+        </Head>
 
         {/* Section Hero */}
         <section className="section-hero z-[9] pt-[0px] relative md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
+          {/* [SEO] 隱藏的 H1，確保頁面有正確的標題層級，但不影響視覺 */}
+          <h1 className="sr-only">{t.meta.title}</h1>
+
           <div className="relative h-full w-full">
-            {/* 中央主標 - 綁定全域狀態 forceShowB */}
+            {/* 中央主標 */}
             <AutoSwapImage
               base="/images/index/banner-06"
-              alt="Memory Corner Authentic Taiwanese Cuisine Background"
+              alt="Memory Corner Authentic Taiwanese Cuisine"
               positionClass="z-10 right-[-3%] top-[10%] md:top-[-10%]"
               className="w-[80vw]"
               width={1200}
               height={800}
               interval={7000}
-              enterFrom="none"
               priority={true}
-              forceShowB={globalIsB} // ✅ 與全域同步
+              forceShowB={globalIsB}
             />
 
             {/* 角色 */}
             <AutoSwapImage
               base="/images/index/banner-05"
-              alt="Memory Corner Character"
+              alt="Memory Corner Character Mascot"
               positionClass="z-20 right-[0%] bottom-[-2%]"
               className="w-[70vw] sm:w-[55vw] lg:w-[50vw] xl:w-[52vw]"
               width={800}
               height={500}
               interval={7000}
-              initialDelay={1200}
-              enterFrom="right"
-              offset={36}
+              forceShowB={globalIsB}
             />
 
             {/* 筷子 */}
             <AutoSwapImage
               base="/images/index/banner-02"
-              alt="Chopsticks"
+              alt="Taiwanese Chopsticks"
               positionClass="z-50 left-[-10%] top-[15%] rotate-[25deg] md:rotate-0 md:top-[24%]"
               className="w-[45vw] md:w-[30vw]"
               width={800}
               height={500}
               interval={7000}
-              initialDelay={2400}
-              enterFrom="left"
-              offset={28}
+              forceShowB={globalIsB}
             />
 
-            {/* 轉動標誌 - 綁定全域狀態 forceShowB */}
+            {/* 轉動標誌 */}
             <RotatingSplitImage
               baseA="/images/index/banner-07-a"
               baseB="/images/index/banner-07-b"
-              alt="Memory Corner Seal Mark"
+              alt="Memory Corner Seal"
               className="z-30 left-[10%] md:left-[20%] bottom-[30%] md:bottom-[15%] xl:bottom-[10%] w-[16vw] sm:w-[10vw]"
               interval={7000}
               initialDelay={3600}
               rotateDuration={16}
               priority={true}
-              forceShowB={globalIsB} // ✅ 與全域同步
+              forceShowB={globalIsB}
             />
 
             {/* 火鍋 */}
             <AutoSwapImage
               base="/images/index/banner-01"
-              alt="Taiwanese Hot Pot"
+              alt="Authentic Taiwanese Hot Pot"
               positionClass="z-10 left-[4%] md:left-[2%] top-[44%] sm:top-[25%] md:top-[50%] 2xl:top-[55%] -translate-y-1/2"
               className="w-[75vw] md:w-[60vw]"
               width={800}
               height={500}
               interval={7000}
-              initialDelay={4800}
-              enterFrom="left"
-              offset={32}
               priority={true}
+              forceShowB={globalIsB}
             />
           </div>
         </section>
 
-        {/* ======= 啤酒輪播區塊 (Beer Carousel) ======= */}
+        {/* ======= 啤酒輪播區塊 ======= */}
         <section className="section_beer overflow-hidden">
           <Carousel slides={SLIDES} options={OPTIONS} />
         </section>
@@ -622,11 +646,11 @@ export default function Home({ t, locale }) {
         {/* ======= 零食區塊 (Variety) ======= */}
         <section
           ref={dingingRef}
-          className="section_Dinging mx-auto bg-[#efefef] max-w-[1920px] relative overflow-x-hidden"
+          className="section_Dinging mx-auto bg-[#efefef] relative overflow-x-hidden"
         >
           <div className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row justify-center">
-              {/* 左側：影片區 (已設定自動播放影片) */}
+              {/* 左側：影片區 */}
               <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
                 <video
                   className="w-full h-full scale-[1.5] object-cover"
@@ -635,13 +659,13 @@ export default function Home({ t, locale }) {
                   loop
                   muted
                   playsInline
-                  aria-label="Taiwanese traditional grocery shop video"
+                  aria-label="Video of Taiwanese grocery shop"
                 />
               </div>
               {/* 右側：文案區 */}
               <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
                 <FadeUp amount={0.35} className="w-full max-w-[680px]">
-                  <div className="flex flex-col">
+                  <article className="flex flex-col">
                     <FadeUp>
                       <h2 className="title-large font-bold m-0 p-0 leading-none">
                         {t.variety.title}
@@ -668,8 +692,24 @@ export default function Home({ t, locale }) {
                           {t.variety.desc3}
                         </p>
                       </FadeUp>
+                      <FadeUp delay={0.04}>
+                        <Link
+                          href="/app"
+                          className="group"
+                          aria-label="Go to App page"
+                        >
+                          <Image
+                            src="/images/more-btn.png"
+                            width={400}
+                            alt="Read more about variety products"
+                            height={400}
+                            loading="lazy"
+                            className="w-[200px] mx-auto sm:mx-0 mt-5 group-hover:scale-105 scale-100 duration-300 h-auto"
+                          />
+                        </Link>
+                      </FadeUp>
                     </div>
-                  </div>
+                  </article>
                 </FadeUp>
               </div>
             </div>
@@ -692,10 +732,11 @@ export default function Home({ t, locale }) {
               <Link
                 href="/brand-story?tab=group"
                 className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+                aria-label="About Memory Corner Group"
               >
                 <Image
                   src="/images/index/about/DAV01968.webp"
-                  alt="Memory Corner Group"
+                  alt="Memory Corner Group Staff"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   priority={false}
@@ -706,7 +747,7 @@ export default function Home({ t, locale }) {
                   <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
                     <Image
                       src="/images/index/about/有香集團-logo.png"
-                      alt="有香集團 logo"
+                      alt="Group Logo"
                       width={260}
                       height={120}
                       className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
@@ -727,10 +768,11 @@ export default function Home({ t, locale }) {
               <Link
                 href="/brand-story?tab=youxiang"
                 className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+                aria-label="About Memory Corner Restaurant"
               >
                 <Image
                   src="/images/index/about/DAV01683.webp"
-                  alt="Memory Corner Restaurant"
+                  alt="Memory Corner Dining Environment"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover"
@@ -740,7 +782,7 @@ export default function Home({ t, locale }) {
                   <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
                     <Image
                       src="/images/index/about/有香-logo.png"
-                      alt="有香 logo"
+                      alt="Memory Corner Logo"
                       width={260}
                       height={120}
                       className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
@@ -761,10 +803,11 @@ export default function Home({ t, locale }) {
               <Link
                 href="/brand-story?tab=memory"
                 className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+                aria-label="About Sweet Memory"
               >
                 <Image
                   src="/images/index/about/DAV01773 (1).webp"
-                  alt="Sweet Memory"
+                  alt="Sweet Memory Desserts"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover"
@@ -774,7 +817,7 @@ export default function Home({ t, locale }) {
                   <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
                     <Image
                       src="/images/index/about/億點點-logo.png"
-                      alt="億點點 logo"
+                      alt="Sweet Memory Logo"
                       width={260}
                       height={120}
                       className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
@@ -803,7 +846,7 @@ export default function Home({ t, locale }) {
             playsInline
             preload="metadata"
             poster="/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg"
-            aria-label="Memory Corner promotion video"
+            aria-label="Memory Corner promotional video"
           >
             <source
               src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
@@ -813,11 +856,11 @@ export default function Home({ t, locale }) {
         </section>
 
         {/* APP Operation Section */}
-        <section className="section_app_operation bg-[#f7f7f7] relative overflow-hidden">
+        <section className="section_app_operation bg-[#f7f7f7] flex flex-col justify-center h-screen relative overflow-hidden">
           <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
             <div className="w-full md:w-[50%] flex sm:p-10 p-8 md:p-20 items-center">
               <FadeUp amount={0.35} className="w-full">
-                <div className="flex flex-col justify-center items-center">
+                <article className="flex flex-col justify-center items-center">
                   <FadeUp>
                     <h2 className="title-large font-bold text-[#3b2619] leading-none text-wrap">
                       {t.app.title}
@@ -831,11 +874,15 @@ export default function Home({ t, locale }) {
                       </p>
                     </FadeUp>
                     <FadeUp delay={0.04}>
-                      <Link href="/app" className="group">
+                      <Link
+                        href="/app"
+                        className="group"
+                        aria-label="Join Rewards App"
+                      >
                         <Image
                           src="/images/more-btn.png"
                           width={400}
-                          alt="Learn more about our App"
+                          alt="Join App Button"
                           height={400}
                           loading="lazy"
                           className="w-[200px] mx-auto sm:mx-0 group-hover:scale-105 scale-100 duration-300 h-auto"
@@ -843,23 +890,20 @@ export default function Home({ t, locale }) {
                       </Link>
                     </FadeUp>
                   </div>
-                </div>
+                </article>
               </FadeUp>
             </div>
 
-            <div className="w-full overflow-hidden md:w-[50%] flex relative justify-center md:justify-end">
+            <div className="w-full md:w-[50%] flex items-center">
               <FadeUp delay={0.1} amount={0.3} className="w-full">
-                <Link
-                  href="/app"
-                  className="relative flex justify-center scale-100 xl:scale-125 absolute left-0 lg:left-[10%] bottom-[0%] lg:bottom-[-25%]"
-                >
+                <Link href="/app" aria-label="View App details">
                   <Image
                     src="/images/app/app.png"
                     alt="Rewards App Mockup"
                     width={1700}
                     height={1700}
                     loading="lazy"
-                    className="w-full h-auto"
+                    className="w-full h-full"
                   />
                 </Link>
               </FadeUp>
