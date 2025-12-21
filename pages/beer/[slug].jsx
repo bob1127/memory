@@ -55,40 +55,37 @@ export default function BeerInner({
 }) {
   const { locale, asPath, replace } = useRouter();
 
-  // 1. 【修正】所有的 Hooks (useState, useEffect) 必須在條件判斷 (if/return) 之前宣告
+  // 1. Hooks 宣告
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [qty, setQty] = useState(1);
   const [toast, setToast] = useState(false);
 
-  // 2. 【修正】處理轉址的 useEffect 也要放在最上面
+  // 2. 轉址邏輯
   useEffect(() => {
     if (redirectDestination) {
       replace(redirectDestination);
     }
   }, [redirectDestination, replace]);
 
-  // 3. 【修正】所有的 Hooks 都執行完畢後，才能進行條件 return
-  // 如果需要轉址，先回傳 null 避免閃爍
-  if (redirectDestination) return null;
+  // 3. 當語系或產品改變時，重置 thumbsSwiper (這是一個額外的安全措施)
+  useEffect(() => {
+    setThumbsSwiper(null);
+  }, [locale, product?.id]);
 
-  // 如果沒有產品資料，回傳 null (或可改為 404 UI)
+  // 4. 條件 Return
+  if (redirectDestination) return null;
   if (!product) return null;
 
   const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
   const isEn = locale === "en";
 
   // --- 顯示與 SEO 邏輯 ---
-
-  // 確保名稱符合當前語系
   const currentDisplayName = isEn
     ? names?.en || product.name
     : names?.zh || product.name;
 
-  // SEO Description 優先抓取「簡短說明 (short_description)」
   const rawSeoDesc = product.short_description || product.description;
   const cleanSeoDesc = stripHtml(rawSeoDesc).substring(0, 160);
-
-  // 頁面顯示用的 HTML
   const displayDesc = product.description;
   const currentUrl = `${SITE_URL}${asPath.split("?")[0]}`;
   const mainImage = product.images?.[0] || `${SITE_URL}/images/placeholder.png`;
@@ -167,11 +164,8 @@ export default function BeerInner({
   return (
     <Layout>
       <Head>
-        {/* 1. 基本 SEO - 加上 key 以覆蓋 Layout */}
         <title key="title">{`${currentDisplayName} | Memory Corner`}</title>
         <meta name="description" content={cleanSeoDesc} key="description" />
-
-        {/* 2. Open Graph (Facebook/Line) - 加上 key 以覆蓋 Layout */}
         <meta property="og:title" content={currentDisplayName} key="og:title" />
         <meta
           property="og:description"
@@ -191,8 +185,6 @@ export default function BeerInner({
         ) : (
           <meta property="og:locale" content="zh_TW" key="og:locale" />
         )}
-
-        {/* 3. Twitter Card */}
         <meta
           name="twitter:card"
           content="summary_large_image"
@@ -209,8 +201,6 @@ export default function BeerInner({
           key="twitter:description"
         />
         <meta name="twitter:image" content={mainImage} key="twitter:image" />
-
-        {/* 4. Schema 結構化資料 */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
@@ -241,13 +231,26 @@ export default function BeerInner({
         </nav>
 
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
-          {/* 左側圖片區塊 */}
-          <div className="lg:sticky lg:top-24 self-start">
+          {/* ★ 關鍵修復：左側圖片區塊 
+             加上 key={`${product.id}-${locale}`} 
+             這會強制 React 在切換語系時完全銷毀並重建 Swiper 元件，
+             徹底解決 "Client-side exception" 的問題。
+          */}
+          <div
+            className="lg:sticky lg:top-24 self-start"
+            key={`${product.id}-${locale}`}
+          >
             <div className="aspect-square rounded-2xl overflow-hidden border border-gray-100">
               <Swiper
                 modules={[Thumbs]}
                 spaceBetween={12}
-                thumbs={{ swiper: thumbsSwiper }}
+                thumbs={{
+                  // 增加防呆判斷，避免 thumbsSwiper 為 null 時報錯
+                  swiper:
+                    thumbsSwiper && !thumbsSwiper.destroyed
+                      ? thumbsSwiper
+                      : null,
+                }}
                 className="w-full h-full"
               >
                 {(product.images?.length
@@ -269,6 +272,7 @@ export default function BeerInner({
                 ))}
               </Swiper>
             </div>
+
             {product.images?.length > 1 && (
               <Swiper
                 onSwiper={setThumbsSwiper}
@@ -276,6 +280,7 @@ export default function BeerInner({
                 slidesPerView={5}
                 modules={[Thumbs]}
                 className="mt-3"
+                watchSlidesProgress // 建議加上此屬性優化縮圖控制
               >
                 {product.images.map((img, idx) => (
                   <SwiperSlide key={idx}>
@@ -549,7 +554,7 @@ export async function getStaticProps({ params, locale }) {
         names: names,
         redirectDestination,
       },
-      revalidate: 10,
+      revalidate: 60,
     };
   } catch (err) {
     console.error("❌ getStaticProps Error:", err);
