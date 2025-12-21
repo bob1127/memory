@@ -10,15 +10,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import Marquee from "react-marquee-slider";
 import { cartStore } from "@/lib/cartStore";
 
-/* ... (保留上面的 const 設定, MARQUEE_ITEMS 等，不需改變) ... */
 const APPEAR_DELAY_MS = 800;
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
-// ... 省略 MARQUEE_ITEMS 定義 ...
 
-/* ... (保留 PAGE_TRANSLATIONS, priceFromItem, stripHtml) ... */
+// [補回] 跑馬燈圖片設定
+const MARQUEE_ITEMS = [
+  { src: "/images/gif/output-onlinegiftools-25.gif", alt: "beer animation 1" },
+  { src: "/images/gif/output-onlinegiftools-58.gif", alt: "beer animation 2" },
+  { src: "/images/gif/output-onlinegiftools-52.gif", alt: "beer animation 3" },
+  { src: "/images/gif/output-onlinegiftools-2.gif", alt: "beer animation 4" },
+  { src: "/images/gif/output-onlinegiftools-5.gif", alt: "beer animation 5" },
+];
 
-// ... PAGE_TRANSLATIONS ...
+/* =================================================================
+   1. UI 翻譯
+   ================================================================= */
 const PAGE_TRANSLATIONS = {
   "zh-TW": {
     seo: {
@@ -63,8 +70,12 @@ const priceFromItem = (p) => {
   if (typeof raw === "string") return parseFloat(raw);
   return Number(raw);
 };
+
 const stripHtml = (html) => (!html ? "" : html.replace(/<[^>]*>?/gm, ""));
 
+/* =================================================================
+   Main Page Component
+   ================================================================= */
 export default function BeerOrderPage({ initialItems = [] }) {
   const { locale, asPath } = useRouter();
   const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
@@ -120,39 +131,28 @@ export default function BeerOrderPage({ initialItems = [] }) {
       [id]: Math.max(0, Number.isFinite(+next) ? +next : 0),
     }));
 
-  /* ---------- 關鍵修正區：addToCart ---------- */
+  /* ---------- 加入購物車邏輯 ---------- */
   const addToCart = (product) => {
     const raw = qtyMap[product.id] ?? 0;
     if (raw <= 0) return;
     const safeQty = Math.max(1, raw);
     const price = priceFromItem(product);
 
-    // 取得當前頁面顯示的名稱
     const currentName = product.name;
-    // 取得後台設定的自訂英文名稱 (若有的話)
     const customEnName = product.extensions?.custom_acf?.en_product_name;
 
-    // 決定雙語名稱
-    // 1. 如果在中文頁：name_zh 就是 currentName，name_en 優先抓 customEnName，沒有就用 currentName
-    // 2. 如果在英文頁：name_en 就是 currentName，name_zh 這裡暫時沒有資料(因為是英文API)，只好暫填 currentName
-    //    (但在中文頁加入時，我們會修正回來)
     const nameZh = isEn ? currentName : currentName;
     const nameEn = isEn ? currentName : customEnName || currentName;
 
-    // 使用 linkedChineseId 進行合併 (這是解決分開問題的關鍵)
     const cartId = product.linkedChineseId || product.id;
 
     cartStore.add(
       {
         id: cartId,
         productId: product.id,
-
-        name: currentName, // 這是給如果不支援多語系的購物車用的預設值
-
-        // 這是給聰明的購物車組件用的
+        name: currentName,
         name_zh: nameZh,
         name_en: nameEn,
-
         img: product.img,
         price,
       },
@@ -163,7 +163,6 @@ export default function BeerOrderPage({ initialItems = [] }) {
       window.dispatchEvent(new Event("open-cart"));
     }
 
-    // 動畫與 Toast
     const btn = document.getElementById(`btn-${product.id}`);
     if (btn) {
       btn.animate(
@@ -182,15 +181,17 @@ export default function BeerOrderPage({ initialItems = [] }) {
     showToast(msg);
     setQty(product.id, 0);
   };
-  /* ------------------------------------------- */
 
+  /* 跑馬燈顯示控制 */
   const [showMarquee, setShowMarquee] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setShowMarquee(true), APPEAR_DELAY_MS);
     return () => clearTimeout(t);
   }, []);
 
-  /* ... (SEO Schema 相關代碼保持不變) ... */
+  /* =================================================================
+     SEO 結構化資料
+     ================================================================= */
   const seoProducts = initialItems.length > 0 ? initialItems : products;
   const currentUrl = `${SITE_URL}${asPath}`;
 
@@ -259,7 +260,48 @@ export default function BeerOrderPage({ initialItems = [] }) {
           key="description"
         />
         <link rel="canonical" href={currentUrl} />
-        {/* ... Meta Tags ... */}
+
+        <meta property="og:title" content={t.seo.title} key="og:title" />
+        <meta
+          property="og:description"
+          content={t.seo.description}
+          key="og:description"
+        />
+        <meta property="og:type" content="product.group" key="og:type" />
+        <meta property="og:url" content={currentUrl} key="og:url" />
+        <meta
+          property="og:site_name"
+          content="Memory Corner"
+          key="og:site_name"
+        />
+        <meta
+          property="og:image"
+          content={seoProducts[0]?.img || `${SITE_URL}/images/logo-6.png`}
+          key="og:image"
+        />
+        {isEn ? (
+          <meta property="og:locale" content="en_US" key="og:locale" />
+        ) : (
+          <meta property="og:locale" content="zh_TW" key="og:locale" />
+        )}
+
+        <meta
+          name="twitter:card"
+          content="summary_large_image"
+          key="twitter:card"
+        />
+        <meta name="twitter:title" content={t.seo.title} key="twitter:title" />
+        <meta
+          name="twitter:description"
+          content={t.seo.description}
+          key="twitter:description"
+        />
+        <meta
+          name="twitter:image"
+          content={seoProducts[0]?.img || `${SITE_URL}/images/logo-6.png`}
+          key="twitter:image"
+        />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
@@ -291,8 +333,43 @@ export default function BeerOrderPage({ initialItems = [] }) {
           </AnimatePresence>
         </div>
 
-        {/* 跑馬燈部分保持不變 */}
-        {/* ... Marquee ... */}
+        {/* [補回] 跑馬燈區塊 */}
+        <AnimatePresence>
+          {showMarquee && (
+            <motion.div
+              key="marquee-wrap"
+              className="pointer-events-none w-full py-6 overflow-hidden absolute z-50 left-0 top-20"
+              initial={{ opacity: 0, y: 64 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9 }}
+            >
+              <Marquee velocity={28} direction="rtl">
+                {MARQUEE_ITEMS.map((item, idx) => (
+                  <div key={`m1-${idx}`} className="mx-6 flex items-center">
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      loading="lazy"
+                      className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full"
+                    />
+                  </div>
+                ))}
+              </Marquee>
+              <Marquee velocity={24} direction="ltr">
+                {MARQUEE_ITEMS.map((item, idx) => (
+                  <div key={`m2-${idx}`} className="mx-6 flex items-center">
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      loading="lazy"
+                      className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full"
+                    />
+                  </div>
+                ))}
+              </Marquee>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Hero Section */}
         <section className="relative h-screen overflow-hidden">
@@ -338,7 +415,7 @@ export default function BeerOrderPage({ initialItems = [] }) {
           {loading ? (
             <p className="text-center mt-10 text-gray-500">{t.loading}</p>
           ) : (
-            <div className="grid max-w-[1600px] mx-auto w-[80%] grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 my-8">
+            <div className="grid max-w-[1600px] mx-auto w-[80%] grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 my-8">
               {products.map((p) => {
                 const q = qtyMap[p.id] ?? 0;
                 const displayPrice = priceFromItem(p);
@@ -348,7 +425,7 @@ export default function BeerOrderPage({ initialItems = [] }) {
                 return (
                   <article
                     key={p.id}
-                    className="flex flex-col justify-center items-center group transition"
+                    className="flex flex-col justify-start items-center group transition"
                     itemScope
                     itemType="https://schema.org/Product"
                   >
@@ -375,13 +452,16 @@ export default function BeerOrderPage({ initialItems = [] }) {
 
                     <Link
                       href={`/beer/${p.slug}`}
+                      aria-label={`View details of ${displayName}`}
                       className="relative block w-[240px] h-[240px]"
                     >
                       <Image
                         src={p.img}
                         alt={displayName}
                         fill
+                        sizes="(max-width: 768px) 100vw, 240px"
                         className="object-contain p-2 transition-transform group-hover:scale-[1.05]"
+                        itemProp="image"
                       />
                     </Link>
 
@@ -432,7 +512,6 @@ export default function BeerOrderPage({ initialItems = [] }) {
           )}
         </section>
 
-        {/* ... (下方 Google Map 和 Marquee 保持不變) ... */}
         <section className="bg-white pt-20 flex flex-col">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2608.125676211783!2d-123.1274940232461!3d49.17920177807608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x548675082541f249%3A0x87d1f92d1d46df5f!2zTWVtb3J5IENvcm5lciDmnInpppk!5e0!3m2!1szh-TW!2stw!4v1759130334759!5m2!1szh-TW!2stw"
@@ -456,7 +535,9 @@ export default function BeerOrderPage({ initialItems = [] }) {
   );
 }
 
-// ... getStaticProps 保持和你上一次成功的一樣 (有 linkedChineseId 邏輯) ...
+/* =================================================================
+   SSG Data Fetching
+   ================================================================= */
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
@@ -464,7 +545,10 @@ export async function getStaticProps({ locale }) {
 
   let initialItems = [];
 
-  const langMap = { "zh-TW": "zh_TW", en: "en" };
+  const langMap = {
+    "zh-TW": "zh_TW",
+    en: "en",
+  };
   const wpLang = langMap[locale] || "zh_TW";
 
   try {
@@ -491,6 +575,7 @@ export async function getStaticProps({ locale }) {
       });
       const rawList = await r.json();
       const list = Array.isArray(rawList) ? rawList : [];
+
       const ids = list
         .map((p) => p.id)
         .filter(Boolean)
@@ -535,6 +620,7 @@ export async function getStaticProps({ locale }) {
           sku: "",
           translations: {},
         };
+
         const enName = detail.name;
         const enDesc = detail.short_description;
 
@@ -555,12 +641,14 @@ export async function getStaticProps({ locale }) {
         if (imgSrc && !imgSrc.startsWith("http"))
           imgSrc = `${ensureURL(base)}${imgSrc}`;
         p.img = imgSrc || "/images/placeholder.png";
+
         return p;
       });
     }
   } catch (e) {
     console.error("getStaticProps error:", e);
   }
+
   return { props: { initialItems }, revalidate: 60 };
 }
 

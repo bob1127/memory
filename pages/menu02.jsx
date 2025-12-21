@@ -6,11 +6,10 @@ import Layout from "./Layout";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 
 /* ========== 設定網域 (使用環境變數) ========== */
-// 請確認 .env.local 中已設定 NEXT_PUBLIC_SITE_URL
 const SITE_DOMAIN =
   process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
 
-/* ========== 1. 資料設定 (已更新：P3 ~ P19) ========== */
+/* ========== 1. 資料設定 (憶點點) ========== */
 const MENU_IMAGES = [
   "/images/menu/憶點點/憶點點_202509菜單本P3.jpg",
   "/images/menu/憶點點/憶點點_202509菜單本P4.jpg",
@@ -34,10 +33,7 @@ const TRANSLATIONS = {
     meta: {
       title: "憶點點菜單 | Sweet Memory",
       description:
-        "憶點點 Sweet Memory 完整菜單。提供古早味鹹食、手作甜點與懷舊台灣小吃。歡迎線上瀏覽我們的菜單，回味記憶中的好味道。",
-      keywords:
-        "憶點點菜單, Sweet Memory Menu, 台灣甜點菜單, 溫哥華古早味美食, 懷舊小吃菜單",
-      ogImage: MENU_IMAGES[0],
+        "憶點點 Sweet Memory 完整菜單。提供古早味鹹食、手作甜點與懷舊台灣小吃。",
     },
     breadcrumb: {
       home: "首頁",
@@ -51,10 +47,7 @@ const TRANSLATIONS = {
     meta: {
       title: "Menu | Sweet Memory",
       description:
-        "Full menu of Sweet Memory. Offering traditional savory dishes, handmade desserts, and nostalgic Taiwanese snacks. Browse our menu online to rediscover the taste of memory.",
-      keywords:
-        "Sweet Memory Menu, Taiwanese Dessert Menu, Vancouver Nostalgic Food, Taiwanese Snacks Menu",
-      ogImage: MENU_IMAGES[0],
+        "Full menu of Sweet Memory. Offering traditional savory dishes, handmade desserts, and nostalgic Taiwanese snacks.",
     },
     breadcrumb: {
       home: "Home",
@@ -74,7 +67,7 @@ export async function getStaticProps({ locale }) {
   };
 }
 
-/* ========== 4. Lightbox 元件 (保持不變) ========== */
+/* ========== 4. Lightbox 元件 (Menu01 模式 - 手機版觸控修復) ========== */
 function ImageLightbox({ open, src, alt, onClose }) {
   useEffect(() => {
     if (!open) return;
@@ -91,33 +84,44 @@ function ImageLightbox({ open, src, alt, onClose }) {
   return (
     <AnimatePresence>
       {open ? (
+        // 外層 Wrapper：不綁定 onClick，避免事件冒泡問題
         <div className="fixed inset-0 z-[999999999999999] h-[100dvh] w-screen overflow-hidden flex items-center justify-center">
+          {/* Layer 1: 黑色遮罩 (Backdrop)
+              - 這是最底層，綁定 onClick={onClose}
+              - 因為上層 Panel 是 pointer-events-none，點擊空白處會「穿透」並打在這一層，觸發關閉。
+          */}
           <motion.div
             key="backdrop"
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
+            className="absolute inset-0 bg-black/90 backdrop-blur-md cursor-pointer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.3 }}
             onClick={onClose}
-            aria-hidden="true"
           />
+
+          {/* Layer 2: 圖片容器 (Panel)
+              - pointer-events-none: 關鍵！這讓此容器變成「透明」的（對滑鼠而言），
+                點擊 padding 或空白處會直接穿過去，打到下方的 Layer 1 (觸發關閉)。
+          */}
           <motion.div
             key="panel"
             role="dialog"
             aria-modal="true"
-            className="relative w-full h-full max-w-[1200px] p-4 flex items-center justify-center cursor-pointer"
-            onClick={onClose}
-            initial={{ opacity: 0, scale: 0.95 }}
+            className="relative  h-auto sm:h-full p-4 md:p-10 flex items-center justify-center pointer-events-none"
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
+            {/* Layer 3: 圖片本身 (Image)
+                - pointer-events-auto: 恢復感應，讓圖片可以阻擋點擊穿透。
+                - 不需要 stopPropagation，因為點這裡打不到 backdrop 的 onClick。
+            */}
             <img
               src={src}
               alt={alt}
-              onClick={(e) => e.stopPropagation()}
-              className="max-h-full max-w-full object-contain drop-shadow-2xl select-none cursor-default"
+              className="  object-contain drop-shadow-2xl select-none cursor-default rounded-sm pointer-events-auto"
               decoding="async"
             />
           </motion.div>
@@ -145,22 +149,16 @@ export default function Menu02Page({ t, locale }) {
     setLightboxOpen(true);
   };
 
-  /* ----- SEO URL 處理 ----- */
+  /* ----- URL & SEO ----- */
   const currentPath = router.asPath.split("?")[0];
   const canonicalUrl = `${SITE_DOMAIN}${
     currentPath === "/" ? "" : currentPath
   }`;
-
-  // Hreflang
   const pathWithoutLocale = currentPath.replace(`/${locale}`, "") || "/";
-  // 假設本頁路徑為 /menu02
   const path = pathWithoutLocale === "/" ? "/menu02" : pathWithoutLocale;
   const zhUrl = `${SITE_DOMAIN}${path}`;
   const enUrl = `${SITE_DOMAIN}/en${path}`;
 
-  /* ----- SEO Schema (JSON-LD) ----- */
-
-  // 1. Breadcrumb Schema
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -186,7 +184,6 @@ export default function Menu02Page({ t, locale }) {
     ],
   };
 
-  // 2. ImageGallery Schema
   const imageGallerySchema = {
     "@context": "https://schema.org",
     "@type": "ImageGallery",
@@ -195,8 +192,8 @@ export default function Menu02Page({ t, locale }) {
     image: MENU_IMAGES.map((img) => `${SITE_DOMAIN}${img}`),
     provider: {
       "@type": "Restaurant",
-      name: "Sweet Memory / 憶點點",
-      image: `${SITE_DOMAIN}/logo.png`, // 請確認有 logo 檔案
+      name: "Sweet Memory",
+      image: `${SITE_DOMAIN}/logo.png`,
     },
   };
 
@@ -205,18 +202,13 @@ export default function Menu02Page({ t, locale }) {
   return (
     <Layout>
       <Head>
-        {/* 基本 Meta */}
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
         <meta name="keywords" content={t.meta.keywords} />
         <link rel="canonical" href={canonicalUrl} />
-
-        {/* Hreflang */}
         <link rel="alternate" hreflang="x-default" href={zhUrl} />
         <link rel="alternate" hreflang="zh-TW" href={zhUrl} />
         <link rel="alternate" hreflang="en" href={enUrl} />
-
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />
@@ -227,8 +219,6 @@ export default function Menu02Page({ t, locale }) {
           property="og:locale"
           content={locale === "zh-TW" ? "zh_TW" : "en_US"}
         />
-
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={t.meta.title} />
         <meta name="twitter:description" content={t.meta.description} />
@@ -236,18 +226,19 @@ export default function Menu02Page({ t, locale }) {
           name="twitter:image"
           content={`${SITE_DOMAIN}${t.meta.ogImage}`}
         />
-
-        {/* JSON-LD 注入 */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdList) }}
         />
       </Head>
 
-      <div className="pt-20">
-        <section className="max-w-[1300px] mx-auto xl:w-[90%] md:w-[90%] w-full py-10 sm:py-16">
-          <div className="text-center mt-6 sm:mt-10">
-            <div className="text-[18px] text-stone-800 sm:text-stone-500 tracking-wide">
+      {/* 修改點：bg-white (不要灰底)，保持 min-h-screen */}
+      <div className="pt-20   min-h-screen">
+        {/* 手機版間距優化：px-4 py-6 */}
+        <section className="max-w-[1300px] mx-auto xl:w-[90%] md:w-[90%] w-full px-4 sm:px-0 py-6 sm:py-16">
+          <div className="text-center mt-4 sm:mt-10">
+            {/* 麵包屑文字縮小 */}
+            <div className="text-[14px] sm:text-[18px] text-stone-600 sm:text-stone-500 tracking-wide">
               <Link href="/" className="hover:text-black duration-400">
                 {t.breadcrumb.home}
               </Link>{" "}
@@ -260,7 +251,8 @@ export default function Menu02Page({ t, locale }) {
                 {t.breadcrumb.current}
               </span>
             </div>
-            <h1 className="mt-6 sm:mt-8 text-xl sm:text-2xl md:text-3xl font-bold tracking-[0.25em] text-stone-800 uppercase">
+            {/* 標題文字縮小 */}
+            <h1 className="mt-4 sm:mt-8 text-lg sm:text-3xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-stone-800 uppercase">
               {t.heading}
             </h1>
           </div>
@@ -273,7 +265,8 @@ export default function Menu02Page({ t, locale }) {
                 animate={center}
                 exit={exit}
                 style={{ willChange: "transform, opacity, filter" }}
-                className="grid mt-12 sm:mt-16 gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 items-start"
+                // 手機版間距：gap-4, mt-8
+                className="grid mt-8 sm:mt-16 gap-4 sm:gap-8 grid-cols-1 md:grid-cols-2 items-start"
               >
                 {MENU_IMAGES.map((src, i) => {
                   const alt = `${t.imageAlt} ${i + 1}`;
@@ -288,11 +281,12 @@ export default function Menu02Page({ t, locale }) {
                       exit={{ opacity: 0, y: -18 }}
                       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     >
+                      {/* 手機版圖片全寬 */}
                       <img
                         src={src}
                         alt={alt}
-                        className="w-[95%] mx-auto h-auto shadow-sm bg-white transition-transform duration-500 ease-out group-hover:scale-[1.015]"
-                        loading={i < 2 ? "eager" : "lazy"} // 首屏 2 張圖優先載入
+                        className="w-full sm:w-[95%] mx-auto h-auto shadow-md bg-white transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+                        loading={i < 2 ? "eager" : "lazy"}
                         decoding="async"
                       />
                     </motion.button>

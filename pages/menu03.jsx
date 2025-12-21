@@ -6,7 +6,6 @@ import Layout from "./Layout";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 
 /* ========== 設定網域 (使用環境變數) ========== */
-// 請確認 .env.local 中已設定 NEXT_PUBLIC_SITE_URL
 const SITE_DOMAIN =
   process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
 
@@ -22,10 +21,7 @@ const TRANSLATIONS = {
     meta: {
       title: "有香ㄟ灶腳菜單 | Kitchen Corner",
       description:
-        "有香ㄟ灶腳 Kitchen Corner 宅配菜單。提供冷凍料理包、台灣家常菜宅配服務，在家也能輕鬆享用有香美味。",
-      keywords:
-        "有香ㄟ灶腳, Kitchen Corner, 台灣菜宅配, 冷凍料理包, 溫哥華美食外送",
-      ogImage: MENU_IMAGES[0],
+        "有香ㄟ灶腳 Kitchen Corner 宅配菜單。提供冷凍料理包、台灣家常菜宅配服務。",
     },
     breadcrumb: {
       home: "首頁",
@@ -39,10 +35,7 @@ const TRANSLATIONS = {
     meta: {
       title: "Menu | Kitchen Corner",
       description:
-        "Delivery menu of Kitchen Corner. Offering frozen meal packs and authentic Taiwanese home-cooked meals delivered to your door.",
-      keywords:
-        "Kitchen Corner Menu, Taiwanese Food Delivery, Frozen Meal Packs, Vancouver Food Delivery",
-      ogImage: MENU_IMAGES[0],
+        "Delivery menu of Kitchen Corner. Offering frozen meal packs and authentic Taiwanese home-cooked meals.",
     },
     breadcrumb: {
       home: "Home",
@@ -62,7 +55,7 @@ export async function getStaticProps({ locale }) {
   };
 }
 
-/* ========== 4. Lightbox 元件 (保持不變) ========== */
+/* ========== 4. Lightbox 元件 (手機版觸控修復版) ========== */
 function ImageLightbox({ open, src, alt, onClose }) {
   useEffect(() => {
     if (!open) return;
@@ -79,33 +72,39 @@ function ImageLightbox({ open, src, alt, onClose }) {
   return (
     <AnimatePresence>
       {open ? (
-        <div className="fixed inset-0 z-[999999999999999] h-[100dvh] w-screen overflow-hidden flex items-center justify-center">
+        // 最外層綁定 onClick，確保點擊任何空白處都能關閉
+        <div
+          className="fixed inset-0 z-[999999999999999] h-[100dvh] w-screen overflow-hidden flex items-center justify-center cursor-pointer"
+          onClick={onClose}
+        >
+          {/* 背景遮罩 */}
           <motion.div
             key="backdrop"
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            onClick={onClose}
             aria-hidden="true"
           />
+
+          {/* Panel 設定 pointer-events-none，讓點擊穿透到外層 */}
           <motion.div
             key="panel"
             role="dialog"
             aria-modal="true"
-            className="relative w-full h-full max-w-[1200px] p-4 flex items-center justify-center cursor-pointer"
-            onClick={onClose}
+            className="relative   h-auto sm:h-full max-w-[1200px] p-4 flex items-center justify-center pointer-events-none"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
+            {/* 圖片本身 pointer-events-auto，阻止冒泡以免關閉 */}
             <img
               src={src}
               alt={alt}
               onClick={(e) => e.stopPropagation()}
-              className="max-h-full max-w-full object-contain drop-shadow-2xl select-none cursor-default"
+              className="max-h-full max-w-full object-contain drop-shadow-2xl select-none cursor-default rounded-sm pointer-events-auto"
               decoding="async"
             />
           </motion.div>
@@ -133,22 +132,16 @@ export default function Menu03Page({ t, locale }) {
     setLightboxOpen(true);
   };
 
-  /* ----- SEO URL 處理 ----- */
+  /* ----- URL & SEO ----- */
   const currentPath = router.asPath.split("?")[0];
   const canonicalUrl = `${SITE_DOMAIN}${
     currentPath === "/" ? "" : currentPath
   }`;
-
-  // Hreflang
   const pathWithoutLocale = currentPath.replace(`/${locale}`, "") || "/";
-  // 假設本頁路徑為 /menu03
   const path = pathWithoutLocale === "/" ? "/menu03" : pathWithoutLocale;
   const zhUrl = `${SITE_DOMAIN}${path}`;
   const enUrl = `${SITE_DOMAIN}/en${path}`;
 
-  /* ----- SEO Schema (JSON-LD) ----- */
-
-  // 1. Breadcrumb Schema
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -174,7 +167,6 @@ export default function Menu03Page({ t, locale }) {
     ],
   };
 
-  // 2. ImageGallery Schema
   const imageGallerySchema = {
     "@context": "https://schema.org",
     "@type": "ImageGallery",
@@ -183,8 +175,8 @@ export default function Menu03Page({ t, locale }) {
     image: MENU_IMAGES.map((img) => `${SITE_DOMAIN}${img}`),
     provider: {
       "@type": "Restaurant",
-      name: "Kitchen Corner / 有香ㄟ灶腳",
-      image: `${SITE_DOMAIN}/logo.png`, // 請確認有 logo 檔案
+      name: "Kitchen Corner",
+      image: `${SITE_DOMAIN}/logo.png`,
     },
   };
 
@@ -193,18 +185,13 @@ export default function Menu03Page({ t, locale }) {
   return (
     <Layout>
       <Head>
-        {/* 基本 Meta */}
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
         <meta name="keywords" content={t.meta.keywords} />
         <link rel="canonical" href={canonicalUrl} />
-
-        {/* Hreflang */}
         <link rel="alternate" hreflang="x-default" href={zhUrl} />
         <link rel="alternate" hreflang="zh-TW" href={zhUrl} />
         <link rel="alternate" hreflang="en" href={enUrl} />
-
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />
@@ -215,8 +202,6 @@ export default function Menu03Page({ t, locale }) {
           property="og:locale"
           content={locale === "zh-TW" ? "zh_TW" : "en_US"}
         />
-
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={t.meta.title} />
         <meta name="twitter:description" content={t.meta.description} />
@@ -224,18 +209,19 @@ export default function Menu03Page({ t, locale }) {
           name="twitter:image"
           content={`${SITE_DOMAIN}${t.meta.ogImage}`}
         />
-
-        {/* JSON-LD 注入 */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdList) }}
         />
       </Head>
 
-      <div className="pt-20">
-        <section className="max-w-[1300px] mx-auto xl:w-[90%] md:w-[90%] w-full py-10 sm:py-16">
-          <div className="text-center mt-6 sm:mt-10">
-            <div className="text-[18px] text-stone-800 sm:text-stone-500 tracking-wide">
+      {/* 修改點：背景改為 bg-white */}
+      <div className="pt-20  min-h-screen">
+        {/* 手機版間距優化：px-4 py-6 */}
+        <section className="max-w-[1300px] mx-auto xl:w-[90%] md:w-[90%] w-full px-4 sm:px-0 py-6 sm:py-16">
+          <div className="text-center mt-4 sm:mt-10">
+            {/* 麵包屑文字縮小 */}
+            <div className="text-[14px] sm:text-[18px] text-stone-600 sm:text-stone-500 tracking-wide">
               <Link href="/" className="hover:text-black duration-400">
                 {t.breadcrumb.home}
               </Link>{" "}
@@ -248,7 +234,8 @@ export default function Menu03Page({ t, locale }) {
                 {t.breadcrumb.current}
               </span>
             </div>
-            <h1 className="mt-6 sm:mt-8 text-xl sm:text-2xl md:text-3xl font-bold tracking-[0.25em] text-stone-800 uppercase">
+            {/* 標題文字縮小 */}
+            <h1 className="mt-4 sm:mt-8 text-lg sm:text-3xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-stone-800 uppercase">
               {t.heading}
             </h1>
           </div>
@@ -261,7 +248,8 @@ export default function Menu03Page({ t, locale }) {
                 animate={center}
                 exit={exit}
                 style={{ willChange: "transform, opacity, filter" }}
-                className="grid mt-12 sm:mt-16 gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 items-start"
+                // 手機版間距優化：gap-4 mt-8
+                className="grid mt-8 sm:mt-16 gap-4 sm:gap-8 grid-cols-1 md:grid-cols-2 items-start"
               >
                 {MENU_IMAGES.map((src, i) => {
                   const alt = `${t.imageAlt} ${i + 1}`;
@@ -276,11 +264,12 @@ export default function Menu03Page({ t, locale }) {
                       exit={{ opacity: 0, y: -18 }}
                       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     >
+                      {/* 手機版圖片全寬 */}
                       <img
                         src={src}
                         alt={alt}
-                        className="w-[95%] mx-auto h-auto shadow-sm bg-white transition-transform duration-500 ease-out group-hover:scale-[1.015]"
-                        loading="eager" // 只有兩張圖，皆設為 eager
+                        className="w-full sm:w-[95%] mx-auto h-auto shadow-md bg-white transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+                        loading="eager" // 只有2張圖，直接 eager
                         decoding="async"
                       />
                     </motion.button>
