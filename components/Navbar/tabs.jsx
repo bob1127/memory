@@ -231,7 +231,7 @@ function NavLink({ href, children, router }) {
   return (
     <Link
       href={href}
-      className={`relative inline-flex items-center px-4 py-2 text-[17px] font-medium transition-all duration-200 border rounded-lg ${
+      className={`relative inline-flex items-center px-4 py-2 text-[18px] font-medium transition-all duration-200 border rounded-lg ${
         isActive
           ? "border-[#b57a3c] text-[#b57a3c] bg-[#b57a3c]/5"
           : "border-transparent text-[#3c2514] hover:text-[#b57a3c]"
@@ -484,7 +484,7 @@ export const SlideTabsExample = () => {
         transition={{ duration: 0.35, ease: easeOut }}
         className={`fixed left-0 top-0 z-[999] w-full transition-all duration-300 ${
           isScrolled
-            ? "bg-[#ede5d6]/95 shadow-md backdrop-blur-sm py-2"
+            ? "bg-[#ede5d6]/100 shadow-md backdrop-blur-sm py-2"
             : "bg-white xl:bg-transparent py-2 xl:py-4"
         }`}
       >
@@ -550,7 +550,7 @@ export const SlideTabsExample = () => {
                     width={180}
                     height={58}
                     priority
-                    className="h-[50px] w-auto object-contain drop-shadow-sm"
+                    className="w-[240px]"
                   />
                 </Link>
                 <NavLink href="/news" router={router}>
@@ -703,23 +703,95 @@ export const SlideTabsExample = () => {
             height={600}
           />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4">
+        <div className=" ">
           {/* Order Popup Images (Keep as is) */}
           <div className="overflow-hidden p-2 sm:p-5">
-            <Link
+            <div className="grid grid-cols-2 lg:grid-cols-4">
+              <Link
+                href="https://h5.posking.ca/#/shop?id=598"
+                className="block w-full h-full"
+                target="_blank"
+              >
+                <Image
+                  src="/images/online-store/desktop-02.png"
+                  alt=""
+                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                  placeholder="empty"
+                  width={1920}
+                  height={600}
+                />
+              </Link>
+              <Link
+                href="https://h5.posking.ca/#/shop?id=598"
+                className="block w-full h-full"
+                target="_blank"
+              >
+                <Image
+                  src="/images/online-store/desktop-03.png"
+                  alt=""
+                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                  placeholder="empty"
+                  width={1920}
+                  height={600}
+                />
+              </Link>
+              <Link
+                href="https://h5.posking.ca/#/shop?id=598"
+                className="block w-full h-full"
+                target="_blank"
+              >
+                <Image
+                  src="/images/online-store/desktop-04.png"
+                  alt=""
+                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                  placeholder="empty"
+                  width={1920}
+                  height={600}
+                />
+              </Link>
+              <Link
+                href="https://h5.posking.ca/#/shop?id=598"
+                className="block w-full h-full"
+                target="_blank"
+              >
+                <Image
+                  src="/images/online-store/desktop-05.png"
+                  alt=""
+                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                  placeholder="empty"
+                  width={1920}
+                  height={600}
+                />
+              </Link>
+            </div>
+            <div
               href="https://h5.posking.ca/#/shop?id=598"
               className="block w-full h-full"
               target="_blank"
             >
               <Image
-                src="/images/online-store/desktop-02.png"
+                src="/images/online-store/desktop-06.png"
                 alt=""
                 className="w-full h-auto duration-300 scale-100 hover:scale-105"
                 placeholder="empty"
                 width={1920}
                 height={600}
               />
-            </Link>
+            </div>
+            <div
+              href="https://h5.posking.ca/#/shop?id=598"
+              className="block w-full h-full"
+              target="_blank"
+            >
+              <Image
+                src="/images/online-store/desktop-07.png"
+                alt=""
+                className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                placeholder="empty"
+                width={1920}
+                height={600}
+              />
+            </div>
           </div>
           {/* ... other images ... */}
         </div>

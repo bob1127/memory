@@ -58,14 +58,15 @@ export default function Home() {
                     />
                   </div>
                   <div className="w-full md:w-[60%] p-2 sm:p-4">
+                    {" "}
                     <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-2
+                      Step-3
                     </h2>
                     <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Enter Your Cell Number
+                      Tap to Claim Free Offer
                     </p>
                     <p className="text-lg sm:text-xl md:text-2xl">
-                      輸入手機號碼
+                      點擊加入會員
                     </p>
                   </div>
                 </div>
@@ -83,13 +84,13 @@ export default function Home() {
                   </div>
                   <div className="w-full md:w-[60%] p-2 sm:p-4">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-3
+                      Step-2
                     </h2>
                     <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Enter The SMS Verification Code
+                      Enter Your Cell Number
                     </p>
                     <p className="text-lg sm:text-xl md:text-2xl">
-                      輸入簡訊驗證碼
+                      輸入手機號碼
                     </p>
                   </div>
                 </div>
@@ -107,13 +108,13 @@ export default function Home() {
                   </div>
                   <div className="w-full md:w-[60%] p-2 sm:p-4">
                     <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-2
+                      Step-3
                     </h2>
                     <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Enter Your Cell Number
+                      Enter The SMS Verification Code
                     </p>
                     <p className="text-lg sm:text-xl md:text-2xl">
-                      輸入手機號碼
+                      輸入簡訊驗證碼
                     </p>
                   </div>
                 </div>
