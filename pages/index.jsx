@@ -193,6 +193,7 @@ function AutoSwapImage({
   rotateDuration = 16,
   priority = false,
   forceShowB,
+  slide = "none", // ✅ 新增： "left" | "right" | "none"
 }) {
   const prefersReduced = useReducedMotion?.();
   const [internalShowB, setInternalShowB] = useState(false);
@@ -215,16 +216,33 @@ function AutoSwapImage({
   const srcA = `${base}-a.png`;
   const srcB = `${base}-b.png`;
 
+  // ✅ 根據方向決定 x 位移
+  const offset = 60; // 你想滑入的距離，可調 40~100
+  const enterX = slide === "left" ? offset : slide === "right" ? -offset : 0;
+  const exitX = slide === "left" ? -offset : slide === "right" ? offset : 0;
+
   const content = (
     <AnimatePresence initial={false} mode="wait">
       <motion.div
         key={showB ? "B" : "A"}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 1.05, ease: "easeInOut" }}
+        initial={{
+          opacity: 0,
+          x: prefersReduced ? 0 : enterX,
+        }}
+        animate={{
+          opacity: 1,
+          x: 0,
+        }}
+        exit={{
+          opacity: 0,
+          x: prefersReduced ? 0 : exitX,
+        }}
+        transition={{
+          duration: 1.05,
+          ease: [0.16, 1, 0.3, 1],
+        }}
         style={{
-          willChange: "opacity",
+          willChange: "opacity, transform",
           backfaceVisibility: "hidden",
           position: "relative",
           width: "100%",
@@ -596,6 +614,7 @@ export default function Home({ t, locale }) {
               height={500}
               interval={7000}
               forceShowB={globalIsB}
+              slide="left" // ✅ 新增
             />
 
             {/* 筷子 */}
@@ -623,7 +642,6 @@ export default function Home({ t, locale }) {
               forceShowB={globalIsB}
             />
 
-            {/* 火鍋 */}
             <AutoSwapImage
               base="/images/index/banner-01"
               alt="Authentic Taiwanese Hot Pot"
@@ -634,6 +652,7 @@ export default function Home({ t, locale }) {
               interval={7000}
               priority={true}
               forceShowB={globalIsB}
+              slide="right" // ✅ 新增
             />
           </div>
         </section>
@@ -735,7 +754,7 @@ export default function Home({ t, locale }) {
                 aria-label="About Memory Corner Group"
               >
                 <Image
-                  src="/images/index/about/DAV01968.webp"
+                  src="/images/index/about/3-1.webp"
                   alt="Memory Corner Group Staff"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -771,7 +790,7 @@ export default function Home({ t, locale }) {
                 aria-label="About Memory Corner Restaurant"
               >
                 <Image
-                  src="/images/index/about/DAV01683.webp"
+                  src="/images/index/about/3-2.webp"
                   alt="Memory Corner Dining Environment"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -806,7 +825,7 @@ export default function Home({ t, locale }) {
                 aria-label="About Sweet Memory"
               >
                 <Image
-                  src="/images/index/about/DAV01773 (1).webp"
+                  src="/images/index/about/3-3.webp"
                   alt="Sweet Memory Desserts"
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"

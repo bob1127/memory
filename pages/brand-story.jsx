@@ -164,6 +164,21 @@ const TRANSLATIONS = {
           mapUrl:
             "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
         },
+        {
+          id: "store-youxiang-burnaby",
+          name: "Memory Corner 有香 (Burnaby)",
+          tel: "(604) 000-1234",
+          addrLine1: "1234 Kingsway",
+          addrLine2: "Burnaby BC V5H 2E2",
+          postalCode: "V5H 2E2",
+          addressLocality: "Burnaby",
+          addressRegion: "BC",
+          streetAddress: "1234 Kingsway",
+          hours: "11:30 AM–10:00 PM",
+          img: "/images/brand-story/memory-corner-02.png",
+          mapUrl:
+            "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
+        },
       ],
       memory: [
         {
@@ -372,6 +387,21 @@ const TRANSLATIONS = {
           img: "/images/brand-story/memory-corner-01.png",
           mapUrl:
             "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
+        },
+        {
+          id: "store-youxiang-burnaby",
+          name: "Memory Corner (Burnaby)",
+          tel: "(604) 000-1234",
+          addrLine1: "1234 Kingsway",
+          addrLine2: "Burnaby BC V5H 2E2",
+          postalCode: "V5H 2E2",
+          addressLocality: "Burnaby",
+          addressRegion: "BC",
+          streetAddress: "1234 Kingsway",
+          hours: "11:30 AM–10:00 PM",
+          img: "/images/brand-story/memory-corner-02.png",
+          mapUrl:
+            "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
         },
       ],
       memory: [
@@ -930,7 +960,7 @@ export default function BrandStoryPage({ t, locale }) {
   }));
 
   const jsonLdList = [breadcrumbSchema, organizationSchema, ...storesSchemas];
-
+  const isGroup = activeTab === "group";
   return (
     <Layout>
       <Head>
@@ -1045,25 +1075,34 @@ export default function BrandStoryPage({ t, locale }) {
             </section>
           </FadeUp>
 
-          {/* 主要內容區 */}
-          <section className="relative grid gap-10 md:grid-cols-[280px,minmax(0,1fr)] bg-[#f0e3cd]">
-            <aside className="sticky md:top-28 self-start">
-              <FadeUp delay={0.08}>
-                <div className="space-y-8">
-                  {(t.stores[activeTab] || []).length > 0 ? (
-                    t.stores[activeTab].map((store) => (
-                      <StoreCard key={store.id} store={store} />
-                    ))
-                  ) : (
-                    <div className="p-4 border border-[#c9b79a] text-center text-xs text-[#7b5b33] tracking-widest">
-                      {t.ui.store_no_data}
-                    </div>
-                  )}
-                </div>
-              </FadeUp>
-            </aside>
+          <section
+            className={`relative gap-10 bg-[#f0e3cd] ${
+              isGroup
+                ? "grid md:grid-cols-1 justify-items-center"
+                : "grid md:grid-cols-[280px,minmax(0,1fr)]"
+            }`}
+          >
+            {/* ✅ group tab：直接不渲染左側門市區塊，避免顯示「此品牌目前無相關門市資訊」 */}
+            {!isGroup && (
+              <aside className="sticky md:top-28 self-start">
+                <FadeUp delay={0.08}>
+                  <div className="space-y-8">
+                    {(t.stores[activeTab] || []).length > 0 ? (
+                      t.stores[activeTab].map((store) => (
+                        <StoreCard key={store.id} store={store} />
+                      ))
+                    ) : (
+                      <div className="p-4 border border-[#c9b79a] text-center text-xs text-[#7b5b33] tracking-widest">
+                        {t.ui.store_no_data}
+                      </div>
+                    )}
+                  </div>
+                </FadeUp>
+              </aside>
+            )}
 
-            <div className="space-y-10 z-10">
+            {/* ✅ 右側內容：group tab 時讓內容水平置中 + 限制最大寬度 */}
+            <div className={`space-y-10 z-10 ${isGroup ? "w-full" : ""}`}>
               <AnimatePresence mode="wait">
                 <motion.article
                   key={activeTab}
@@ -1074,6 +1113,7 @@ export default function BrandStoryPage({ t, locale }) {
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 16, filter: "blur(6px)" }}
                   transition={{ duration: 0.7, ease: easeOut }}
+                  className={isGroup ? "w-full max-w-5xl mx-auto" : ""}
                 >
                   {renderContent()}
                 </motion.article>
@@ -1081,7 +1121,7 @@ export default function BrandStoryPage({ t, locale }) {
 
               <FadeUp delay={0.1}>
                 <section className="mt-10 border-t border-[#c9b79a] pt-8">
-                  <button className="flex justify-center items-center gap-3 py-4 text-sm tracking-[0.35em] text-[#dba839] bg-stone-800 rounded-full w-[200px] transition-colors">
+                  <button className="flex justify-center items-center gap-3 py-4 text-sm tracking-[0.35em] text-[#dba839] bg-stone-800 rounded-full mx-auto w-[200px] transition-colors">
                     <span>{t.ui.more_info}</span>
                   </button>
                 </section>

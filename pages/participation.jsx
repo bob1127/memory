@@ -377,12 +377,6 @@ export default function FranchiseInfoPage({ t, locale }) {
                         }`}
                       >
                         <div className="flex flex-col">
-                          <FadeUp
-                            delay={0.04}
-                            className="tag border border-black/20 bg-stone-800 text-[#efa33f] rounded-full px-3 py-1 w-auto max-w-[150px] flex justify-center mb-5 text-sm font-medium"
-                          >
-                            {feature.tag}
-                          </FadeUp>
                           <FadeUp delay={0.08}>
                             <h3 className="text-3xl sm:text-4xl font-bold text-[#3b2a1a]">
                               {feature.title}

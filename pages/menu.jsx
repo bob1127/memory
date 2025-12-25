@@ -45,7 +45,7 @@ const TRANSLATIONS = {
         href: "/menu02",
         title: "【甜點鹹食】手工製作、品嘗的 到最地道的懷舊巷弄小吃",
         desc: "匯聚台灣北中南美食，提供古早味甜品及經典小吃，無法抗拒的好滋味，等您來細細品嚐",
-        img: "/images/menu/DSC07304.webp",
+        img: "/images/menu/Sweet-Memory-16-燒仙草＋凍氛圍照-2.webp",
         logoIndex: 1,
       },
       {
@@ -53,7 +53,8 @@ const TRANSLATIONS = {
         href: "/menu03",
         title: "【台灣雜貨店】回味純真時光、 溫習童年小確幸",
         desc: "販售與門店口味一致冷凍料理包，讓在家也能輕鬆品嚐美食。除此之外，也能夠買到古早味零食糖果和懷舊小物",
-        img: "/images/menu/Sweet-Memory-16-燒仙草＋凍氛圍照-2.webp",
+
+        img: "/images/menu/DSC07304.webp",
         logoIndex: 2,
       },
     ],
@@ -91,7 +92,7 @@ const TRANSLATIONS = {
         href: "/menu02",
         title: "【Desserts & Savory】Handmade, Authentic Nostalgic Street Food",
         desc: "Gathering delicacies from North to South Taiwan, offering traditional desserts and classic snacks. Irresistible flavors waiting for you.",
-        img: "/images/menu/DSC07304.webp",
+        img: "/images/menu/Sweet-Memory-16-燒仙草＋凍氛圍照-2.webp",
         logoIndex: 1,
       },
       {
@@ -99,7 +100,8 @@ const TRANSLATIONS = {
         href: "/menu03",
         title: "【Taiwan Grocery】Relive Innocent Times, Childhood Happiness",
         desc: "Selling frozen meal packs with the same taste as in-store, allowing you to enjoy gourmet food at home. Also offering vintage snacks and items.",
-        img: "/images/menu/Sweet-Memory-16-燒仙草＋凍氛圍照-2.webp",
+
+        img: "/images/menu/DSC07304.webp",
         logoIndex: 2,
       },
     ],
