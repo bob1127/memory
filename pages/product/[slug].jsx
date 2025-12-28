@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "../Layout";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,9 +13,21 @@ import { Thumbs } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/thumbs";
 
-// 網站網址
-const SITE_URL =
+/**
+ * ✅ Export-safe SSG
+ * - 不在 getStaticProps 回傳 redirect（避免 next export 爆）
+ * - 用 redirectDestination 交給前端 router.replace
+ * - revalidate: 10
+ * - SEO: canonical / hreflang / OG / Twitter / JSON-LD
+ */
+
+const SITE_URL_RAW =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
+const SITE_URL = ensureURL(SITE_URL_RAW);
+
+const SITE_NAME = "Memory Corner";
+const BRAND_NAME = "Memory Corner";
+const DEFAULT_OG_IMAGE = `${SITE_URL}/images/og-default.png`; // 建議你放一張
 
 const PAGE_TRANSLATIONS = {
   "zh-TW": {
@@ -37,7 +50,6 @@ const PAGE_TRANSLATIONS = {
   },
 };
 
-// 輔助函式：移除 HTML 標籤並處理換行
 const stripHtml = (html) => {
   if (!html) return "";
   return html
@@ -50,14 +62,35 @@ function ensureURL(u = "") {
   return String(u).replace(/\/+$/, "");
 }
 
-// v3 fetch 用 query key（你目前 beer 內頁就是這種方式）
-function withKeys(url) {
+function toAbsUrl(site, src) {
+  if (!src) return "";
+  if (src.startsWith("http://") || src.startsWith("https://")) return src;
+  if (src.startsWith("//")) return `https:${src}`;
+  if (src.startsWith("/")) return `${site}${src}`;
+  return `${site}/${src}`;
+}
+
+function detectLangFromProduct(p, slug) {
+  const isChineseSlug = /[^\x00-\x7F]+/.test(String(slug || ""));
+  const raw = (p?.lang || "").toString();
+  if (isChineseSlug) return "zh-TW";
+  if (raw === "zh" || raw === "zh-TW" || raw === "zh_TW") return "zh-TW";
+  return "en";
+}
+
+function buildAuthUrl(path, paramsObj = {}) {
   const WC_URL = process.env.WC_URL;
   const WC_CK = process.env.WC_CK;
   const WC_CS = process.env.WC_CS;
-  return `${ensureURL(WC_URL)}${url}${
-    url.includes("?") ? "&" : "?"
-  }consumer_key=${WC_CK}&consumer_secret=${WC_CS}`;
+
+  const url = new URL(`${ensureURL(WC_URL)}${path}`);
+  Object.entries(paramsObj).forEach(([k, v]) => {
+    if (v === undefined || v === null || v === "") return;
+    url.searchParams.set(k, String(v));
+  });
+  url.searchParams.set("consumer_key", WC_CK || "");
+  url.searchParams.set("consumer_secret", WC_CS || "");
+  return url.toString();
 }
 
 /* =================================================================
@@ -68,56 +101,58 @@ export default function ProductInner({
   linkedChineseId,
   names,
   redirectDestination,
+  zhSlug,
+  enSlug,
 }) {
-  const { locale, asPath, replace, query } = useRouter();
+  const { locale, asPath, replace, query, isReady } = useRouter();
 
-  // 來源頁（影響 breadcrumb 第二層）
   const from = (query?.from || "").toString(); // groupBuy | beer | ""
-
   const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
   const isEn = locale === "en";
 
-  // 1. Hooks
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [qty, setQty] = useState(1);
   const [toast, setToast] = useState(false);
 
-  // 2. redirect
+  // ✅ 前端導向（兼容 next export）
   useEffect(() => {
+    if (!isReady) return;
     if (redirectDestination) {
-      replace(redirectDestination);
+      // 保留 query（如 ?from=groupBuy）
+      const q = window?.location?.search || "";
+      replace(`${redirectDestination}${q}`);
     }
-  }, [redirectDestination, replace]);
+  }, [redirectDestination, replace, isReady]);
 
-  // 3. reset thumbs
+  // reset thumbs
   useEffect(() => {
     setThumbsSwiper(null);
   }, [locale, product?.id]);
 
-  // 4. conditional return
   if (redirectDestination) return null;
   if (!product) return null;
 
-  // 顯示名稱
   const currentDisplayName = isEn
     ? names?.en || product.name
     : names?.zh || product.name;
 
-  // SEO 描述
   const rawSeoDesc = product.short_description || product.description;
-  const cleanSeoDesc = stripHtml(rawSeoDesc).substring(0, 160);
+  const cleanSeoDesc =
+    stripHtml(rawSeoDesc).substring(0, 160) ||
+    (isEn ? "Product details" : "商品介紹");
 
-  // 顯示描述
   const displayDesc = product.description;
 
-  // Canonical URL（去掉 query）
-  const currentUrl = `${SITE_URL}${asPath.split("?")[0]}`;
+  // canonical 去 query
+  const pathOnly = (asPath || "").split("?")[0];
+  const canonical = `${SITE_URL}${pathOnly}`;
 
-  // 圖片
-  const imageList = product.images?.length
-    ? product.images
-    : ["/images/placeholder.png"];
-  const mainImage = imageList?.[0] || `${SITE_URL}/images/placeholder.png`;
+  // 圖片：轉絕對網址
+  const imageList = (
+    product.images?.length ? product.images : ["/images/placeholder.png"]
+  ).map((s) => toAbsUrl(SITE_URL, s));
+
+  const mainImage = imageList?.[0] || DEFAULT_OG_IMAGE;
 
   // breadcrumb 第二層
   const crumb2 =
@@ -131,12 +166,21 @@ export default function ProductInner({
           href: isEn ? "/en/groupBuy" : "/groupBuy",
         };
 
+  // hreflang（用 server 算好的 slug 更準）
+  const hrefLangZh = zhSlug
+    ? `${SITE_URL}/product/${zhSlug}`
+    : canonical.replace(`${SITE_URL}/en/`, `${SITE_URL}/`);
+  const hrefLangEn = enSlug
+    ? `${SITE_URL}/en/product/${enSlug}`
+    : canonical.includes(`${SITE_URL}/en/`)
+    ? canonical
+    : canonical.replace(`${SITE_URL}/`, `${SITE_URL}/en/`);
+
   /* ---------- 加入購物車 ---------- */
   const addToCart = () => {
     const zhName = names?.zh || product.name;
     const enName = names?.en || product.name;
 
-    // 英文語系也綁回中文 id，避免同商品中英重複
     const cartId = linkedChineseId || product.id;
 
     cartStore.add(
@@ -146,7 +190,7 @@ export default function ProductInner({
         name_zh: zhName,
         name_en: enName,
         img: mainImage,
-        price: Number(product.price),
+        price: Number(product.price || 0),
       },
       qty
     );
@@ -160,20 +204,20 @@ export default function ProductInner({
     setTimeout(() => setToast(false), 2000);
   };
 
-  /* ---------- SEO Schema ---------- */
+  /* ---------- JSON-LD ---------- */
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: currentDisplayName,
     image: imageList,
     description: cleanSeoDesc,
-    brand: { "@type": "Brand", name: "Memory Corner" },
+    brand: { "@type": "Brand", name: BRAND_NAME },
     sku: product.sku ? String(product.sku) : String(product.id),
     offers: {
       "@type": "Offer",
-      url: currentUrl,
+      url: canonical,
       priceCurrency: "TWD",
-      price: product.price,
+      price: String(product.price || "0"),
       availability: "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
     },
@@ -199,83 +243,107 @@ export default function ProductInner({
         "@type": "ListItem",
         position: 3,
         name: currentDisplayName,
-        item: currentUrl,
+        item: canonical,
       },
     ],
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: SITE_URL,
+    inLanguage: isEn ? "en" : "zh-Hant",
+  };
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/images/logo/有香餐飲集團-logo.png`,
   };
 
   return (
     <Layout>
       <Head>
-        <title key="title">{`${currentDisplayName} | Memory Corner`}</title>
+        <title key="title">{`${currentDisplayName} | ${SITE_NAME}`}</title>
         <meta name="description" content={cleanSeoDesc} key="description" />
-        <link rel="canonical" href={currentUrl} />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <meta name="theme-color" content="#ffffff" />
 
+        <link rel="canonical" href={canonical} />
+        <link rel="alternate" hrefLang="zh-Hant" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="en" href={hrefLangEn} />
+        <link rel="alternate" hrefLang="x-default" href={hrefLangZh} />
+
+        {/* OG */}
         <meta property="og:title" content={currentDisplayName} key="og:title" />
-        <meta
-          property="og:description"
-          content={cleanSeoDesc}
-          key="og:description"
-        />
+        <meta property="og:description" content={cleanSeoDesc} key="og:desc" />
         <meta property="og:image" content={mainImage} key="og:image" />
-        <meta property="og:url" content={currentUrl} key="og:url" />
+        <meta property="og:url" content={canonical} key="og:url" />
         <meta property="og:type" content="product" key="og:type" />
+        <meta property="og:site_name" content={SITE_NAME} key="og:site" />
         <meta
-          property="og:site_name"
-          content="Memory Corner"
-          key="og:site_name"
+          property="og:locale"
+          content={isEn ? "en_US" : "zh_TW"}
+          key="og:locale"
         />
-        {isEn ? (
-          <meta property="og:locale" content="en_US" key="og:locale" />
-        ) : (
-          <meta property="og:locale" content="zh_TW" key="og:locale" />
-        )}
 
-        <meta
-          name="twitter:card"
-          content="summary_large_image"
-          key="twitter:card"
-        />
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" key="tw:card" />
         <meta
           name="twitter:title"
           content={currentDisplayName}
-          key="twitter:title"
+          key="tw:title"
         />
-        <meta
-          name="twitter:description"
-          content={cleanSeoDesc}
-          key="twitter:description"
-        />
-        <meta name="twitter:image" content={mainImage} key="twitter:image" />
+        <meta name="twitter:description" content={cleanSeoDesc} key="tw:desc" />
+        <meta name="twitter:image" content={mainImage} key="tw:image" />
 
+        {/* JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          key="schema-website"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+          key="schema-org"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-          key="product-schema"
+          key="schema-product"
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-          key="breadcrumb-schema"
+          key="schema-breadcrumb"
         />
       </Head>
 
       <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8 py-[100px]">
         {/* Breadcrumb */}
         <nav className="max-w-[1200px] mx-auto mb-6 text-sm text-gray-500">
-          <a href={isEn ? "/en" : "/"} className="hover:text-black transition">
+          <Link
+            href={isEn ? "/en" : "/"}
+            className="hover:text-black transition"
+          >
             {t.breadcrumb_home}
-          </a>
+          </Link>
           <span className="mx-2">/</span>
-          <a href={crumb2.href} className="hover:text-black transition">
+          <Link href={crumb2.href} className="hover:text-black transition">
             {crumb2.label}
-          </a>
+          </Link>
           <span className="mx-2">/</span>
           <span className="text-black">{currentDisplayName}</span>
         </nav>
 
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-14">
-          {/* 左側圖片（保留你原本的 key 修法） */}
+          {/* 左側圖片 */}
           <div
             className="lg:sticky lg:top-24 self-start"
             key={`${product.id}-${locale}`}
@@ -297,7 +365,7 @@ export default function ProductInner({
                     <div className="relative w-full h-full">
                       <Image
                         src={img}
-                        alt={`${currentDisplayName} - ${idx}`}
+                        alt={`${currentDisplayName} - ${idx + 1}`}
                         fill
                         className="object-contain p-4"
                         sizes="(max-width: 1024px) 100vw, 600px"
@@ -323,7 +391,7 @@ export default function ProductInner({
                     <div className="relative aspect-square w-full cursor-pointer rounded-xl overflow-hidden border border-transparent hover:border-black/20 transition-all">
                       <Image
                         src={img}
-                        alt={`Thumb ${idx}`}
+                        alt={`Thumb ${idx + 1}`}
                         fill
                         className="object-cover"
                       />
@@ -376,6 +444,7 @@ export default function ProductInner({
                   <button
                     onClick={() => setQty(Math.max(1, qty - 1))}
                     className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 transition"
+                    aria-label="decrease quantity"
                   >
                     −
                   </button>
@@ -385,6 +454,7 @@ export default function ProductInner({
                   <button
                     onClick={() => setQty(qty + 1)}
                     className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 transition"
+                    aria-label="increase quantity"
                   >
                     +
                   </button>
@@ -393,7 +463,7 @@ export default function ProductInner({
                 <motion.button
                   onClick={addToCart}
                   whileTap={{ scale: 0.96 }}
-                  className="flex-1 sm:flex-none rounded-full bg-black text-white py-3 px-10 font-bold text-lg hover:bg-neutral-800 transition shadow-lg"
+                  className="flex-1 sm:flex-none rounded-full bg-black text-white py-3 px-10 font-bold text-lg hover:bg-neutral-800 transition shadow-lg whitespace-nowrap"
                 >
                   {t.add_to_cart}
                 </motion.button>
@@ -426,19 +496,16 @@ export default function ProductInner({
 }
 
 /* =================================================================
-   Server Side Logic
+   Server Side Logic (SSG + ISR)
    ================================================================= */
 
 export async function getStaticPaths() {
-  const WC_URL = process.env.WC_URL;
-  const WC_CK = process.env.WC_CK;
-  const WC_CS = process.env.WC_CS;
-
   try {
-    // 取前 100 個（你也可以改大或做分頁）
-    const prodUrl = `${ensureURL(
-      WC_URL
-    )}/wp-json/wc/v3/products?per_page=100&consumer_key=${WC_CK}&consumer_secret=${WC_CS}`;
+    const prodUrl = buildAuthUrl("/wp-json/wc/v3/products", {
+      per_page: 100,
+      page: 1,
+    });
+
     const prodRes = await fetch(prodUrl);
     const products = await prodRes.json();
 
@@ -458,36 +525,33 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params, locale }) {
-  const { slug } = params;
+  const slug = params?.slug;
 
   const WC_URL = process.env.WC_URL;
   const WC_CK = process.env.WC_CK;
   const WC_CS = process.env.WC_CS;
 
+  if (!slug || !WC_URL || !WC_CK || !WC_CS) {
+    return { notFound: true, revalidate: 10 };
+  }
+
   try {
-    // 1) 先用 slug 找商品
-    let res = await fetch(
-      `${ensureURL(WC_URL)}/wp-json/wc/v3/products?slug=${encodeURIComponent(
-        slug
-      )}&consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
-    );
-    let data = await res.json();
+    // 1) 用 slug 找商品
+    const findUrl = buildAuthUrl("/wp-json/wc/v3/products", {
+      slug: encodeURIComponent(String(slug)),
+    });
 
-    if (!data || data.length === 0) return { notFound: true };
+    const res = await fetch(findUrl);
+    const data = await res.json();
 
-    let p = data[0];
-
-    // 2) 判斷商品語系（保留你原邏輯）
-    const isChineseSlug = /[^\x00-\x7F]+/.test(slug);
-    let productLang = p.lang || "en";
-    if (
-      productLang === "zh" ||
-      productLang === "zh-TW" ||
-      productLang === "zh_TW" ||
-      isChineseSlug
-    ) {
-      productLang = "zh-TW";
+    if (!Array.isArray(data) || data.length === 0) {
+      return { notFound: true, revalidate: 10 };
     }
+
+    const p = data[0];
+
+    // 2) 判斷商品語系
+    const productLang = detectLangFromProduct(p, slug); // "zh-TW" | "en"
 
     // 3) 準備雙語名稱
     const names = { zh: null, en: null };
@@ -501,91 +565,93 @@ export async function getStaticProps({ params, locale }) {
     let linkedChineseId = null;
     let targetSlug = null;
 
-    // 5) 抓另一語系商品（用 id）
+    let zhSlug = null;
+    let enSlug = null;
+
+    // 5) 抓另一語系商品
     if (productLang === "zh-TW") {
       linkedChineseId = p.id;
+      zhSlug = p.slug;
+
       if (enId) {
         const resEn = await fetch(
-          `${ensureURL(
-            WC_URL
-          )}/wp-json/wc/v3/products/${enId}?consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
+          buildAuthUrl(`/wp-json/wc/v3/products/${enId}`)
         );
         if (resEn.ok) {
           const pEn = await resEn.json();
-          names.en = pEn.name;
-          targetSlug = pEn.slug;
+          names.en = pEn?.name || null;
+          targetSlug = pEn?.slug || null;
+          enSlug = pEn?.slug || null;
         }
       }
     } else {
+      // en
+      enSlug = p.slug;
+
       if (zhId) {
         const resZh = await fetch(
-          `${ensureURL(
-            WC_URL
-          )}/wp-json/wc/v3/products/${zhId}?consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
+          buildAuthUrl(`/wp-json/wc/v3/products/${zhId}`)
         );
         if (resZh.ok) {
           const pZh = await resZh.json();
-          names.zh = pZh.name;
-          linkedChineseId = pZh.id;
-          targetSlug = pZh.slug;
+          names.zh = pZh?.name || null;
+          linkedChineseId = pZh?.id || null;
+          targetSlug = pZh?.slug || null;
+          zhSlug = pZh?.slug || null;
         }
       } else if (p.sku) {
-        // 備援：用 sku 找中文
+        // sku fallback
         const resSku = await fetch(
-          `${ensureURL(WC_URL)}/wp-json/wc/v3/products?sku=${encodeURIComponent(
-            p.sku
-          )}&lang=zh&consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
+          buildAuthUrl("/wp-json/wc/v3/products", {
+            sku: encodeURIComponent(String(p.sku)),
+          })
         );
         if (resSku.ok) {
           const dataSku = await resSku.json();
           const found = (Array.isArray(dataSku) ? dataSku : []).find(
-            (item) => item.id !== p.id
+            (item) => item?.id && item.id !== p.id
           );
           if (found) {
-            names.zh = found.name;
-            linkedChineseId = found.id;
-            targetSlug = found.slug;
+            names.zh = found.name || null;
+            linkedChineseId = found.id || null;
+            targetSlug = found.slug || null;
+            zhSlug = found.slug || null;
           }
         }
       }
     }
 
-    // 6) redirect（語系與商品語系不一致時）
+    // ✅ 6) 不用 redirect 回傳（避免 next export 爆），改回傳 redirectDestination
     let redirectDestination = null;
-
-    // 把 query 原封不動帶著（例如 ?from=groupBuy）
-    const queryStr = ""; // 不在 server 拼 query，避免亂（前端已會帶）
-
     if (locale === "en" && productLang === "zh-TW") {
       if (targetSlug && targetSlug !== slug) {
-        redirectDestination = `/en/product/${targetSlug}${queryStr}`;
+        redirectDestination = `/en/product/${targetSlug}`;
       }
     }
-    if (locale === "zh-TW" && productLang !== "zh-TW") {
+    if ((locale === "zh-TW" || !locale) && productLang !== "zh-TW") {
       if (targetSlug && targetSlug !== slug) {
-        redirectDestination = `/product/${targetSlug}${queryStr}`;
+        redirectDestination = `/product/${targetSlug}`;
       }
     }
 
-    // 7) 價格處理（保留你原本 variable fallback）
+    // 7) 價格處理（variable fallback）
     let finalPrice = p.price || p.sale_price || p.regular_price || "0";
-    if (p.type === "variable" && (!p.price || p.price === "0")) {
+    if (p.type === "variable" && (!finalPrice || finalPrice === "0")) {
       const varRes = await fetch(
-        `${ensureURL(WC_URL)}/wp-json/wc/v3/products/${
-          p.id
-        }/variations?consumer_key=${WC_CK}&consumer_secret=${WC_CS}`
+        buildAuthUrl(`/wp-json/wc/v3/products/${p.id}/variations`, {
+          per_page: 10,
+          page: 1,
+        })
       );
       const varData = await varRes.json();
       if (Array.isArray(varData) && varData.length > 0) {
+        const v0 = varData[0];
         finalPrice =
-          varData[0].price ||
-          varData[0].sale_price ||
-          varData[0].regular_price ||
-          finalPrice;
+          v0.price || v0.sale_price || v0.regular_price || finalPrice;
       }
     }
 
-    // 8) 回傳 product（保持乾淨）
+    // 8) 回傳乾淨 product
     const product = {
       id: p.id,
       name: p.name,
@@ -593,8 +659,10 @@ export async function getStaticProps({ params, locale }) {
       short_description: p.short_description || "",
       price: finalPrice,
       regular_price: p.regular_price || "0",
-      images: p.images?.map((img) => img.src) || ["/images/placeholder.png"],
-      tags: p.tags?.map((t) => t.name) || [],
+      images: p.images?.map((img) => img?.src).filter(Boolean) || [
+        "/images/placeholder.png",
+      ],
+      tags: p.tags?.map((t) => t?.name).filter(Boolean) || [],
       translations: p.translations || null,
       lang: p.lang || "zh_TW",
       sku: p.sku || "",
@@ -606,11 +674,13 @@ export async function getStaticProps({ params, locale }) {
         linkedChineseId: linkedChineseId || product.id,
         names,
         redirectDestination,
+        zhSlug: zhSlug || null,
+        enSlug: enSlug || null,
       },
-      revalidate: 60,
+      revalidate: 10, // ✅ 你要的 10
     };
   } catch (err) {
     console.error("❌ getStaticProps Error:", err);
-    return { notFound: true };
+    return { notFound: true, revalidate: 10 };
   }
 }
