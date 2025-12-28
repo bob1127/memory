@@ -785,7 +785,7 @@ function StoreCard({ store }) {
           alt={store.name}
           width={400}
           height={260}
-          className="h-auto w-full object-cover"
+          className="h-[180px] w-full object-cover"
           itemProp="image"
         />
       </a>

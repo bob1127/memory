@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
@@ -25,7 +25,6 @@ import { authStore } from "@/lib/authStore";
 const getCartName = (item, locale) => {
   if (!item) return "";
   const isEn = locale === "en";
-
   if (isEn && item.name_en) return item.name_en;
   if (!isEn && item.name_zh) return item.name_zh;
   return item.name || "";
@@ -213,7 +212,7 @@ const SubMenuContent = ({ items }) => (
           href={item.href}
           className={`px-4 py-2.5 text-[15px] text-white bg-[#b87938] hover:bg-[#c5853d] border border-[#c59b63] ${
             idx > 0 ? "border-t-0" : ""
-          } transition-colors`}
+          } transition-colors whitespace-nowrap`}
         >
           {item.t}
         </Link>
@@ -231,7 +230,7 @@ function NavLink({ href, children, router }) {
   return (
     <Link
       href={href}
-      className={`relative inline-flex items-center px-4 py-2 text-[18px] font-medium transition-all duration-200 border rounded-lg ${
+      className={`relative inline-flex items-center px-4 py-2 text-[18px] font-medium transition-all duration-200 border rounded-lg whitespace-nowrap ${
         isActive
           ? "border-[#b57a3c] text-[#b57a3c] bg-[#b57a3c]/5"
           : "border-transparent text-[#3c2514] hover:text-[#b57a3c]"
@@ -259,7 +258,7 @@ function FlyoutLink({ label, href = "#", items, router }) {
     >
       <Link
         href={href}
-        className={`relative inline-flex items-center px-4 py-2 border rounded-lg text-[17px] font-medium transition-all duration-200 ${
+        className={`relative inline-flex items-center px-4 py-2 border rounded-lg text-[17px] font-medium transition-all duration-200 whitespace-nowrap ${
           isActive
             ? "border-[#b57a3c] text-[#b57a3c] bg-[#b57a3c]/5"
             : "border-transparent text-[#3c2514] group-hover:text-[#b57a3c]"
@@ -283,8 +282,74 @@ function FlyoutLink({ label, href = "#", items, router }) {
   );
 }
 
+/* =================== Language Dropdown =================== */
+function LanguageDropdown({ locale, onSwitchLocale, label }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onDoc = (e) => {
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      if (!target.closest?.("[data-lang-dd]")) setOpen(false);
+    };
+    document.addEventListener("click", onDoc);
+    return () => document.removeEventListener("click", onDoc);
+  }, []);
+
+  const current = locale === "en" ? "EN" : "中文";
+
+  return (
+    <div className="relative" data-lang-dd>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="relative inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-[17px] font-medium transition-all duration-200 border-transparent text-[#3c2514] hover:text-[#b57a3c] whitespace-nowrap"
+        aria-label={label || "Language"}
+      >
+        <Globe size={18} />
+        <span className="whitespace-nowrap">{current}</span>
+        <ChevronDown
+          size={18}
+          className={`transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            {...fadeUp}
+            className="absolute right-0 top-[110%] z-[1400] w-[200px] overflow-hidden rounded-xl border border-black/10 bg-white/95 shadow-2xl backdrop-blur-md"
+          >
+            <button
+              onClick={() => {
+                onSwitchLocale("zh-TW");
+                setOpen(false);
+              }}
+              className={`w-full px-4 py-3 text-left text-sm hover:bg-black/5 ${
+                locale !== "en" ? "font-semibold" : ""
+              }`}
+            >
+              中文（zh-TW）
+            </button>
+            <button
+              onClick={() => {
+                onSwitchLocale("en");
+                setOpen(false);
+              }}
+              className={`w-full px-4 py-3 text-left text-sm hover:bg-black/5 ${
+                locale === "en" ? "font-semibold" : ""
+              }`}
+            >
+              English (en)
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 /* =================== AddToCartPopup (Small) =================== */
-// 注意：現在主要依賴側邊欄，這個組件保留作為 fallback 或提示
 function AddToCartPopup({
   open,
   item,
@@ -341,7 +406,7 @@ function AddToCartPopup({
                 <div className="text-sm font-semibold">
                   CA${" "}
                   {Number(
-                    item.price || 0 * Number(item.qty || 1)
+                    (item.price || 0) * Number(item.qty || 1)
                   ).toLocaleString()}
                 </div>
               </div>
@@ -357,13 +422,13 @@ function AddToCartPopup({
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button
                 onClick={onCheckout}
-                className="rounded-xl bg-black px-4 py-2.5 text-white hover:opacity-90"
+                className="rounded-xl bg-black px-4 py-2.5 text-white hover:opacity-90 whitespace-nowrap"
               >
                 {ui.checkout || "前往結帳"}
               </button>
               <button
                 onClick={onClose}
-                className="rounded-xl border border-black/15 bg-white px-4 py-2.5 text-black hover:bg-black/5"
+                className="rounded-xl border border-black/15 bg-white px-4 py-2.5 text-black hover:bg-black/5 whitespace-nowrap"
               >
                 {ui.continue || "繼續逛逛"}
               </button>
@@ -413,6 +478,17 @@ export const SlideTabsExample = () => {
   const t = NAV_TRANSLATIONS[locale] || NAV_TRANSLATIONS["zh-TW"];
   const ui = t.cart_ui || {};
 
+  // ✅ 只有 groupBuy 頁面顯示（支援 /groupBuy、/en/groupBuy、以及 query）
+  const isGroupBuyPage = useMemo(() => {
+    const p = String(pathname || "");
+    const a = String(asPath || "");
+    return (
+      p === "/groupBuy" ||
+      a.startsWith("/groupBuy") ||
+      a.startsWith("/en/groupBuy")
+    );
+  }, [pathname, asPath]);
+
   const handleSwitchLocale = (newLocale) => {
     if (newLocale === locale) return;
     router.push({ pathname, query }, asPath, { locale: newLocale });
@@ -433,14 +509,12 @@ export const SlideTabsExample = () => {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
 
-  // 初始化購物車監聽
   useEffect(() => {
     cartStore.init?.();
     const unsub = cartStore.subscribe?.((c) => setCart([...(c || [])]));
     return typeof unsub === "function" ? unsub : undefined;
   }, []);
 
-  // 監聽 "open-cart" 事件 (來自商品頁面)
   useEffect(() => {
     const handleOpenCart = () => setCartOpen(true);
     if (typeof window !== "undefined") {
@@ -489,10 +563,13 @@ export const SlideTabsExample = () => {
         }`}
       >
         <div className="mx-auto w-full px-4 xl:px-8 max-w-[1920px]">
-          <div className="flex items-center justify-between">
-            {/* 左側 */}
-            <div className="flex w-[20%] items-center justify-start">
-              <div className="xl:hidden">
+          {/* ✅ 用一個容器，同時支援：mobile/tablet 與 desktop */}
+          <div className="w-full">
+            {/* ================= Mobile / Tablet (<= lg) ================= */}
+            {/* ================= Mobile / Tablet (<= lg) ================= */}
+            <div className="xl:hidden grid grid-cols-[44px_minmax(200px,1fr)_auto] items-center gap-2">
+              {/* Left: hamburger */}
+              <div className="flex items-center justify-start">
                 <button
                   aria-label="open menu"
                   className="grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white/50 hover:bg-white active:scale-95 transition-all"
@@ -501,184 +578,306 @@ export const SlideTabsExample = () => {
                   <Menu className="text-[#3c2514]" size={22} />
                 </button>
               </div>
-              <div className="hidden xl:flex items-center gap-3">
-                <Link
-                  href="/groupBuy"
-                  target="_blank"
-                  className="rounded-full  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
-                >
-                  <span className="relative z-10">{t.group_buy}</span>
-                </Link>
-                <button
-                  onClick={() => setShowOrderPopup(true)}
-                  className="rounded-full  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
-                >
-                  {t.order_online}
-                </button>
-              </div>
-            </div>
-            {/* 中間導覽列 */}
-            <div className="flex flex-1 justify-center">
-              <div className="xl:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                <Link href="/" aria-label="Home">
-                  <div className="w-[140px] md:w-[160px]">
+
+              {/* Center: logo（給最小寬度 + 不縮） */}
+              <div className="flex justify-center min-w-0">
+                <Link href="/" aria-label="Home" className="block shrink-0">
+                  <div className="w-[200px] sm:w-[220px] md:w-[260px]">
                     <Image
                       src="/images/logo/有香餐飲集團-logo.png"
                       alt="有香餐飲集團"
-                      width={160}
-                      height={50}
+                      width={260}
+                      height={60}
                       priority
                       className="h-auto w-full object-contain"
                     />
                   </div>
                 </Link>
               </div>
-              <div className="hidden xl:flex items-center justify-center gap-5 2xl:gap-8">
-                <FlyoutLink
-                  href="/brand-story?tab=group"
-                  label={t.stores}
-                  items={t.sub_stores}
-                  router={router}
-                />
-                <NavLink href="/menu" router={router}>
-                  {t.menus}
-                </NavLink>
-                <Link href="/" aria-label="Home" className="px-2">
-                  <Image
-                    src="/images/logo/有香餐飲集團-logo.png"
-                    alt="有香餐飲集團"
-                    width={180}
-                    height={58}
-                    priority
-                    className="w-[240px]"
-                  />
+
+              {/* Right: CTA（字可小，按鈕可窄，避免擠壓 Logo） */}
+              <div className=" hidden xl:flex items-center justify-end gap-2">
+                <Link
+                  href="/groupBuy"
+                  target="_blank"
+                  className="rounded-full bg-stone-800 px-2.5 sm:px-3.5 py-2 text-[11px] sm:text-[12px] md:text-[13px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
+                >
+                  <span className="relative z-10">{t.group_buy}</span>
                 </Link>
-                <NavLink href="/news" router={router}>
-                  {t.news}
-                </NavLink>
-                <NavLink href="/participation" router={router}>
-                  {t.franchise}
-                </NavLink>
-                <NavLink href="/contact" router={router}>
-                  {t.contact}
-                </NavLink>
+
+                <button
+                  onClick={() => setShowOrderPopup(true)}
+                  className="rounded-full bg-stone-800 px-2.5 sm:px-3.5 py-2 text-[11px] sm:text-[12px] md:text-[13px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
+                >
+                  {t.order_online}
+                </button>
+
+                {/* 會員/購物車：仍只在 groupBuy 顯示 */}
+                {isGroupBuyPage && (
+                  <>
+                    {/* User（小螢幕可先隱藏避免擠壓，sm 才顯示） */}
+                    <div className="relative hidden sm:block">
+                      <button
+                        aria-label="user"
+                        onClick={() => setUserOpen((v) => !v)}
+                        className={`grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                          isScrolled || isMenuOpen
+                            ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                            : "border-black/10 bg-black/5 text-[#3c2514]"
+                        }`}
+                      >
+                        <User2 size={20} />
+                        {auth?.user && (
+                          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
+                        )}
+                      </button>
+
+                      <AnimatePresence>
+                        {userOpen && (
+                          <motion.div
+                            {...fadeUp}
+                            className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden"
+                          >
+                            {!auth?.user ? (
+                              <div className="p-2">
+                                <button
+                                  onClick={() => {
+                                    setShowAuthModal(true);
+                                    setAuthMode("login");
+                                    setUserOpen(false);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                                >
+                                  <LogIn size={18} />
+                                  <span className="text-[15px]">{t.login}</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="p-2">
+                                <div className="px-4 py-3 border-b border-white/10 mb-1">
+                                  <div className="text-xs text-white/50 uppercase tracking-wider">
+                                    Signed in as
+                                  </div>
+                                  <div className="truncate font-medium text-[15px] mt-0.5">
+                                    {auth.user.displayName ||
+                                      auth.user.name ||
+                                      auth.user.email}
+                                  </div>
+                                </div>
+                                <Link
+                                  href="/account"
+                                  className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                                  onClick={() => setUserOpen(false)}
+                                >
+                                  <User2 size={16} /> {t.my_account}
+                                </Link>
+                                <button
+                                  onClick={async () => {
+                                    await authStore.logout?.();
+                                    setUserOpen(false);
+                                    window.location.reload();
+                                  }}
+                                  className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
+                                >
+                                  <LogOut size={16} /> {t.logout}
+                                </button>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Cart */}
+                    <button
+                      aria-label="cart"
+                      onClick={() => setCartOpen((v) => !v)}
+                      className={`relative grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                        isScrolled || isMenuOpen
+                          ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                          : "border-black/10 bg-black/5 text-[#3c2514]"
+                      }`}
+                    >
+                      <ShoppingCart size={20} />
+                      {cartCount > 0 && (
+                        <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
+                          {cartCount}
+                        </span>
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-            {/* 右側 */}
-            <div className="flex w-[20%] items-center justify-end gap-2 sm:gap-3">
-              <div className="hidden sm:flex items-center rounded-full bg-[#634832]/90 p-[3px] shadow-inner backdrop-blur-sm">
-                <button
-                  onClick={() => handleSwitchLocale("zh-TW")}
-                  className={`rounded-full px-3 py-[3px] text-[12px] font-bold transition-all duration-300 ${
-                    locale === "zh-TW" || !locale
-                      ? "bg-white text-[#3c2514] shadow-sm"
-                      : "text-white/70 hover:text-white"
-                  }`}
-                >
-                  CN
-                </button>
-                <button
-                  onClick={() => handleSwitchLocale("en")}
-                  className={`rounded-full px-3 py-[3px] text-[12px] font-bold transition-all duration-300 ${
-                    locale === "en"
-                      ? "bg-white text-[#3c2514] shadow-sm"
-                      : "text-white/70 hover:text-white"
-                  }`}
-                >
-                  EN
-                </button>
+
+            {/* ================= Desktop (>= xl) ================= */}
+            <div className="hidden xl:flex items-center justify-between">
+              {/* 左側：可留白（如果你想放東西） */}
+              <div className="flex xl:w-[20%] items-center justify-start" />
+
+              {/* 中間導覽列 */}
+              <div className="flex flex-1 justify-center">
+                <div className="hidden xl:flex items-center justify-center gap-5 2xl:gap-8">
+                  <FlyoutLink
+                    href="/brand-story?tab=group"
+                    label={t.stores}
+                    items={t.sub_stores}
+                    router={router}
+                  />
+                  <NavLink href="/menu" router={router}>
+                    {t.menus}
+                  </NavLink>
+
+                  <NavLink href="/news" router={router}>
+                    {t.news}
+                  </NavLink>
+
+                  <Link href="/" aria-label="Home" className="px-2 w-[240px]">
+                    <Image
+                      src="/images/logo/有香餐飲集團-logo.png"
+                      alt="有香餐飲集團"
+                      width={180}
+                      height={58}
+                      priority
+                      className="w-[240px]"
+                    />
+                  </Link>
+
+                  <NavLink href="/participation" router={router}>
+                    {t.franchise}
+                  </NavLink>
+
+                  <NavLink href="/contact" router={router}>
+                    {t.contact}
+                  </NavLink>
+
+                  <LanguageDropdown
+                    locale={locale}
+                    onSwitchLocale={handleSwitchLocale}
+                    label={t.language}
+                  />
+                </div>
               </div>
-              <div className="relative hidden sm:block">
-                <button
-                  aria-label="user"
-                  onClick={() => setUserOpen((v) => !v)}
-                  className={`grid h-10 w-10 place-items-center rounded-full border transition-all ${
-                    isScrolled || isMenuOpen
-                      ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
-                      : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
-                  }`}
-                >
-                  <User2 size={20} />
-                  {auth?.user && (
-                    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
-                  )}
-                </button>
-                <AnimatePresence>
-                  {userOpen && (
-                    <motion.div
-                      {...fadeUp}
-                      className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden"
+
+              {/* 右側 */}
+              <div className=" flex w-[20%] items-center justify-end gap-2 sm:gap-3">
+                <div className="hidden xl:flex items-center gap-3">
+                  <Link
+                    href="/groupBuy"
+                    target="_blank"
+                    className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
+                  >
+                    <span className="relative z-10">{t.group_buy}</span>
+                  </Link>
+                  <button
+                    onClick={() => setShowOrderPopup(true)}
+                    className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
+                  >
+                    {t.order_online}
+                  </button>
+                </div>
+
+                {isGroupBuyPage && (
+                  <>
+                    {/* User */}
+                    <div className="relative hidden sm:block">
+                      <button
+                        aria-label="user"
+                        onClick={() => setUserOpen((v) => !v)}
+                        className={`grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                          isScrolled || isMenuOpen
+                            ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                            : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
+                        }`}
+                      >
+                        <User2 size={20} />
+                        {auth?.user && (
+                          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
+                        )}
+                      </button>
+
+                      <AnimatePresence>
+                        {userOpen && (
+                          <motion.div
+                            {...fadeUp}
+                            className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden"
+                          >
+                            {!auth?.user ? (
+                              <div className="p-2">
+                                <button
+                                  onClick={() => {
+                                    setShowAuthModal(true);
+                                    setAuthMode("login");
+                                    setUserOpen(false);
+                                  }}
+                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                                >
+                                  <LogIn size={18} />{" "}
+                                  <span className="text-[15px]">{t.login}</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="p-2">
+                                <div className="px-4 py-3 border-b border-white/10 mb-1">
+                                  <div className="text-xs text-white/50 uppercase tracking-wider">
+                                    Signed in as
+                                  </div>
+                                  <div className="truncate font-medium text-[15px] mt-0.5">
+                                    {auth.user.displayName ||
+                                      auth.user.name ||
+                                      auth.user.email}
+                                  </div>
+                                </div>
+                                <Link
+                                  href="/account"
+                                  className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                                  onClick={() => setUserOpen(false)}
+                                >
+                                  <User2 size={16} /> {t.my_account}
+                                </Link>
+                                <button
+                                  onClick={async () => {
+                                    await authStore.logout?.();
+                                    setUserOpen(false);
+                                    window.location.reload();
+                                  }}
+                                  className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
+                                >
+                                  <LogOut size={16} /> {t.logout}
+                                </button>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Cart */}
+                    <button
+                      aria-label="cart"
+                      onClick={() => setCartOpen((v) => !v)}
+                      className={`relative grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                        isScrolled || isMenuOpen
+                          ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                          : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
+                      }`}
                     >
-                      {!auth?.user ? (
-                        <div className="p-2">
-                          <button
-                            onClick={() => {
-                              setShowAuthModal(true);
-                              setAuthMode("login");
-                              setUserOpen(false);
-                            }}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
-                          >
-                            <LogIn size={18} />{" "}
-                            <span className="text-[15px]">{t.login}</span>
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="p-2">
-                          <div className="px-4 py-3 border-b border-white/10 mb-1">
-                            <div className="text-xs text-white/50 uppercase tracking-wider">
-                              Signed in as
-                            </div>
-                            <div className="truncate font-medium text-[15px] mt-0.5">
-                              {auth.user.displayName ||
-                                auth.user.name ||
-                                auth.user.email}
-                            </div>
-                          </div>
-                          <Link
-                            href="/account"
-                            className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
-                            onClick={() => setUserOpen(false)}
-                          >
-                            <User2 size={16} /> {t.my_account}
-                          </Link>
-                          <button
-                            onClick={async () => {
-                              await authStore.logout?.();
-                              setUserOpen(false);
-                              window.location.reload();
-                            }}
-                            className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
-                          >
-                            <LogOut size={16} /> {t.logout}
-                          </button>
-                        </div>
+                      <ShoppingCart size={20} />
+                      {cartCount > 0 && (
+                        <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
+                          {cartCount}
+                        </span>
                       )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              <button
-                aria-label="cart"
-                onClick={() => setCartOpen((v) => !v)}
-                className={`relative grid h-10 w-10 place-items-center rounded-full border transition-all ${
-                  isScrolled || isMenuOpen
-                    ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
-                    : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
-                }`}
-              >
-                <ShoppingCart size={20} />
-                {cartCount > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
-                    {cartCount}
-                  </span>
+                    </button>
+                  </>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         </div>
       </motion.nav>
 
+      {/* Order Popup */}
       <OrderPopup
         open={showOrderPopup}
         onClose={() => setShowOrderPopup(false)}
@@ -703,97 +902,96 @@ export const SlideTabsExample = () => {
             height={600}
           />
         </div>
-        <div className=" ">
-          {/* Order Popup Images (Keep as is) */}
-          <div className="overflow-hidden p-2 sm:p-5">
-            <div className="grid grid-cols-2 lg:grid-cols-4">
-              <Link
-                href="https://h5.posking.ca/#/shop?id=598"
-                className="block w-full h-full"
-                target="_blank"
-              >
-                <Image
-                  src="/images/online-store/desktop-02.png"
-                  alt=""
-                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
-                  placeholder="empty"
-                  width={1920}
-                  height={600}
-                />
-              </Link>
-              <Link
-                href="https://h5.posking.ca/#/shop?id=598"
-                className="block w-full h-full"
-                target="_blank"
-              >
-                <Image
-                  src="/images/online-store/desktop-03.png"
-                  alt=""
-                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
-                  placeholder="empty"
-                  width={1920}
-                  height={600}
-                />
-              </Link>
-              <Link
-                href="https://h5.posking.ca/#/shop?id=598"
-                className="block w-full h-full"
-                target="_blank"
-              >
-                <Image
-                  src="/images/online-store/desktop-04.png"
-                  alt=""
-                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
-                  placeholder="empty"
-                  width={1920}
-                  height={600}
-                />
-              </Link>
-              <Link
-                href="https://h5.posking.ca/#/shop?id=598"
-                className="block w-full h-full"
-                target="_blank"
-              >
-                <Image
-                  src="/images/online-store/desktop-05.png"
-                  alt=""
-                  className="w-full h-auto duration-300 scale-100 hover:scale-105"
-                  placeholder="empty"
-                  width={1920}
-                  height={600}
-                />
-              </Link>
-            </div>
-            <div
+
+        <div className="overflow-hidden p-2 sm:p-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4">
+            <Link
               href="https://h5.posking.ca/#/shop?id=598"
               className="block w-full h-full"
               target="_blank"
             >
               <Image
-                src="/images/online-store/desktop-06.png"
+                src="/images/online-store/desktop-02.png"
                 alt=""
                 className="w-full h-auto duration-300 scale-100 hover:scale-105"
                 placeholder="empty"
                 width={1920}
                 height={600}
               />
-            </div>
-            <div
+            </Link>
+            <Link
               href="https://h5.posking.ca/#/shop?id=598"
               className="block w-full h-full"
               target="_blank"
             >
               <Image
-                src="/images/online-store/desktop-07.png"
+                src="/images/online-store/desktop-03.png"
                 alt=""
                 className="w-full h-auto duration-300 scale-100 hover:scale-105"
                 placeholder="empty"
                 width={1920}
                 height={600}
               />
-            </div>
+            </Link>
+            <Link
+              href="https://h5.posking.ca/#/shop?id=598"
+              className="block w-full h-full"
+              target="_blank"
+            >
+              <Image
+                src="/images/online-store/desktop-04.png"
+                alt=""
+                className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                placeholder="empty"
+                width={1920}
+                height={600}
+              />
+            </Link>
+            <Link
+              href="https://h5.posking.ca/#/shop?id=598"
+              className="block w-full h-full"
+              target="_blank"
+            >
+              <Image
+                src="/images/online-store/desktop-05.png"
+                alt=""
+                className="w-full h-auto duration-300 scale-100 hover:scale-105"
+                placeholder="empty"
+                width={1920}
+                height={600}
+              />
+            </Link>
           </div>
-          {/* ... other images ... */}
+
+          <Link
+            href="https://h5.posking.ca/#/shop?id=598"
+            className="block w-full h-full"
+            target="_blank"
+          >
+            <Image
+              src="/images/online-store/desktop-06.png"
+              alt=""
+              className="w-full h-auto duration-300 scale-100 hover:scale-105"
+              placeholder="empty"
+              width={1920}
+              height={600}
+            />
+          </Link>
+
+          <Link
+            href="https://h5.posking.ca/#/shop?id=598"
+            className="block w-full h-full"
+            target="_blank"
+          >
+            <Image
+              src="/images/online-store/desktop-07.png"
+              alt=""
+              className="w-full h-auto duration-300 scale-100 hover:scale-105"
+              placeholder="empty"
+              width={1920}
+              height={600}
+            />
+          </Link>
         </div>
       </OrderPopup>
 
@@ -811,25 +1009,25 @@ export const SlideTabsExample = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              // [重點修改] 使用您指定的樣式
               className="fixed h-[95vh] overflow-scroll right-4 ml-4 top-4 z-[999999999999] w-[min(920px,92vw)] rounded-2xl border border-black/10 bg-white/98 shadow-2xl backdrop-blur-md"
             >
               <div className="flex items-center justify-between gap-3 border-b border-black/10 px-5 py-3">
                 <div className="flex items-center gap-2 text-lg font-semibold">
                   <ShoppingCart size={18} /> {t.cart}{" "}
                   {cartCount > 0 && (
-                    <span className="ml-1 text-sm font-normal text-black/60">
+                    <span className="ml-1 text-sm font-normal text-black/60 whitespace-nowrap">
                       · {cartCount} {ui.item_unit}
                     </span>
                   )}
                 </div>
                 <button
-                  className="rounded-full px-3 py-1.5 text-sm text-gray-600 hover:bg-black/5"
+                  className="rounded-full px-3 py-1.5 text-sm text-gray-600 hover:bg-black/5 whitespace-nowrap"
                   onClick={() => setCartOpen(false)}
                 >
                   {ui.close || "關閉"}
                 </button>
               </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-3">
                 <div className="lg:col-span-2 max-h-[58vh] overflow-y-auto px-5 py-4">
                   {cart.length === 0 ? (
@@ -896,14 +1094,14 @@ export const SlideTabsExample = () => {
                                 </div>
                               </div>
                               <div className="flex flex-col items-end gap-2">
-                                <div className="text-sm font-semibold">
+                                <div className="text-sm font-semibold whitespace-nowrap">
                                   CA${" "}
                                   {Number(
-                                    it.price || 0 * (it.qty || 0)
+                                    Number(it.price || 0) * Number(it.qty || 0)
                                   ).toLocaleString()}
                                 </div>
                                 <button
-                                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600"
+                                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 whitespace-nowrap"
                                   onClick={() => cartStore.remove?.(it.id)}
                                 >
                                   <Trash2 size={14} /> {ui.remove || "刪除"}
@@ -916,6 +1114,7 @@ export const SlideTabsExample = () => {
                     </ul>
                   )}
                 </div>
+
                 <div className="border-t border-black/10 lg:border-l lg:border-t-0">
                   <div className="sticky top-0 px-5 py-4">
                     <div className="rounded-xl border border-black/10 bg-white p-4 shadow-sm">
@@ -927,7 +1126,7 @@ export const SlideTabsExample = () => {
                           <span className="text-black/70">
                             {ui.subtotal || "小計"}
                           </span>
-                          <span className="font-medium">
+                          <span className="font-medium whitespace-nowrap">
                             CA$ {subtotal.toLocaleString()}
                           </span>
                         </div>
@@ -935,7 +1134,7 @@ export const SlideTabsExample = () => {
                           <span className="text-black/70">
                             {ui.shipping || "運費"}
                           </span>
-                          <span className="text-black/60">
+                          <span className="text-black/60 whitespace-nowrap">
                             {ui.shipping_calc || "結帳計算"}
                           </span>
                         </div>
@@ -944,13 +1143,13 @@ export const SlideTabsExample = () => {
                         <span className="font-semibold">
                           {ui.total || "總計"}
                         </span>
-                        <span className="text-lg font-bold">
+                        <span className="text-lg font-bold whitespace-nowrap">
                           CA$ {subtotal.toLocaleString()}
                         </span>
                       </div>
                       <div className="mt-4 grid gap-2">
                         <button
-                          className="rounded-xl bg-black px-4 py-3 text-white shadow-sm hover:opacity-90"
+                          className="rounded-xl bg-black px-4 py-3 text-white shadow-sm hover:opacity-90 disabled:opacity-50 whitespace-nowrap"
                           onClick={() => {
                             setCartOpen(false);
                             router.push("/checkout");
@@ -960,7 +1159,7 @@ export const SlideTabsExample = () => {
                           {ui.checkout || "前往結帳"} ({cartCount})
                         </button>
                         <button
-                          className="rounded-xl border border-black/15 bg-white px-4 py-3 text-black hover:bg-black/5"
+                          className="rounded-xl border border-black/15 bg-white px-4 py-3 text-black hover:bg-black/5 whitespace-nowrap"
                           onClick={() => setCartOpen(false)}
                         >
                           {ui.continue || "繼續購物"}
@@ -1005,6 +1204,7 @@ export const SlideTabsExample = () => {
           }
         }}
       />
+
       <MobileNavSheet
         open={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
@@ -1043,8 +1243,9 @@ function EmptyCart({ t }) {
     </div>
   );
 }
+
 /* =================================================================
-   補上遺漏的組件定義 (請放在 export default SlideTabsExample 之後)
+   補上遺漏的組件定義
    ================================================================= */
 
 function AuthModal({
@@ -1155,7 +1356,6 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
     >
       {mode === "login" ? (
         <>
-          {" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             placeholder="Email 或手機"
@@ -1163,7 +1363,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("username")}
             autoComplete="username"
             required
-          />{" "}
+          />
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="password"
@@ -1172,11 +1372,10 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("password")}
             autoComplete="current-password"
             required
-          />{" "}
+          />
         </>
       ) : (
         <>
-          {" "}
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="email"
@@ -1185,7 +1384,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("email")}
             autoComplete="email"
             required
-          />{" "}
+          />
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="tel"
@@ -1195,7 +1394,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             inputMode="tel"
             autoComplete="tel"
             required
-          />{" "}
+          />
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             placeholder="姓名（必填）"
@@ -1203,7 +1402,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("name")}
             autoComplete="name"
             required
-          />{" "}
+          />
           <input
             className="w-full rounded-lg border border-black/15 px-3 py-2"
             type="password"
@@ -1212,7 +1411,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
             onChange={onChange("password")}
             autoComplete="new-password"
             required
-          />{" "}
+          />
         </>
       )}
       {error && (
@@ -1226,7 +1425,7 @@ function AuthForm({ mode, onSubmit, loading, error, switchMode }) {
       )}
       <button
         disabled={loading}
-        className="w-full rounded-xl bg-black px-4 py-2 text-white shadow-sm hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-xl bg-black px-4 py-2 text-white shadow-sm hover:opacity-90 disabled:opacity-50 whitespace-nowrap"
       >
         {loading ? "處理中…" : mode === "login" ? "登入" : "註冊並登入"}
       </button>
@@ -1278,12 +1477,14 @@ function MobileNavSheet({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
   useEffect(() => {
     if (!open) return;
     const prev = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
     return () => (document.documentElement.style.overflow = prev);
   }, [open]);
+
   const handleSelect = (href) => {
     onSelect?.(href);
     onClose?.();
@@ -1329,6 +1530,7 @@ function MobileNavSheet({
                 <X size={20} />
               </button>
             </div>
+
             <div className="flex items-center justify-between bg-gray-50 px-4 py-2 border-b border-black/5">
               <div className="flex items-center gap-2 text-sm text-black/60">
                 <Globe size={16} /> {t.language || "Language"}
@@ -1336,7 +1538,7 @@ function MobileNavSheet({
               <div className="flex items-center rounded-full bg-[#634832]/90 p-[3px] shadow-inner">
                 <button
                   onClick={() => onSwitchLocale("zh-TW")}
-                  className={`rounded-full px-4 py-[4px] text-[12px] font-bold transition-all duration-300 ${
+                  className={`rounded-full px-4 py-[4px] text-[12px] font-bold transition-all duration-300 whitespace-nowrap ${
                     locale === "zh-TW" || !locale
                       ? "bg-white text-[#3c2514] shadow-sm"
                       : "text-white/70 hover:text-white"
@@ -1346,7 +1548,7 @@ function MobileNavSheet({
                 </button>
                 <button
                   onClick={() => onSwitchLocale("en")}
-                  className={`rounded-full px-4 py-[4px] text-[12px] font-bold transition-all duration-300 ${
+                  className={`rounded-full px-4 py-[4px] text-[12px] font-bold transition-all duration-300 whitespace-nowrap ${
                     locale === "en"
                       ? "bg-white text-[#3c2514] shadow-sm"
                       : "text-white/70 hover:text-white"
@@ -1356,13 +1558,14 @@ function MobileNavSheet({
                 </button>
               </div>
             </div>
+
             <div className="flex h-[calc(100%-110px)] flex-col">
               <nav className="flex-1 overflow-y-auto px-4 py-4 text-[15px] space-y-1">
                 <button
                   onClick={() => setBrandOpen((v) => !v)}
                   className="flex w-full items-center justify-between rounded-xl px-2 py-3 text-left font-medium hover:bg-black/5 transition"
                 >
-                  <span>{t.stores}</span>
+                  <span className="whitespace-nowrap">{t.stores}</span>
                   <ChevronDown
                     className={`transition-transform ${
                       brandOpen ? "rotate-180" : ""
@@ -1370,6 +1573,7 @@ function MobileNavSheet({
                     size={18}
                   />
                 </button>
+
                 <motion.div
                   variants={accordion}
                   initial="collapsed"
@@ -1393,7 +1597,7 @@ function MobileNavSheet({
 
                 <Link
                   href="/menu"
-                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
+                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition whitespace-nowrap"
                   onClick={() => handleSelect("/menu")}
                 >
                   {t.menus}
@@ -1401,26 +1605,29 @@ function MobileNavSheet({
 
                 <Link
                   href="/news"
-                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
+                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition whitespace-nowrap"
                   onClick={() => handleSelect("/news")}
                 >
                   {t.news}
                 </Link>
+
                 <Link
                   href="/participation"
-                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
+                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition whitespace-nowrap"
                   onClick={() => handleSelect("/participation")}
                 >
                   {t.franchise}
                 </Link>
+
                 <Link
                   href="/contact"
-                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition"
+                  className="block rounded-xl px-2 py-3 font-medium hover:bg-black/5 transition whitespace-nowrap"
                   onClick={() => handleSelect("/contact")}
                 >
                   {t.contact}
                 </Link>
               </nav>
+
               <div className="border-t border-black/10 p-4 space-y-3 bg-gray-50/50">
                 {!auth?.user ? (
                   <button
@@ -1428,27 +1635,26 @@ function MobileNavSheet({
                       onLoginClick?.();
                       onClose?.();
                     }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-2.5 text-white hover:opacity-90"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-2.5 text-white hover:opacity-90 whitespace-nowrap"
                   >
                     <User2 size={18} /> {t.login}
                   </button>
                 ) : (
                   <div className="rounded-xl border border-black/10 bg-white p-3 text-center shadow-sm">
-                    {" "}
                     <div className="text-sm text-black/70 mb-2">
                       Hello,{" "}
                       {auth.user.displayName || auth.user.name || "Member"}
-                    </div>{" "}
+                    </div>
                     <div className="flex justify-center gap-2">
                       <Link
                         href="/account"
-                        className="rounded-lg bg-black text-white px-3 py-1.5 text-xs hover:opacity-90"
+                        className="rounded-lg bg-black text-white px-3 py-1.5 text-xs hover:opacity-90 whitespace-nowrap"
                         onClick={onClose}
                       >
                         {t.my_account}
                       </Link>
                       <button
-                        className="rounded-lg border border-black/15 px-3 py-1.5 text-xs hover:bg-black/5"
+                        className="rounded-lg border border-black/15 px-3 py-1.5 text-xs hover:bg-black/5 whitespace-nowrap"
                         onClick={() => {
                           onLogoutClick?.();
                           onClose?.();
@@ -1456,30 +1662,32 @@ function MobileNavSheet({
                       >
                         {t.logout}
                       </button>
-                    </div>{" "}
+                    </div>
                   </div>
                 )}
+
                 <button
                   onClick={() => {
                     onCartClick?.();
                     onClose?.();
                   }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-black/15 bg-white px-4 py-2.5 hover:bg-black/5"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-black/15 bg-white px-4 py-2.5 hover:bg-black/5 whitespace-nowrap"
                 >
                   <ShoppingCart size={18} /> {t.cart}
                   {cartCount > 0 && (
-                    <span className="ml-1 rounded-full bg-[#9c2121] px-2 py-[1px] text-[11px] text-white">
+                    <span className="ml-1 rounded-full bg-[#9c2121] px-2 py-[1px] text-[11px] text-white whitespace-nowrap">
                       {cartCount}
                     </span>
                   )}
                 </button>
               </div>
+
               <div className="border-t border-black/10 p-4 bg-white">
                 <div className="grid grid-cols-2 gap-3">
                   <Link
                     href={cta.groupBuy.href}
                     target="_blank"
-                    className="rounded-full flex justify-center  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
+                    className="rounded-full flex justify-center bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
                     onClick={onClose}
                   >
                     {t.group_buy}
@@ -1489,7 +1697,7 @@ function MobileNavSheet({
                       onOrderClick?.();
                       onClose?.();
                     }}
-                    className="rounded-full  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
+                    className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
                   >
                     {t.order_online}
                   </button>
