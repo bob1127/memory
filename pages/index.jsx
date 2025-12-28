@@ -2,12 +2,10 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Marquee from "react-marquee-slider";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import {
   motion,
-  useMotionValue,
   AnimatePresence,
   useScroll,
   useReducedMotion,
@@ -17,9 +15,16 @@ import {
 import Layout from "../pages/Layout";
 import Carousel from "../components/EmblaCarouselBeer/index";
 
-// 網址設定 (優先讀取環境變數，Fallback 為正式網址)
-const SITE_URL =
+// 網址設定
+const SITE_URL_RAW =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
+const SITE_URL = ensureURL(SITE_URL_RAW);
+
+const SITE_NAME = "Memory Corner";
+const BRAND_NAME = "Memory Corner Group";
+
+// ✅ 你指定的 OG image
+const OG_IMAGE_PATH = "/images/index/about/3-1.webp";
 
 /* =================================================================
    1. 翻譯資料庫
@@ -32,7 +37,6 @@ const TRANSLATIONS = {
         "始於1975年，有香餐飲集團在溫哥華呈現最正宗的台灣味。旗下擁有 Memory Corner 有香、Sweet Memory 憶點點，提供台式鍋物、羊肉爐、鹽酥雞、傳統小吃、甜點與特色精釀啤酒，帶您重溫家的溫度。",
       keywords:
         "溫哥華台灣菜, 溫哥華台式料理, 羊肉爐, 鹽酥雞, 台灣啤酒, 有香, 憶點點, Vancouver Taiwanese Food",
-      ogImage: "/images/index/banner-06-a.png",
     },
     beer: {
       honey: {
@@ -81,7 +85,6 @@ const TRANSLATIONS = {
         "Established in 1975, Memory Corner Group brings authentic Taiwanese flavors to Vancouver. Home to Memory Corner and Sweet Memory, serving hot pots, street snacks, crispy chicken, desserts, and craft beer.",
       keywords:
         "Vancouver Taiwanese Food, Richmond Taiwanese Restaurant, Hot Pot, Bubble Tea, Popcorn Chicken, Craft Beer",
-      ogImage: "/images/index/banner-06-a.png",
     },
     beer: {
       honey: {
@@ -132,14 +135,14 @@ const TRANSLATIONS = {
 };
 
 /* =================================================================
-   2. SSG 資料獲取 (Static Site Generation)
+   2. SSG：這頁沒打後端，SSG 就足夠（不需要 ISR）
    ================================================================= */
 export async function getStaticProps({ locale }) {
   const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
   return {
     props: {
       t,
-      locale,
+      locale: locale || "zh-TW",
     },
   };
 }
@@ -156,17 +159,13 @@ function FadeUp({
   amount = 0.3,
 }) {
   const prefersReduced = useReducedMotion?.();
-  if (prefersReduced) {
-    return <div className={className}>{children}</div>;
-  }
+  if (prefersReduced) return <div className={className}>{children}</div>;
+
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y: distance }}
-      whileInView={{
-        opacity: 1,
-        y: 0,
-      }}
+      whileInView={{ opacity: 1, y: 0 }}
       transition={{
         ease: [0.16, 1, 0.3, 1],
         duration: 0.8,
@@ -193,7 +192,7 @@ function AutoSwapImage({
   rotateDuration = 16,
   priority = false,
   forceShowB,
-  slide = "none", // ✅ 新增： "left" | "right" | "none"
+  slide = "none", // "left" | "right" | "none"
 }) {
   const prefersReduced = useReducedMotion?.();
   const [internalShowB, setInternalShowB] = useState(false);
@@ -216,8 +215,7 @@ function AutoSwapImage({
   const srcA = `${base}-a.png`;
   const srcB = `${base}-b.png`;
 
-  // ✅ 根據方向決定 x 位移
-  const offset = 60; // 你想滑入的距離，可調 40~100
+  const offset = 60;
   const enterX = slide === "left" ? offset : slide === "right" ? -offset : 0;
   const exitX = slide === "left" ? -offset : slide === "right" ? offset : 0;
 
@@ -225,22 +223,10 @@ function AutoSwapImage({
     <AnimatePresence initial={false} mode="wait">
       <motion.div
         key={showB ? "B" : "A"}
-        initial={{
-          opacity: 0,
-          x: prefersReduced ? 0 : enterX,
-        }}
-        animate={{
-          opacity: 1,
-          x: 0,
-        }}
-        exit={{
-          opacity: 0,
-          x: prefersReduced ? 0 : exitX,
-        }}
-        transition={{
-          duration: 1.05,
-          ease: [0.16, 1, 0.3, 1],
-        }}
+        initial={{ opacity: 0, x: prefersReduced ? 0 : enterX }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: prefersReduced ? 0 : exitX }}
+        transition={{ duration: 1.05, ease: [0.16, 1, 0.3, 1] }}
         style={{
           willChange: "opacity, transform",
           backfaceVisibility: "hidden",
@@ -387,6 +373,10 @@ function RotatingSplitImage({
    4. 主頁面元件
    ================================================================= */
 export default function Home({ t, locale }) {
+  const router = useRouter();
+  const activeLocale = locale || router.locale || "zh-TW";
+  const isEn = activeLocale === "en";
+
   if (!t) return null;
 
   const [globalIsB, setGlobalIsB] = useState(false);
@@ -394,9 +384,7 @@ export default function Home({ t, locale }) {
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setGlobalIsB((prev) => !prev);
-    }, 7000);
+    const timer = setInterval(() => setGlobalIsB((prev) => !prev), 7000);
     return () => clearInterval(timer);
   }, []);
 
@@ -422,6 +410,7 @@ export default function Home({ t, locale }) {
       title: t.beer.craft.title,
       description: t.beer.craft.description,
     },
+    // 重複 slides（如要無限輪播）
     {
       image: "/images/beer/台啤-蜂蜜.webp",
       title: t.beer.honey.title,
@@ -444,14 +433,24 @@ export default function Home({ t, locale }) {
     },
   ];
 
-  /* ========== 完整結構化資料 (Structured Data) ========== */
+  // canonical
+  const canonical = `${SITE_URL}${isEn ? "/en" : ""}`;
 
-  // 1. 網站 Schema
+  // hreflang
+  const hrefLangZh = `${SITE_URL}/`;
+  const hrefLangEn = `${SITE_URL}/en`;
+
+  // ✅ og image 絕對路徑
+  const ogImageAbs = `${SITE_URL}${OG_IMAGE_PATH}`;
+
+  /* ========== Structured Data ========== */
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Memory Corner 有香餐飲集團",
+    name: SITE_NAME,
     url: SITE_URL,
+    inLanguage: isEn ? "en" : "zh-Hant",
+    // 如果你站上沒有 /search，建議刪掉這段
     potentialAction: {
       "@type": "SearchAction",
       target: `${SITE_URL}/search?q={search_term_string}`,
@@ -459,11 +458,10 @@ export default function Home({ t, locale }) {
     },
   };
 
-  // 2. 組織/集團 Schema
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Memory Corner Group",
+    name: BRAND_NAME,
     url: SITE_URL,
     logo: `${SITE_URL}/images/index/about/有香集團-logo.png`,
     sameAs: [
@@ -472,35 +470,34 @@ export default function Home({ t, locale }) {
     ],
   };
 
-  // 3. 餐廳 (LocalBusiness) Schema - 這是實體店最重要的 SEO
+  // ✅ 地址/電話/座標請填「真實資料」，不確定就先不要放，避免 SEO 反效果
   const restaurantSchema = {
     "@context": "https://schema.org",
     "@type": "Restaurant",
     name: "Memory Corner 有香",
-    image: [
-      `${SITE_URL}/images/index/banner-06-a.png`,
-      `${SITE_URL}/images/index/about/DAV01683.webp`,
-    ],
+    image: [ogImageAbs, `${SITE_URL}/images/index/about/DAV01683.webp`],
     priceRange: "$$",
     servesCuisine: "Taiwanese",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "6900 No. 3 Rd", // 範例地址，請確認正確地址
-      addressLocality: "Richmond",
-      addressRegion: "BC",
-      postalCode: "V6Y 2C5",
-      addressCountry: "CA",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 49.166, // 範例座標
-      longitude: -123.13,
-    },
     url: SITE_URL,
-    telephone: "+16042845434", // 範例電話
+    // address: { ... }, // ✅ 有把握再填
+    // geo: { ... },     // ✅ 有把握再填
+    // telephone: "...", // ✅ 有把握再填
   };
 
-  // 4. 影片 Schema
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: t.meta.title,
+    description: t.meta.description,
+    url: canonical,
+    inLanguage: isEn ? "en" : "zh-Hant",
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: ogImageAbs,
+    },
+  };
+
+  // VideoObject：如果你能提供「真實上傳日期」就填 uploadDate
   const videoSchema = {
     "@context": "https://schema.org",
     "@type": "VideoObject",
@@ -508,403 +505,197 @@ export default function Home({ t, locale }) {
     description:
       "Enjoy authentic Taiwanese cuisine and beer with friends at Memory Corner.",
     thumbnailUrl: `${SITE_URL}/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg`,
-    uploadDate: "2024-01-01T08:00:00+08:00",
     contentUrl: `${SITE_URL}/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4`,
-    embedUrl: SITE_URL,
-  };
-
-  // 5. 網頁 Schema
-  const webPageSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: t.meta.title,
-    description: t.meta.description,
-    url: `${SITE_URL}${locale === "en" ? "/en" : ""}`,
-    inLanguage: locale === "zh-TW" ? "zh-TW" : "en",
-    primaryImageOfPage: {
-      "@type": "ImageObject",
-      url: `${SITE_URL}${t.meta.ogImage}`,
-    },
+    embedUrl: canonical,
   };
 
   return (
-    <>
-      <Layout>
-        <Head>
-          <title>{t.meta.title}</title>
-          <meta name="description" content={t.meta.description} />
-          <meta name="keywords" content={t.meta.keywords} />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Layout>
+      <Head>
+        <title>{t.meta.title}</title>
+        <meta name="description" content={t.meta.description} />
+        <meta name="keywords" content={t.meta.keywords} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <meta name="theme-color" content="#ffffff" />
 
-          <meta property="og:type" content="website" />
-          <meta property="og:title" content={t.meta.title} />
-          <meta property="og:description" content={t.meta.description} />
-          <meta property="og:image" content={`${SITE_URL}${t.meta.ogImage}`} />
-          <meta property="og:site_name" content="Memory Corner" />
-          <meta
-            property="og:locale"
-            content={locale === "zh-TW" ? "zh_TW" : "en_US"}
+        <link rel="canonical" href={canonical} />
+        <link rel="alternate" hrefLang="x-default" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="zh-Hant" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="en" href={hrefLangEn} />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={t.meta.title} />
+        <meta property="og:description" content={t.meta.description} />
+        <meta property="og:image" content={ogImageAbs} />
+        <meta property="og:site_name" content={SITE_NAME} />
+        <meta property="og:locale" content={isEn ? "en_US" : "zh_TW"} />
+        <meta property="og:url" content={canonical} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={t.meta.title} />
+        <meta name="twitter:description" content={t.meta.description} />
+        <meta name="twitter:image" content={ogImageAbs} />
+
+        {/* JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+        />
+      </Head>
+
+      {/* Hero */}
+      <section className="section-hero z-[9] pt-[0px] relative md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
+        <h1 className="sr-only">{t.meta.title}</h1>
+
+        <div className="relative h-full w-full">
+          <AutoSwapImage
+            base="/images/index/banner-06"
+            alt="Memory Corner Authentic Taiwanese Cuisine"
+            positionClass="z-10 right-[-3%] top-[10%] md:top-[-10%]"
+            className="w-[80vw]"
+            width={1200}
+            height={800}
+            interval={7000}
+            priority={true}
+            forceShowB={globalIsB}
           />
-          <meta
-            property="og:url"
-            content={`${SITE_URL}${locale === "en" ? "/en" : ""}`}
+
+          <AutoSwapImage
+            base="/images/index/banner-05"
+            alt="Memory Corner Character Mascot"
+            positionClass="z-20 right-[0%] bottom-[-2%]"
+            className="w-[70vw] sm:w-[55vw] lg:w-[50vw] xl:w-[52vw]"
+            width={800}
+            height={500}
+            interval={7000}
+            forceShowB={globalIsB}
+            slide="left"
           />
 
-          <link
-            rel="canonical"
-            href={`${SITE_URL}${locale === "en" ? "/en" : ""}`}
+          <AutoSwapImage
+            base="/images/index/banner-02"
+            alt="Taiwanese Chopsticks"
+            positionClass="z-50 left-[-10%] top-[15%] rotate-[25deg] md:rotate-0 md:top-[24%]"
+            className="w-[45vw] md:w-[30vw]"
+            width={800}
+            height={500}
+            interval={7000}
+            forceShowB={globalIsB}
           />
-          <link rel="alternate" hreflang="x-default" href={SITE_URL} />
-          <link rel="alternate" hreflang="zh-TW" href={SITE_URL} />
-          <link rel="alternate" hreflang="en" href={`${SITE_URL}/en`} />
 
-          {/* Inject Structured Data */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          <RotatingSplitImage
+            baseA="/images/index/banner-07-a"
+            baseB="/images/index/banner-07-b"
+            alt="Memory Corner Seal"
+            className="z-30 left-[10%] md:left-[20%] bottom-[30%] md:bottom-[15%] xl:bottom-[10%] w-[16vw] sm:w-[10vw]"
+            interval={7000}
+            initialDelay={3600}
+            rotateDuration={16}
+            priority={true}
+            forceShowB={globalIsB}
           />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(organizationSchema),
-            }}
+
+          <AutoSwapImage
+            base="/images/index/banner-01"
+            alt="Authentic Taiwanese Hot Pot"
+            positionClass="z-10 left-[4%] md:left-[2%] top-[44%] sm:top-[25%] md:top-[50%] 2xl:top-[55%] -translate-y-1/2"
+            className="w-[75vw] md:w-[60vw]"
+            width={800}
+            height={500}
+            interval={7000}
+            priority={true}
+            forceShowB={globalIsB}
+            slide="right"
           />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify(restaurantSchema),
-            }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
-          />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
-          />
-        </Head>
+        </div>
+      </section>
 
-        {/* Section Hero */}
-        <section className="section-hero z-[9] pt-[0px] relative md:mt-0 aspect-[16/16] md:aspect-[16/12] xl:aspect-[16/7.6] overflow-hidden">
-          {/* [SEO] 隱藏的 H1，確保頁面有正確的標題層級，但不影響視覺 */}
-          <h1 className="sr-only">{t.meta.title}</h1>
+      {/* Beer Carousel */}
+      <section className="section_beer overflow-hidden">
+        <Carousel slides={SLIDES} options={OPTIONS} />
+      </section>
 
-          <div className="relative h-full w-full">
-            {/* 中央主標 */}
-            <AutoSwapImage
-              base="/images/index/banner-06"
-              alt="Memory Corner Authentic Taiwanese Cuisine"
-              positionClass="z-10 right-[-3%] top-[10%] md:top-[-10%]"
-              className="w-[80vw]"
-              width={1200}
-              height={800}
-              interval={7000}
-              priority={true}
-              forceShowB={globalIsB}
-            />
-
-            {/* 角色 */}
-            <AutoSwapImage
-              base="/images/index/banner-05"
-              alt="Memory Corner Character Mascot"
-              positionClass="z-20 right-[0%] bottom-[-2%]"
-              className="w-[70vw] sm:w-[55vw] lg:w-[50vw] xl:w-[52vw]"
-              width={800}
-              height={500}
-              interval={7000}
-              forceShowB={globalIsB}
-              slide="left" // ✅ 新增
-            />
-
-            {/* 筷子 */}
-            <AutoSwapImage
-              base="/images/index/banner-02"
-              alt="Taiwanese Chopsticks"
-              positionClass="z-50 left-[-10%] top-[15%] rotate-[25deg] md:rotate-0 md:top-[24%]"
-              className="w-[45vw] md:w-[30vw]"
-              width={800}
-              height={500}
-              interval={7000}
-              forceShowB={globalIsB}
-            />
-
-            {/* 轉動標誌 */}
-            <RotatingSplitImage
-              baseA="/images/index/banner-07-a"
-              baseB="/images/index/banner-07-b"
-              alt="Memory Corner Seal"
-              className="z-30 left-[10%] md:left-[20%] bottom-[30%] md:bottom-[15%] xl:bottom-[10%] w-[16vw] sm:w-[10vw]"
-              interval={7000}
-              initialDelay={3600}
-              rotateDuration={16}
-              priority={true}
-              forceShowB={globalIsB}
-            />
-
-            <AutoSwapImage
-              base="/images/index/banner-01"
-              alt="Authentic Taiwanese Hot Pot"
-              positionClass="z-10 left-[4%] md:left-[2%] top-[44%] sm:top-[25%] md:top-[50%] 2xl:top-[55%] -translate-y-1/2"
-              className="w-[75vw] md:w-[60vw]"
-              width={800}
-              height={500}
-              interval={7000}
-              priority={true}
-              forceShowB={globalIsB}
-              slide="right" // ✅ 新增
-            />
-          </div>
-        </section>
-
-        {/* ======= 啤酒輪播區塊 ======= */}
-        <section className="section_beer overflow-hidden">
-          <Carousel slides={SLIDES} options={OPTIONS} />
-        </section>
-
-        {/* ======= 零食區塊 (Variety) ======= */}
-        <section
+      {/* Variety */}
+      <section className="section_Dinging mx-auto bg-[#efefef] relative overflow-x-hidden">
+        <div
           ref={dingingRef}
-          className="section_Dinging mx-auto bg-[#efefef] relative overflow-x-hidden"
+          className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6"
         >
-          <div className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6">
-            <div className="flex flex-col lg:flex-row justify-center">
-              {/* 左側：影片區 */}
-              <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
-                <video
-                  className="w-full h-full scale-[1.5] object-cover"
-                  src="/video/灶腳.webm"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  aria-label="Video of Taiwanese grocery shop"
-                />
-              </div>
-              {/* 右側：文案區 */}
-              <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
-                <FadeUp amount={0.35} className="w-full max-w-[680px]">
-                  <article className="flex flex-col">
-                    <FadeUp>
-                      <h2 className="title-large font-bold m-0 p-0 leading-none">
-                        {t.variety.title}
-                      </h2>
-                    </FadeUp>
-
-                    <div className="">
-                      <FadeUp delay={0.06}>
-                        <p className="sub_title m-0 p-0">
-                          {t.variety.subtitle}
-                        </p>
-                      </FadeUp>
-                    </div>
-
-                    <div className="mt-3 sm:mt-4">
-                      <FadeUp delay={0.08}>
-                        <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
-                          {t.variety.desc1}
-                        </p>
-                        <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
-                          {t.variety.desc2}
-                        </p>
-                        <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
-                          {t.variety.desc3}
-                        </p>
-                      </FadeUp>
-                      <FadeUp delay={0.04}>
-                        <Link
-                          href="/app"
-                          className="group"
-                          aria-label="Go to App page"
-                        >
-                          <Image
-                            src="/images/more-btn.png"
-                            width={400}
-                            alt="Read more about variety products"
-                            height={400}
-                            loading="lazy"
-                            className="w-[200px] mx-auto sm:mx-0 mt-5 group-hover:scale-105 scale-100 duration-300 h-auto"
-                          />
-                        </Link>
-                      </FadeUp>
-                    </div>
-                  </article>
-                </FadeUp>
-              </div>
+          <div className="flex flex-col lg:flex-row justify-center">
+            <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
+              <video
+                className="w-full h-full scale-[1.5] object-cover"
+                src="/video/灶腳.webm"
+                autoPlay
+                loop
+                muted
+                playsInline
+                aria-label="Video of Taiwanese grocery shop"
+              />
             </div>
-          </div>
-        </section>
 
-        {/* Brand Story Section */}
-        <section className="section_brand_story relative">
-          <div className="pointer-events-none absolute top-[7%] sm:top-[15%] left-[10%] md:translate-x-0 z-20">
-            <FadeUp>
-              <h2 className="font-extrabold tracking-[0.18em] text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] text-[clamp(2.4rem,7vw,8.5rem)] leading-none">
-                {t.about.title}
-              </h2>
-            </FadeUp>
-          </div>
-
-          <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
-            {/* 區塊 1 */}
-            <FadeUp delay={0.02} amount={0.25} className="relative">
-              <Link
-                href="/brand-story?tab=group"
-                className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
-                aria-label="About Memory Corner Group"
-              >
-                <Image
-                  src="/images/index/about/3-1.webp"
-                  alt="Memory Corner Group Staff"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  priority={false}
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/35" />
-                <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-                  <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
-                    <Image
-                      src="/images/index/about/有香集團-logo.png"
-                      alt="Group Logo"
-                      width={260}
-                      height={120}
-                      className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
-                    />
-                  </div>
-                  <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
-                    <p
-                      className="text-white text-[16px] leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: t.about.group_desc }}
-                    />
-                  </div>
-                </div>
-              </Link>
-            </FadeUp>
-
-            {/* 區塊 2 */}
-            <FadeUp delay={0.06} amount={0.25} className="relative">
-              <Link
-                href="/brand-story?tab=youxiang"
-                className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
-                aria-label="About Memory Corner Restaurant"
-              >
-                <Image
-                  src="/images/index/about/3-2.webp"
-                  alt="Memory Corner Dining Environment"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/35" />
-                <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-                  <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
-                    <Image
-                      src="/images/index/about/有香-logo.png"
-                      alt="Memory Corner Logo"
-                      width={260}
-                      height={120}
-                      className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
-                    />
-                  </div>
-                  <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
-                    <p
-                      className="text-white text-[16px] leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: t.about.memory_desc }}
-                    />
-                  </div>
-                </div>
-              </Link>
-            </FadeUp>
-
-            {/* 區塊 3 */}
-            <FadeUp delay={0.1} amount={0.25} className="relative">
-              <Link
-                href="/brand-story?tab=memory"
-                className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
-                aria-label="About Sweet Memory"
-              >
-                <Image
-                  src="/images/index/about/3-3.webp"
-                  alt="Sweet Memory Desserts"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/35" />
-                <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-                  <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
-                    <Image
-                      src="/images/index/about/億點點-logo.png"
-                      alt="Sweet Memory Logo"
-                      width={260}
-                      height={120}
-                      className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
-                    />
-                  </div>
-                  <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
-                    <p
-                      className="text-white text-[16px] leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: t.about.sweet_desc }}
-                    />
-                  </div>
-                </div>
-              </Link>
-            </FadeUp>
-          </div>
-        </section>
-
-        {/* Video Section */}
-        <section className="h-full w-full section-video relative">
-          <video
-            className="w-full h-full object-cover"
-            src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster="/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg"
-            aria-label="Memory Corner promotional video"
-          >
-            <source
-              src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
-              type="video/mp4"
-            />
-          </video>
-        </section>
-
-        {/* APP Operation Section */}
-        <section className="section_app_operation bg-[#f7f7f7] flex flex-col justify-center h-screen relative overflow-hidden">
-          <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
-            <div className="w-full md:w-[50%] flex sm:p-10 p-8 md:p-20 items-center">
-              <FadeUp amount={0.35} className="w-full">
-                <article className="flex flex-col justify-center items-center">
+            <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
+              <FadeUp amount={0.35} className="w-full max-w-[680px]">
+                <article className="flex flex-col">
                   <FadeUp>
-                    <h2 className="title-large font-bold text-[#3b2619] leading-none text-wrap">
-                      {t.app.title}
+                    <h2 className="title-large font-bold m-0 p-0 leading-none">
+                      {t.variety.title}
                     </h2>
                   </FadeUp>
 
-                  <div className="mt-4">
+                  <div>
                     <FadeUp delay={0.06}>
-                      <p className="text-[#3b2619] font-normal sub_title leading-relaxed">
-                        {t.app.subtitle}
+                      <p className="sub_title m-0 p-0">{t.variety.subtitle}</p>
+                    </FadeUp>
+                  </div>
+
+                  <div className="mt-3 sm:mt-4">
+                    <FadeUp delay={0.08}>
+                      <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
+                        {t.variety.desc1}
+                      </p>
+                      <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
+                        {t.variety.desc2}
+                      </p>
+                      <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
+                        {t.variety.desc3}
                       </p>
                     </FadeUp>
+
                     <FadeUp delay={0.04}>
                       <Link
                         href="/app"
                         className="group"
-                        aria-label="Join Rewards App"
+                        aria-label="Go to App"
                       >
                         <Image
                           src="/images/more-btn.png"
                           width={400}
-                          alt="Join App Button"
                           height={400}
+                          alt="Read more about variety products"
                           loading="lazy"
-                          className="w-[200px] mx-auto sm:mx-0 group-hover:scale-105 scale-100 duration-300 h-auto"
+                          className="w-[200px] mx-auto sm:mx-0 mt-5 group-hover:scale-105 scale-100 duration-300 h-auto"
                         />
                       </Link>
                     </FadeUp>
@@ -912,38 +703,218 @@ export default function Home({ t, locale }) {
                 </article>
               </FadeUp>
             </div>
-
-            <div className="w-full md:w-[50%] flex items-center">
-              <FadeUp delay={0.1} amount={0.3} className="w-full">
-                <Link href="/app" aria-label="View App details">
-                  <Image
-                    src="/images/app/app.png"
-                    alt="Rewards App Mockup"
-                    width={1700}
-                    height={1700}
-                    loading="lazy"
-                    className="w-full h-full"
-                  />
-                </Link>
-              </FadeUp>
-            </div>
-            <div className="absolute bottom-6 w-full overflow-hidden">
-              <Marquee velocity={11}>
-                {Array(5)
-                  .fill(0)
-                  .map((_, i) => (
-                    <span
-                      key={i}
-                      className="mx-10 text-8xl font-bold text-[#ebe9ea]"
-                    >
-                      {t.app.marquee}
-                    </span>
-                  ))}
-              </Marquee>
-            </div>
           </div>
-        </section>
-      </Layout>
-    </>
+        </div>
+      </section>
+
+      {/* Brand Story */}
+      <section className="section_brand_story relative">
+        <div className="pointer-events-none absolute top-[7%] sm:top-[15%] left-[10%] md:translate-x-0 z-20">
+          <FadeUp>
+            <h2 className="font-extrabold tracking-[0.18em] text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)] text-[clamp(2.4rem,7vw,8.5rem)] leading-none">
+              {t.about.title}
+            </h2>
+          </FadeUp>
+        </div>
+
+        <div className="mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-0">
+          <FadeUp delay={0.02} amount={0.25} className="relative">
+            <Link
+              href="/brand-story?tab=group"
+              className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+              aria-label="About Memory Corner Group"
+            >
+              <Image
+                src="/images/index/about/3-1.webp"
+                alt="Memory Corner Group Staff"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+                <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
+                  <Image
+                    src="/images/index/about/有香集團-logo.png"
+                    alt="Group Logo"
+                    width={260}
+                    height={120}
+                    className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
+                  />
+                </div>
+                <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
+                  <p
+                    className="text-white text-[16px] leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: t.about.group_desc }}
+                  />
+                </div>
+              </div>
+            </Link>
+          </FadeUp>
+
+          <FadeUp delay={0.06} amount={0.25} className="relative">
+            <Link
+              href="/brand-story?tab=youxiang"
+              className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+              aria-label="About Memory Corner Restaurant"
+            >
+              <Image
+                src="/images/index/about/3-2.webp"
+                alt="Memory Corner Dining Environment"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+                <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
+                  <Image
+                    src="/images/index/about/有香-logo.png"
+                    alt="Memory Corner Logo"
+                    width={260}
+                    height={120}
+                    className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
+                  />
+                </div>
+                <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
+                  <p
+                    className="text-white text-[16px] leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: t.about.memory_desc }}
+                  />
+                </div>
+              </div>
+            </Link>
+          </FadeUp>
+
+          <FadeUp delay={0.1} amount={0.25} className="relative">
+            <Link
+              href="/brand-story?tab=memory"
+              className="block group relative overflow-hidden aspect-[4/3] md:aspect-[9/16] lg:aspect-[10/16]"
+              aria-label="About Sweet Memory"
+            >
+              <Image
+                src="/images/index/about/3-3.webp"
+                alt="Sweet Memory Desserts"
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
+                <div className="transform transition-transform duration-500 ease-out group-hover:-translate-y-2">
+                  <Image
+                    src="/images/index/about/億點點-logo.png"
+                    alt="Sweet Memory Logo"
+                    width={260}
+                    height={120}
+                    className="w-[180px] md:w-[200px] lg:w-[240px] xl:w-[300px] h-auto"
+                  />
+                </div>
+                <div className="mt-3 opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out delay-75">
+                  <p
+                    className="text-white text-[16px] leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: t.about.sweet_desc }}
+                  />
+                </div>
+              </div>
+            </Link>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* Video */}
+      <section className="h-full w-full section-video relative">
+        <video
+          className="w-full h-full object-cover"
+          src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg"
+          aria-label="Memory Corner promotional video"
+        >
+          <source
+            src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
+            type="video/mp4"
+          />
+        </video>
+      </section>
+
+      {/* APP */}
+      <section className="section_app_operation bg-[#f7f7f7] flex flex-col justify-center h-screen relative overflow-hidden">
+        <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
+          <div className="w-full md:w-[50%] flex sm:p-10 p-8 md:p-20 items-center">
+            <FadeUp amount={0.35} className="w-full">
+              <article className="flex flex-col justify-center items-center">
+                <FadeUp>
+                  <h2 className="title-large font-bold text-[#3b2619] leading-none text-wrap">
+                    {t.app.title}
+                  </h2>
+                </FadeUp>
+
+                <div className="mt-4">
+                  <FadeUp delay={0.06}>
+                    <p className="text-[#3b2619] font-normal sub_title leading-relaxed">
+                      {t.app.subtitle}
+                    </p>
+                  </FadeUp>
+                  <FadeUp delay={0.04}>
+                    <Link href="/app" className="group" aria-label="Join App">
+                      <Image
+                        src="/images/more-btn.png"
+                        width={400}
+                        height={400}
+                        alt="Join App Button"
+                        loading="lazy"
+                        className="w-[200px] mx-auto sm:mx-0 group-hover:scale-105 scale-100 duration-300 h-auto"
+                      />
+                    </Link>
+                  </FadeUp>
+                </div>
+              </article>
+            </FadeUp>
+          </div>
+
+          <div className="w-full md:w-[50%] flex items-center">
+            <FadeUp delay={0.1} amount={0.3} className="w-full">
+              <Link href="/app" aria-label="View App details">
+                <Image
+                  src="/images/app/app.png"
+                  alt="Rewards App Mockup"
+                  width={1700}
+                  height={1700}
+                  loading="lazy"
+                  className="w-full h-full"
+                />
+              </Link>
+            </FadeUp>
+          </div>
+
+          <div className="absolute bottom-6 w-full overflow-hidden">
+            <Marquee velocity={11}>
+              {Array(5)
+                .fill(0)
+                .map((_, i) => (
+                  <span
+                    key={i}
+                    className="mx-10 text-8xl font-bold text-[#ebe9ea]"
+                  >
+                    {t.app.marquee}
+                  </span>
+                ))}
+            </Marquee>
+          </div>
+        </div>
+      </section>
+    </Layout>
   );
+}
+
+/* =================================================================
+   Utilities
+   ================================================================= */
+function ensureURL(u = "") {
+  return String(u).replace(/\/+$/, "");
 }
