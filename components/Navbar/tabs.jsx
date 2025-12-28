@@ -503,7 +503,7 @@ export const SlideTabsExample = () => {
               </div>
               <div className="hidden xl:flex items-center gap-3">
                 <Link
-                  href="https://corner-rouge.vercel.app/"
+                  href="/groupBuy"
                   target="_blank"
                   className="rounded-full  bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36]  transition-colors shadow-sm"
                 >

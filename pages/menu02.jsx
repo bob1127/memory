@@ -266,7 +266,7 @@ export default function Menu02Page({ t, locale }) {
                 exit={exit}
                 style={{ willChange: "transform, opacity, filter" }}
                 // 手機版間距：gap-4, mt-8
-                className="grid mt-8 sm:mt-16 gap-4 sm:gap-8 grid-cols-1 md:grid-cols-2 items-start"
+                className="grid mt-8 sm:mt-16   grid-cols-1 md:grid-cols-2 items-start"
               >
                 {MENU_IMAGES.map((src, i) => {
                   const alt = `${t.imageAlt} ${i + 1}`;
@@ -285,7 +285,7 @@ export default function Menu02Page({ t, locale }) {
                       <img
                         src={src}
                         alt={alt}
-                        className="w-full sm:w-[95%] mx-auto h-auto shadow-md bg-white transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+                        className="w-full sm:w-[100%] mx-auto my-4 h-auto shadow-md bg-white transition-transform duration-500 ease-out group-hover:scale-[1.015]"
                         loading={i < 2 ? "eager" : "lazy"}
                         decoding="async"
                       />
