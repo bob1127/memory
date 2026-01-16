@@ -598,7 +598,7 @@ export const SlideTabsExample = () => {
               {/* Right: CTA（字可小，按鈕可窄，避免擠壓 Logo） */}
               <div className=" hidden xl:flex items-center justify-end gap-2">
                 <Link
-                  href="/groupBuy"
+                  href="https://corner-rouge.vercel.app"
                   target="_blank"
                   className="rounded-full bg-stone-800 px-2.5 sm:px-3.5 py-2 text-[11px] sm:text-[12px] md:text-[13px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
                 >
@@ -763,7 +763,7 @@ export const SlideTabsExample = () => {
               <div className=" flex w-[20%] items-center justify-end gap-2 sm:gap-3">
                 <div className="hidden xl:flex items-center gap-3">
                   <Link
-                    href="/groupBuy"
+                    href="https://corner-rouge.vercel.app"
                     target="_blank"
                     className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
                   >

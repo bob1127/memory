@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import Link from "next/link"; // 新增 Link
-import Head from "next/head"; // 新增 Head 用於 SEO
+import Link from "next/link";
+import Head from "next/head";
 import Layout from "./Layout";
-import { Minus, Plus, Trash2 } from "lucide-react"; // 確保有導入圖示
+import { Minus, Plus, Trash2 } from "lucide-react";
 import { cartStore } from "@/lib/cartStore";
 import { authStore } from "@/lib/authStore";
 
@@ -20,7 +20,19 @@ const getCartName = (item, locale) => {
   return item.name || "";
 };
 
-const roundPrice = (num) => Math.round(Number(num) || 0);
+// --- [修改 1] 更新數學計算函式：保留兩位小數，而不是轉成整數 ---
+const roundPrice = (num) => {
+  const n = Number(num) || 0;
+  return Math.round(n * 100) / 100;
+};
+
+// --- [修改 2] 新增顯示格式化函式：強制顯示兩位小數 (例如 100.00) ---
+const formatPrice = (num) => {
+  return (Number(num) || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
 
 /* =================== 資料常數 =================== */
 
@@ -43,8 +55,8 @@ const AREAS = [
 ];
 
 const CHECKOUT_TRANSLATIONS = {
+  // ... (翻譯內容保持不變，為節省篇幅省略)
   "zh-TW": {
-    // ... (保持原有翻譯)
     title_contact: "聯絡資訊",
     title_recipient: "收件人",
     title_area: "外送地區",
@@ -85,7 +97,6 @@ const CHECKOUT_TRANSLATIONS = {
     currency: "CA$",
   },
   en: {
-    // ... (保持原有翻譯)
     title_contact: "Contact Info",
     title_recipient: "Recipient",
     title_area: "Delivery Area",
@@ -178,18 +189,10 @@ export default function CheckoutPage() {
   }, [auth?.user]);
 
   /* ------------------ Logic: 購物車操作 ------------------ */
-
-  // 更新 Cart Store 的通用方法 (假設 cartStore 有 save 或類似方法，這裡模擬直接更新)
   const updateCartStore = (newCart) => {
-    // 如果 cartStore 有 set 方法：
     if (cartStore.set) {
       cartStore.set(newCart);
     } else {
-      // Fallback: 如果 cartStore 是基於簡單的 listener 模式
-      // 這裡通常需要一個方法來通知 store 更新資料
-      // 例如: cartStore.data = newCart; cartStore.notify();
-      // 由於看不到 cartStore 原始碼，這裡假設直接更新 state 會觸發同步
-      // 實際專案中請確保這裡呼叫了正確的 Store 更新方法
       console.warn("Please implement cartStore update logic here");
     }
   };
@@ -202,8 +205,6 @@ export default function CheckoutPage() {
       }
       return item;
     });
-    // 這裡需要觸發 Store 更新，因 cart 是訂閱來的，直接 setCart 只是本地更新
-    // 為了 UI 即時反應，我們先 setCart，實際應呼叫 cartStore 的方法
     setCart(newCart);
     updateCartStore(newCart);
   };
@@ -217,11 +218,13 @@ export default function CheckoutPage() {
 
   /* ------------------ Logic: 金額計算 ------------------ */
   const orderSummary = useMemo(() => {
+    // [修改 3] 計算時不先 Round 成整數，保留精度
     const rawSubtotal = cart.reduce(
       (sum, it) => sum + Number(it.price || 0) * (it.qty || 0),
       0
     );
-    const subtotal = roundPrice(rawSubtotal);
+    const subtotal = roundPrice(rawSubtotal); // 現在 roundPrice 會保留 2 位小數
+
     const selectedArea = AREAS.find((a) => a.value === form.deliveryArea);
     let shippingFee = selectedArea?.fee || 0;
 
@@ -328,17 +331,16 @@ export default function CheckoutPage() {
     },
     publisher: {
       "@type": "Organization",
-      name: "Your Store Name", // 請替換為您的商店名稱
+      name: "Your Store Name",
       logo: {
         "@type": "ImageObject",
-        url: "https://yourwebsite.com/logo.png", // 請替換為您的 Logo URL
+        url: "https://yourwebsite.com/logo.png",
       },
     },
   };
 
   return (
     <Layout>
-      {/* SEO Head: Checkout 頁面不應被索引 (noindex)，但可以保留結構化資料 */}
       <Head>
         <title>{t.place_order} | Checkout</title>
         <meta name="robots" content="noindex, nofollow" />
@@ -350,7 +352,7 @@ export default function CheckoutPage() {
 
       <main className="min-h-screen py-10 bg-gray-50 pt-[100px]">
         <div className="mx-auto w-[min(1200px,95vw)] grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* 左側：表單區域 (維持不變) */}
+          {/* 左側：表單區域 */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             {auth?.user && (
               <div className="mb-6 rounded-lg border bg-emerald-50 px-4 py-3 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -521,7 +523,7 @@ export default function CheckoutPage() {
             </section>
           </div>
 
-          {/* 右側：訂單摘要 (更新後) */}
+          {/* 右側：訂單摘要 */}
           <aside className="h-fit lg:sticky lg:top-24 space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="font-semibold text-lg mb-6 pb-4 border-b">
@@ -533,11 +535,10 @@ export default function CheckoutPage() {
                   {t.empty_cart}
                 </div>
               ) : (
-                <ul className="space-y-6 mb-6   pr-2 custom-scrollbar">
+                <ul className="space-y-6 mb-6 pr-2 custom-scrollbar">
                   {cart.map((it) => (
                     <li key={it.id} className="flex gap-4 group relative">
-                      {/* 商品圖片：加上連結 */}
-                      <div className="block relative  w-[200px] h-[200px]  aspect-square flex-shrink-0 rounded-lg   hover:opacity-90 transition-opacity">
+                      <div className="block relative w-[100px] h-[100px] aspect-square flex-shrink-0 rounded-lg hover:opacity-90 transition-opacity">
                         <Image
                           src={it.img}
                           alt={it.name || "Product"}
@@ -548,7 +549,6 @@ export default function CheckoutPage() {
 
                       <div className="flex-1 flex flex-col justify-between py-1">
                         <div className="flex justify-between items-start gap-2">
-                          {/* 商品名稱：加上連結 */}
                           <Link
                             href={`/product/${it.slug || it.id}`}
                             className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug hover:text-gray-600 transition-colors"
@@ -556,7 +556,6 @@ export default function CheckoutPage() {
                             {getCartName(it, locale)}
                           </Link>
 
-                          {/* 刪除按鈕 */}
                           <button
                             onClick={() => handleRemoveItem(it.id)}
                             className="text-gray-400 hover:text-red-500 transition-colors p-1 -mt-1 -mr-1"
@@ -567,7 +566,6 @@ export default function CheckoutPage() {
                         </div>
 
                         <div className="flex justify-between items-end mt-2">
-                          {/* 數量調整區 */}
                           <div className="flex items-center border border-gray-200 rounded-md bg-gray-50">
                             <button
                               onClick={() => handleUpdateQty(it.id, -1)}
@@ -587,12 +585,10 @@ export default function CheckoutPage() {
                             </button>
                           </div>
 
-                          {/* 價格 */}
+                          {/* [修改 4] 購物車單項金額顯示小數點兩位 */}
                           <div className="text-sm font-medium text-gray-900">
                             {t.currency}
-                            {(
-                              Number(it.price || 0) * (it.qty || 0)
-                            ).toLocaleString()}
+                            {formatPrice(Number(it.price || 0) * (it.qty || 0))}
                           </div>
                         </div>
                       </div>
@@ -601,13 +597,13 @@ export default function CheckoutPage() {
                 </ul>
               )}
 
-              {/* 價格計算區域 (維持不變) */}
+              {/* [修改 5] 價格計算區域：全部使用 formatPrice 顯示小數點兩位 */}
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <div className="flex justify-between text-gray-600">
                   <span>{t.subtotal}</span>
                   <span className="font-medium text-gray-900">
                     {t.currency}
-                    {orderSummary.subtotal.toLocaleString()}
+                    {formatPrice(orderSummary.subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
@@ -615,14 +611,14 @@ export default function CheckoutPage() {
                   <span className="font-medium text-gray-900">
                     {orderSummary.shippingFee === 0
                       ? "Free"
-                      : `${t.currency}${orderSummary.shippingFee}`}
+                      : `${t.currency}${formatPrice(orderSummary.shippingFee)}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>{t.tax}</span>
                   <span className="font-medium text-gray-900">
                     {t.currency}
-                    {orderSummary.taxAmount.toLocaleString()}
+                    {formatPrice(orderSummary.taxAmount)}
                   </span>
                 </div>
 
@@ -634,7 +630,7 @@ export default function CheckoutPage() {
                     <span className="text-sm font-normal text-gray-500 mr-1">
                       {t.currency}
                     </span>
-                    {orderSummary.total.toLocaleString()}
+                    {formatPrice(orderSummary.total)}
                   </span>
                 </div>
               </div>

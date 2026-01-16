@@ -113,7 +113,7 @@ const TRANSLATIONS = {
 /* ========== 3. 子組件：會員資料區塊 ========== */
 function ProfileSection({ t, profile, email, setEmail, saveEmail }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-gray-200  bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold">{t.profile.title}</h2>
       <div className="mt-4 space-y-4">
         <div>
@@ -158,7 +158,7 @@ function OrdersSection({ t, orders, locale }) {
   dayjs.locale(locale === "en" ? "en" : "zh-tw");
 
   return (
-    <section className="mt-10">
+    <section className="mt-10 ">
       <h2 className="text-lg font-semibold">{t.orders.title}</h2>
 
       {orders.length === 0 ? (
@@ -201,54 +201,69 @@ function OrdersSection({ t, orders, locale }) {
                   </div>
                 </div>
               </div>
-
               {/* 商品列 */}
               <div className="divide-y divide-gray-100">
-                {(o.line_items || []).map((li) => (
-                  <div
-                    key={li.id}
-                    className="flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-white">
-                      {li.image?.src ? (
-                        <img
-                          src={li.image.src}
-                          alt={li.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="grid h-full w-full place-items-center text-[10px] text-gray-400 bg-gray-50">
-                          {t.orders.no_image}
-                        </div>
-                      )}
-                    </div>
+                {(o.line_items || []).map((li) => {
+                  // === 修正後的圖片讀取邏輯 ===
+                  let imgSource = null;
 
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-gray-900">
-                        {li.name}
+                  if (!li.image) {
+                    imgSource = null;
+                  } else if (typeof li.image === "string") {
+                    // 情況 A: 後端直接傳回網址字串 (你現在的情況)
+                    imgSource = li.image;
+                  } else {
+                    // 情況 B: 後端傳回物件 { src: "..." } 或 { url: "..." }
+                    imgSource = li.image.src || li.image.url;
+                  }
+                  // ============================
+
+                  return (
+                    <div
+                      key={li.id}
+                      className="flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-white">
+                        {imgSource ? (
+                          <img
+                            src={imgSource}
+                            alt={li.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="grid h-full w-full place-items-center text-[10px] text-gray-400 bg-gray-50">
+                            {t.orders.no_image}
+                          </div>
+                        )}
                       </div>
-                      {li.variation_id !== 0 && li.meta_data && (
-                        <div className="mt-0.5 text-xs text-gray-500">
-                          {li.meta_data
-                            .map((meta) => `${meta.key}: ${meta.value}`)
-                            .join(" / ")}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium text-gray-900">
+                          {li.name}
                         </div>
-                      )}
-                      <div className="mt-1 text-xs text-gray-600">
-                        {t.orders.unit_price} {o.currency_symbol || "$"}{" "}
-                        {li.price}
+                        {li.variation_id !== 0 && li.meta_data && (
+                          <div className="mt-0.5 text-xs text-gray-500">
+                            {li.meta_data
+                              .map((meta) => `${meta.key}: ${meta.value}`)
+                              .join(" / ")}
+                          </div>
+                        )}
+                        <div className="mt-1 text-xs text-gray-600">
+                          {t.orders.unit_price} {o.currency_symbol || "$"}{" "}
+                          {li.price}
+                        </div>
+                      </div>
+
+                      <div className="text-sm text-gray-600 font-medium">
+                        × {li.quantity}
+                      </div>
+
+                      <div className="w-24 text-right text-sm font-semibold text-gray-900">
+                        {o.currency_symbol || "$"} {li.total}
                       </div>
                     </div>
-
-                    <div className="text-sm text-gray-600 font-medium">
-                      × {li.quantity}
-                    </div>
-
-                    <div className="w-24 text-right text-sm font-semibold text-gray-900">
-                      {o.currency_symbol || "$"} {li.total}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* 地址區塊 */}
@@ -453,7 +468,7 @@ export default function AccountPage() {
         <link rel="alternate" hreflang="en" href={enUrl} />
       </Head>
 
-      <div className="!bg-[#f6f1ec] min-h-screen pt-20 pb-20">
+      <div className="!bg-[#f6f1ec] min-h-screen pt-[130px] pb-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <header className="mb-8">
             <h1 className="text-3xl font-bold text-stone-800 tracking-tight">

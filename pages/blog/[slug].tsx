@@ -257,7 +257,7 @@ export default function BlogPost({ post }: { post: any }) {
         <MotionConfig transition={spring} reducedMotion="user">
           <div className="bg-[#eddbc1] px-5 min-h-screen">
             {/* 麵包屑 */}
-            <div className="max-w-[800px] xl:w-[60%] md:w-[70%] w-full mx-auto pt-28 pb-4">
+            <div className="max-w-[800px] xl:w-[60%] md:w-[70%] w-full mx-auto pt-[140px] pb-4">
               <nav className="flex items-center text-sm text-gray-600 font-medium">
                 <Link
                   href="/"
