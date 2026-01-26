@@ -1,5 +1,5 @@
 "use client";
-
+import { useNav } from "@/components/context/NavContext"; // 引入 hook
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -472,9 +472,13 @@ function OrderPopup({ open, onClose, children }) {
 }
 
 /* =================== 主元件 =================== */
-export const SlideTabsExample = () => {
-  const router = useRouter();
+export const SlideTabsExample = ( ) => {
+ 
+const router = useRouter();
   const { locale, pathname, query, asPath } = router;
+  
+  // ✅ 改從 Context 拿資料
+  const { customSwitchLink } = useNav();
   const t = NAV_TRANSLATIONS[locale] || NAV_TRANSLATIONS["zh-TW"];
   const ui = t.cart_ui || {};
 
@@ -488,12 +492,20 @@ export const SlideTabsExample = () => {
       a.startsWith("/en/groupBuy")
     );
   }, [pathname, asPath]);
-
-  const handleSwitchLocale = (newLocale) => {
+const handleSwitchLocale = (newLocale) => {
     if (newLocale === locale) return;
+
+    if (customSwitchLink) {
+      console.log("🚀 [Context] 使用自訂連結切換:", customSwitchLink);
+      // 強制帶上 locale 設定
+      router.push(customSwitchLink, customSwitchLink, { locale: newLocale });
+      return;
+    }
+
     router.push({ pathname, query }, asPath, { locale: newLocale });
   };
-
+    // 原本的邏輯 (給一般頁面用)
+ 
   const [isScrolled, setIsScrolled] = useState(false);
   useEffect(() => {
     const handleScroll = () => {
@@ -598,7 +610,7 @@ export const SlideTabsExample = () => {
               {/* Right: CTA（字可小，按鈕可窄，避免擠壓 Logo） */}
               <div className=" hidden xl:flex items-center justify-end gap-2">
                 <Link
-                  href="https://corner-rouge.vercel.app"
+                  href="/groupBuy"
                   target="_blank"
                   className="rounded-full bg-stone-800 px-2.5 sm:px-3.5 py-2 text-[11px] sm:text-[12px] md:text-[13px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
                 >
@@ -763,7 +775,7 @@ export const SlideTabsExample = () => {
               <div className=" flex w-[20%] items-center justify-end gap-2 sm:gap-3">
                 <div className="hidden xl:flex items-center gap-3">
                   <Link
-                    href="https://corner-rouge.vercel.app"
+                    href="/groupBuy"
                     target="_blank"
                     className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
                   >

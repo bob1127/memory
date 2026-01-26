@@ -10,10 +10,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cartStore } from "@/lib/cartStore";
 
 /* =========================================================
-   1. HELPER FUNCTIONS & CONFIG (放在最上方，避免找不到變數)
+   1. HELPER FUNCTIONS & CONFIG
    ========================================================= */
 
-// 網址處理
 function ensureURL(u = "") {
   return String(u).replace(/\/+$/, "");
 }
@@ -23,12 +22,10 @@ const SITE_URL = ensureURL(SITE_URL_RAW);
 const SITE_NAME = "Memory Corner";
 const OG_IMAGE_DEFAULT = `${SITE_URL}/images/og-default.png`;
 
-// 基礎認證字串產生
 function basicAuth(ck, cs) {
   return "Basic " + Buffer.from(`${ck}:${cs}`).toString("base64");
 }
 
-// 價格折扣邏輯
 const getBasePrice = (p) => {
   if (!p) return 0;
   if (p.prices) {
@@ -60,7 +57,6 @@ const getDiscountedPrice = (p) => {
   return { original, final, hasDiscount: final < original, label };
 };
 
-// 時間格式化
 const formatTimeDisplay = (isoString) => {
   if (!isoString) return "TBA";
   try {
@@ -75,7 +71,6 @@ const formatTimeDisplay = (isoString) => {
   } catch (e) { return isoString; }
 };
 
-// 團購時間檢查
 function getActivePeriod(periods = []) {
   if (!Array.isArray(periods) || periods.length === 0) return null;
   const now = Date.now();
@@ -95,10 +90,8 @@ function getNextPeriod(periods = []) {
   return upcoming[0] || null;
 }
 
-// HTML 清洗
 const stripHtml = (html) => (!html ? "" : html.replace(/<[^>]*>?/gm, ""));
 
-// 翻譯定義
 const PAGE_TRANSLATIONS = {
   "zh-TW": {
     seo: { title: "團購商品 | 有香 Memory Corner", description: "依分類瀏覽團購商品..." },
@@ -110,7 +103,6 @@ const PAGE_TRANSLATIONS = {
   },
 };
 
-// 抓取中文名稱 helper
 function pickZhName(meta = []) {
   const keys = ["zh_product_name", "cn_name", "zh_name", "chinese_name", "cn_product_name", "中文產品名稱"];
   for (const k of keys) { 
@@ -275,12 +267,25 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     setQty(product.id, 0);
   };
 
+  // 🟢 修正 Tabs 的生成與語言排序
   const tabs = useMemo(() => {
     const map = new Map();
-    (products || []).forEach((p) => { (p.categories || []).forEach((c) => { if (!c?.id) return; map.set(c.id, { id: c.id, name: c.name, slug: c.slug }); }); });
-    const arr = Array.from(map.values()).sort((a, b) => String(a.name).localeCompare(String(b.name), "zh-Hant"));
+    (products || []).forEach((p) => { 
+      (p.categories || []).forEach((c) => { 
+        if (!c?.id) return; 
+        // 確保不重複加入
+        if (!map.has(c.id)) {
+          map.set(c.id, { id: c.id, name: c.name, slug: c.slug });
+        }
+      }); 
+    });
+    
+    // 依據當前語系排序 (英文環境用英文排序，中文用中文)
+    const localeForSort = isEn ? "en" : "zh-Hant";
+    const arr = Array.from(map.values()).sort((a, b) => String(a.name).localeCompare(String(b.name), localeForSort));
+    
     return [{ id: "ALL", name: t.all }, ...arr];
-  }, [products, t.all]);
+  }, [products, t.all, isEn]);
 
   const filteredProducts = useMemo(() => {
     if (activeCat === "ALL") return products;
@@ -410,7 +415,7 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
 }
 
 /* =========================================================
-   4. GET STATIC PROPS
+   4. GET STATIC PROPS (修正資料抓取與過濾)
    ========================================================= */
 export async function getStaticProps({ locale }) {
    const base = process.env.WC_URL;
@@ -431,18 +436,20 @@ export async function getStaticProps({ locale }) {
      if (!r.ok) return { props: { initialItems: [], periods: [] }, revalidate: 10 };
      
      const list = await r.json();
-     const filteredList = list.filter(p => !p.categories.some(c => c.slug==='beer'||c.name.includes('啤酒')));
      
-     const ids = filteredList.map(p => p.id).slice(0, 200);
+     // 🔴 暫時不在這裡過濾，因為 Store API 回傳的 category 可能還不是翻譯後的
+     // 我們等合併了 V3 API 的詳細資料後，確認了分類名稱/slug 再過濾，這樣最準確。
+     
+     const ids = list.map(p => p.id).slice(0, 200);
      const metaMap = new Map();
 
-     // 2. Fetch V3 Products (for Meta Data)
+     // 2. Fetch V3 Products (for Meta Data & Correct Categories)
      if (ids.length && ck && cs) {
         const v3 = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
         v3.searchParams.set("include", ids.join(","));
         v3.searchParams.set("per_page", String(ids.length));
         v3.searchParams.set("_fields", "id,name,short_description,sku,translations,meta_data,categories");
-        v3.searchParams.set("lang", wpLang);
+        v3.searchParams.set("lang", wpLang); // 重要：請求對應語言的資料
         const vr = await fetch(v3.toString(), { headers: { Authorization: basicAuth(ck, cs) } });
         if (vr.ok) {
            const v3data = await vr.json();
@@ -450,10 +457,14 @@ export async function getStaticProps({ locale }) {
         }
      }
 
-     // 3. Merge Data
-     initialItems = filteredList.map(p => {
+     // 3. Merge Data & Filter
+     const mergedList = list.map(p => {
         const detail = metaMap.get(p.id) || {};
-        if(detail.categories) p.categories = detail.categories; 
+        
+        // 🟢 強制使用 V3 API 的分類資料 (這樣能確保拿到翻譯後的分類名稱)
+        if(detail.categories && detail.categories.length > 0) {
+            p.categories = detail.categories; 
+        }
         
         if (!p.extensions) p.extensions = {};
         if (!p.extensions.custom_acf) p.extensions.custom_acf = {};
@@ -473,6 +484,18 @@ export async function getStaticProps({ locale }) {
         if (imgSrc && !imgSrc.startsWith("http")) imgSrc = `${ensureURL(base)}${imgSrc}`;
         p.img = imgSrc || "/images/placeholder.png";
         return p;
+     });
+
+     // 🟢 最終過濾 (在此時我們已經有了正確翻譯的 categories)
+     initialItems = mergedList.filter(p => {
+        const cats = p.categories || [];
+        // 檢查是否有任一分類是啤酒相關 (檢查 slug 與 name)
+        const isBeer = cats.some(c => 
+            (c.slug && c.slug.toLowerCase().includes('beer')) || 
+            (c.name && c.name.includes('啤酒')) ||
+            (c.slug && c.slug.toLowerCase().includes('alcohol'))
+        );
+        return !isBeer;
      });
 
      // 4. Fetch Periods

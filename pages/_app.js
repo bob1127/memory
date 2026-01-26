@@ -3,6 +3,7 @@ import "../src/globals.css";
 import { useEffect } from "react"; // 保留 useEffect
 // ❌ 移除 import AOS from "aos";
 // ❌ 移除 import "aos/dist/aos.css";
+import { NavProvider } from "@/components/context/NavContext"; // 記得引入
 import { useRouter } from "next/router";
 import { NextUIProvider } from "@nextui-org/react";
 import { AuthProvider } from "../components/AuthProvider";
@@ -23,6 +24,7 @@ function MyApp({ Component, pageProps }) {
   */
 
   return (
+    <NavProvider>
     <AuthProvider>
       <NextUIProvider>
         {/* ✅ 用 Portal 掛在 body，不受任何 transform 影響 */}
@@ -36,6 +38,7 @@ function MyApp({ Component, pageProps }) {
         </div>
       </NextUIProvider>
     </AuthProvider>
+    </NavProvider>
   );
 }
 

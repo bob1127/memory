@@ -107,7 +107,6 @@ function buildBlogJsonLd({
   posts: WPPostCard[];
   locale: string;
 }) {
-  // Blog / CollectionPage 兩種都常見；這裡用 Blog + hasPart（清楚表達文章清單）
   return {
     "@context": "https://schema.org",
     "@type": "Blog",
@@ -185,7 +184,7 @@ export default function BlogIndex({ posts }: { posts: WPPostCard[] }) {
       ? "Latest updates and brand news."
       : "最新品牌動態與公告資訊。";
 
-  const ogImage = currentItems?.[0]?.image || `${siteUrl}/images/news-01.jpg`; // fallback
+  const ogImage = currentItems?.[0]?.image || `${siteUrl}/images/news-01.jpg`; 
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd({
     siteUrl,
@@ -213,8 +212,13 @@ export default function BlogIndex({ posts }: { posts: WPPostCard[] }) {
     );
   }
 
+  // 🔹 修正重點：定義切換語言時的連結
+  // 如果當前在第 2 頁，切換語言時也要保留在第 2 頁
+  const customSwitchLink = safePage > 1 ? `/blog?page=${safePage}` : "/blog";
+
   return (
-    <Layout>
+    // 🔹 修正重點：傳入 customSwitchLink 屬性
+    <Layout customSwitchLink={customSwitchLink}>
       <Head>
         {/* ✅ 基本 SEO */}
         <title>{title}</title>
@@ -418,7 +422,7 @@ function Pagination({
         ) : (
           <motion.button
             key={`p-${p}`}
-            onClick={() => onChange(p)}
+            onClick={() => onChange(p as number)}
             aria-current={p === page ? "page" : undefined}
             whileTap={{ scale: 0.96 }}
             className={[

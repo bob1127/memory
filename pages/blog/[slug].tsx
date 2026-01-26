@@ -23,7 +23,7 @@ const spring = { type: "spring", stiffness: 70, damping: 22, mass: 0.9 };
 export async function getStaticPaths() {
   const posts = await getAllPostsForCards();
   return {
-    paths: posts.map((p) => ({ params: { slug: p.slug } })),
+    paths: posts.map((p: any) => ({ params: { slug: p.slug } })),
     fallback: "blocking",
   };
 }
@@ -186,13 +186,17 @@ export default function BlogPost({ post }: { post: any }) {
     articleSection: categories?.[0] || undefined,
   };
 
-  // ✅ hreflang（如果你真的有 /en 與 /zh-TW 路由）
-  // 若你的 i18n 是用 Next.js locale subpath，這段就 OK
+  // ✅ hreflang
   const altEn = `${siteUrl}/en/blog/${post.slug}`;
   const altZh = `${siteUrl}/blog/${post.slug}`;
 
+  // 🔹 修正點：定義 customSwitchLink
+  // 當使用者點擊語言切換時，應該跳轉到當前文章的對應語言版本
+  const customSwitchLink = `/blog/${post.slug}`;
+
   return (
-    <Layout>
+    // 🔹 修正點：將 customSwitchLink 傳入 Layout
+    <Layout customSwitchLink={customSwitchLink}>
       <Head>
         {/* ✅ 基本 SEO */}
         <title>{titleText}</title>
@@ -200,12 +204,12 @@ export default function BlogPost({ post }: { post: any }) {
         <link rel="canonical" href={canonical} />
         <meta name="robots" content="index,follow,max-image-preview:large" />
 
-        {/* ✅ 可選：keywords（不是 ranking 主力，但可留） */}
+        {/* ✅ keywords */}
         {keywords.length ? (
           <meta name="keywords" content={keywords.join(", ")} />
         ) : null}
 
-        {/* ✅ Open Graph（Article） */}
+        {/* ✅ Open Graph */}
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content={siteName} />
         <meta property="og:title" content={titleText} />
@@ -235,12 +239,12 @@ export default function BlogPost({ post }: { post: any }) {
         <meta name="twitter:description" content={descText} />
         {ogImage ? <meta name="twitter:image" content={ogImage} /> : null}
 
-        {/* ✅ hreflang（如果你有多語路徑） */}
+        {/* ✅ hreflang */}
         <link rel="alternate" hrefLang="zh-TW" href={altZh} />
         <link rel="alternate" hrefLang="en" href={altEn} />
         <link rel="alternate" hrefLang="x-default" href={altZh} />
 
-        {/* ✅ JSON-LD（Breadcrumb + BlogPosting） */}
+        {/* ✅ JSON-LD */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
