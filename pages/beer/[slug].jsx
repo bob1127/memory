@@ -3,7 +3,7 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Layout from "../Layout";
+import Layout from "../Layout"; // 請確保路徑正確
 import { motion, AnimatePresence } from "framer-motion";
 import { cartStore } from "@/lib/cartStore";
 import { ChevronRight, Minus, Plus, ShoppingCart, Globe } from "lucide-react";
@@ -14,8 +14,20 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel
 /* =================================================================
    Helper Functions
    ================================================================= */
-// 只移除 HTML 標籤供 SEO 使用
-const stripHtml = (html) => (!html ? "" : html.replace(/<[^>]*>?/gm, ""));
+// 移除 HTML 標籤並過濾掉內嵌的 CSS <style> 內容
+const stripHtml = (html) => {
+  if (!html) return "";
+  // 先移除 style 標籤及其內容，再移除其他 HTML 標籤
+  const noStyle = html.replace(/<style([\s\S]*?)<\/style>/gi, "");
+  return noStyle.replace(/<[^>]*>?/gm, "");
+};
+
+// 專門過濾 Description 顯示用的 HTML
+const formatDescription = (html) => {
+  if (!html) return "";
+  // 移除 WordPress 可能帶入的內嵌樣式表，避免前端出現 CSS 原始碼
+  return html.replace(/<style([\s\S]*?)<\/style>/gi, "");
+};
 
 const priceFromItem = (p) => {
   if (!p) return 0;
@@ -71,14 +83,6 @@ export default function BeerDetailPage({ product }) {
   const router = useRouter();
   const { locale, asPath, isFallback } = router;
   
-  // === [DEBUG] 前端頁面除錯 ===
-  useEffect(() => {
-    if (product) {
-      console.log(`[DEBUG UI] 目前頁面 Slug: ${product.slug}`);
-      console.log(`[DEBUG UI] 抓到的對應 Slug (relatedSlug):`, product.relatedSlug);
-    }
-  }, [product]);
-
   if (isFallback || !product) {
     return (
       <Layout>
@@ -94,6 +98,13 @@ export default function BeerDetailPage({ product }) {
   const isEn = locale === "en";
   const [qty, setQty] = useState(1);
   const [toast, setToast] = useState(null);
+
+  // 【核心修正：切換路徑處理】
+  // 構造目標語系的完整連結。若為預設語系(zh-TW)則路徑不帶 /en
+  const targetLocalePrefix = isEn ? "" : "/en"; 
+  const customSwitchHref = product.relatedSlug 
+    ? `${targetLocalePrefix}/beer/${product.relatedSlug}` 
+    : `${targetLocalePrefix}/beer`;
 
   const handleQtyChange = (val) => {
     const newQty = Math.max(1, parseInt(val) || 1);
@@ -128,44 +139,9 @@ export default function BeerDetailPage({ product }) {
 
   const currentUrl = `${SITE_URL}${asPath}`;
   const displayPrice = priceFromItem(product);
-
-  const targetLocale = isEn ? "zh-TW" : "en";
-  // 決定傳給 Layout 的連結
-  const customSwitchHref = product.relatedSlug 
-    ? `/beer/${product.relatedSlug}` 
-    : `/beer`; // 沒抓到就回列表
-
-  // === [DEBUG] 確認連結是否有產生 ===
-  // console.log(`[DEBUG UI] 計算出的切換連結:`, customSwitchHref);
-
-  const productSchema = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    image: product.img,
-    description: stripHtml(product.description || product.short_description),
-    sku: product.sku || `${product.id}`,
-    offers: {
-      "@type": "Offer",
-      url: currentUrl,
-      priceCurrency: "TWD",
-      price: displayPrice,
-      availability: "https://schema.org/InStock",
-    },
-  };
-
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: t.home, item: `${SITE_URL}${isEn ? "/en" : ""}` },
-      { "@type": "ListItem", position: 2, name: t.beer_list, item: `${SITE_URL}${isEn ? "/en" : ""}/beer` },
-      { "@type": "ListItem", position: 3, name: product.name, item: currentUrl },
-    ],
-  };
+  const cleanDescription = formatDescription(product.description);
 
   return (
-    // 【關鍵】這裡把計算好的正確網址 customSwitchLink 傳給 Layout
     <Layout customSwitchLink={customSwitchHref}>
       <Head>
         <title>{`${product.name} | ${isEn ? "Memory Corner" : "有香 Memory Corner"}`}</title>
@@ -175,8 +151,6 @@ export default function BeerDetailPage({ product }) {
         <meta property="og:image" content={product.img} />
         <meta property="og:type" content="product" />
         <meta property="og:url" content={currentUrl} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       </Head>
 
       <main className="bg-[#f9f6f3] min-h-screen pt-24 pb-20">
@@ -197,17 +171,16 @@ export default function BeerDetailPage({ product }) {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <nav className="mb-8 flex items-center justify-between text-sm text-gray-500">
             <div className="flex items-center gap-2">
-              <Link href="/" className="hover:text-black">{t.home}</Link>
+              <Link href={isEn ? "/en" : "/"} className="hover:text-black">{t.home}</Link>
               <ChevronRight size={14} />
-              <Link href="/beer" className="hover:text-black">{t.beer_list}</Link>
+              <Link href={isEn ? "/en/beer" : "/beer"} className="hover:text-black">{t.beer_list}</Link>
               <ChevronRight size={14} />
               <span className="font-medium text-black line-clamp-1">{product.name}</span>
             </div>
 
-            {/* 頁面內的備用切換按鈕 */}
+            {/* 語系切換按鈕：直接指向拼接好的 customSwitchHref */}
             <Link 
               href={customSwitchHref} 
-              locale={targetLocale}
               className="flex items-center gap-1 text-[#c1a46f] hover:text-[#a08655] font-medium transition-colors"
             >
               <Globe size={16} />
@@ -231,7 +204,7 @@ export default function BeerDetailPage({ product }) {
               />
             </motion.div>
 
-            {/* 右側：詳細資訊 + 描述 */}
+            {/* 右側：詳細資訊 */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }} 
               animate={{ opacity: 1, x: 0 }} 
@@ -242,7 +215,8 @@ export default function BeerDetailPage({ product }) {
                 <span className="text-3xl font-bold text-[#c1a46f]">{displayPrice} {t.currency}</span>
               </div>
               
-              <div className="prose prose-stone mb-8 max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: product.short_description }} />
+              <div className="prose prose-stone mb-8 max-w-none text-gray-600" 
+                   dangerouslySetInnerHTML={{ __html: formatDescription(product.short_description) }} />
 
               <div className="mb-8 flex flex-col gap-4 sm:flex-row">
                 <div className="flex h-14 items-center rounded-2xl border border-gray-200 bg-white px-4">
@@ -255,14 +229,12 @@ export default function BeerDetailPage({ product }) {
                 </button>
               </div>
 
-              <div className="space-y-2 border-t border-gray-100 pt-6 text-sm text-gray-500">
-                {product.sku && <div className="flex gap-2"><span className="font-medium text-gray-900">{t.sku}:</span><span>{product.sku}</span></div>}
-              </div>
-
               {product.description && (
                 <div className="mt-8 border-t border-gray-100 pt-8">
                   <h2 className="mb-4 text-lg font-bold text-gray-900">{t.description}</h2>
-                  <div className="prose prose-sm max-w-none text-gray-600 overflow-hidden" dangerouslySetInnerHTML={{ __html: product.description }} />
+                  {/* 使用 formatDescription 過濾掉 CSS 原始碼 */}
+                  <div className="prose prose-sm max-w-none text-gray-600 overflow-hidden" 
+                       dangerouslySetInnerHTML={{ __html: cleanDescription }} />
                 </div>
               )}
             </motion.div>
@@ -274,7 +246,7 @@ export default function BeerDetailPage({ product }) {
 }
 
 /* =================================================================
-   getStaticPaths
+   getStaticPaths & getStaticProps (維持原邏輯，確保 Slug 抓取)
    ================================================================= */
 export async function getStaticPaths({ locales }) {
   const base = process.env.WC_URL;
@@ -308,136 +280,79 @@ export async function getStaticPaths({ locales }) {
   return { paths, fallback: "blocking" };
 }
 
-/* =================================================================
-   getStaticProps (後端資料抓取除錯)
-   ================================================================= */
 export async function getStaticProps({ params, locale }) {
   const { slug } = params;
   const decodedSlug = decodeURIComponent(slug);
-  const rawSlug = slug;
   
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
   const cs = process.env.WC_CS;
-  const wpLang = locale === "en" ? "en" : "zh_TW";
-  const targetCatSlug = wpLang === "en" ? "beer-en" : "beer-zh"; 
-
-  console.log("----------------------------------------------------------------");
-  console.log(`[DEBUG START] Page Lang: ${wpLang}`);
-  console.log(`[DEBUG START] Target Product Slug: ${decodedSlug}`);
+  const targetCatSlug = locale === "en" ? "beer-en" : "beer"; 
 
   try {
-    const catUrl = `${ensureURL(base)}/wp-json/wc/store/products/categories?slug=${targetCatSlug}`;
-    const catRes = await fetch(catUrl);
+    // 1. 抓取分類 ID
+    const catRes = await fetch(`${ensureURL(base)}/wp-json/wc/store/products/categories?slug=${targetCatSlug}`);
     const cats = await catRes.json();
     const catId = cats?.[0]?.id;
+    if (!catId) return { notFound: true };
 
-    if (!catId) {
-        console.error(`[DEBUG ERROR] 找不到分類 ID: ${targetCatSlug}`);
-        return { notFound: true };
-    }
-
-    let productData = null;
+    // 2. 抓取當前產品
     const storeBase = `${ensureURL(base)}/wp-json/wc/store/products`;
-    
-    // 優先嘗試解碼後的 slug
-    let fetchUrl = new URL(storeBase);
-    fetchUrl.searchParams.set("slug", decodedSlug);
-    let res = await fetch(fetchUrl.toString());
-    let data = await res.json();
-    
-    if (Array.isArray(data) && data.length > 0) {
-      productData = data[0];
-    } else {
-      fetchUrl = new URL(storeBase);
-      fetchUrl.searchParams.set("slug", rawSlug);
-      res = await fetch(fetchUrl.toString());
-      data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        productData = data[0];
-      }
-    }
+    const res = await fetch(`${storeBase}?slug=${decodedSlug}`);
+    const data = await res.json();
+    const productData = data?.[0];
+    if (!productData) return { notFound: true };
 
-    if (!productData) {
-        console.error(`[DEBUG ERROR] 找不到產品: ${decodedSlug}`);
-        return { notFound: true };
-    }
-
-    console.log(`[DEBUG PROD] Found ID: ${productData.id}, Name: ${productData.name}`);
-
-    // === 除錯翻譯抓取 ===
-    let linkedChineseId = productData.id;
+    // 3. 獲取翻譯資訊 (關鍵修正點)
     let relatedSlug = null;
     let altName = null;
 
     if (ck && cs) {
-        const v3Res = await fetch(`${ensureURL(base)}/wp-json/wc/v3/products/${productData.id}`, {
-            headers: { Authorization: basicAuth(ck, cs) }
-        });
+      const v3Res = await fetch(`${ensureURL(base)}/wp-json/wc/v3/products/${productData.id}`, {
+        headers: { Authorization: basicAuth(ck, cs) }
+      });
+      
+      if (v3Res.ok) {
+        const v3Data = await v3Res.json();
+        const translations = v3Data.translations || {};
         
-        if (v3Res.ok) {
-            const v3Data = await v3Res.json();
-            const translations = v3Data.translations || {};
-            
-            console.log(`[DEBUG TRANS] API 回傳 translations:`, JSON.stringify(translations));
+        // 尋找「非當前語系」的 ID
+        // 排除掉當前 locale 相關的 key，取剩下的第一個作為翻譯對象
+        const otherLangEntry = Object.entries(translations).find(([lang]) => {
+          if (locale === 'en') return lang.includes('zh'); // 找中文
+          return lang === 'en'; // 找英文
+        });
 
-            let otherLangId = null;
-            // 尋找對應語言 ID
-            for (const [langKey, id] of Object.entries(translations)) {
-                if (wpLang === 'en' && langKey !== 'en') {
-                    otherLangId = id; break;
-                }
-                if (wpLang !== 'en' && langKey === 'en') {
-                    otherLangId = id; break;
-                }
-            }
-            
-            console.log(`[DEBUG TRANS] 對應語言 ID (otherLangId): ${otherLangId}`);
+        const otherLangId = otherLangEntry ? otherLangEntry[1] : null;
 
-            if (wpLang === 'en' && otherLangId) {
-                linkedChineseId = otherLangId;
-            }
-
-            if (otherLangId) {
-                const altRes = await fetch(`${ensureURL(base)}/wp-json/wc/v3/products/${otherLangId}`, {
-                    headers: { Authorization: basicAuth(ck, cs) }
-                });
-                if (altRes.ok) {
-                    const altData = await altRes.json();
-                    altName = altData.name;
-                    relatedSlug = altData.slug; 
-                    console.log(`[DEBUG TRANS] 成功抓到翻譯 Slug: ${relatedSlug}`);
-                } else {
-                    console.error(`[DEBUG TRANS] 抓取翻譯產品 ${otherLangId} 失敗`);
-                }
-            } else {
-                console.warn(`[DEBUG TRANS] 此產品沒有連結翻譯`);
-            }
+        if (otherLangId) {
+          const altRes = await fetch(`${ensureURL(base)}/wp-json/wc/v3/products/${otherLangId}`, {
+            headers: { Authorization: basicAuth(ck, cs) }
+          });
+          if (altRes.ok) {
+            const altData = await altRes.json();
+            // 強制確保抓到對方的 slug (例如 golden-one)
+            relatedSlug = altData.slug; 
+            altName = altData.name;
+          }
         }
+      }
     }
-
-    let imgSrc = productData.images?.[0]?.src;
-    if (imgSrc && !imgSrc.startsWith("http")) imgSrc = `${ensureURL(base)}${imgSrc}`;
 
     const product = {
         id: productData.id,
         name: productData.name,
         slug: productData.slug,
-        relatedSlug: relatedSlug, 
+        relatedSlug: relatedSlug, // 這裡現在應該是 "golden-one"
         sku: productData.sku || "",
         description: productData.description || "",
         short_description: productData.short_description || "",
-        img: imgSrc || "/images/placeholder.png",
+        img: productData.images?.[0]?.src || "/images/placeholder.png",
         prices: productData.prices,
-        price: productData.prices?.price, 
-        linkedChineseId: linkedChineseId,
-        name_zh: wpLang === 'zh_TW' ? productData.name : altName,
-        name_en: wpLang === 'en' ? productData.name : altName,
+        name_zh: locale === 'en' ? altName : productData.name,
+        name_en: locale === 'en' ? productData.name : altName,
     };
     
-    console.log(`[DEBUG END] relatedSlug 傳給 Props: ${product.relatedSlug}`);
-    console.log("----------------------------------------------------------------");
-
     return { props: { product }, revalidate: REVALIDATE_TIME };
 
   } catch (e) {
