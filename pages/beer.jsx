@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Head from "next/head";
@@ -10,11 +8,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Marquee from "react-marquee-slider";
 import { cartStore } from "@/lib/cartStore";
 
+// 設定
+const REVALIDATE_TIME = 10; // ISR 更新頻率 (秒)
 const APPEAR_DELAY_MS = 800;
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
 
-// [補回] 跑馬燈圖片設定
 const MARQUEE_ITEMS = [
   { src: "/images/gif/output-onlinegiftools-25.gif", alt: "beer animation 1" },
   { src: "/images/gif/output-onlinegiftools-58.gif", alt: "beer animation 2" },
@@ -24,48 +22,48 @@ const MARQUEE_ITEMS = [
 ];
 
 /* =================================================================
-   1. UI 翻譯
+   1. UI 翻譯設定
    ================================================================= */
 const PAGE_TRANSLATIONS = {
   "zh-TW": {
     seo: {
       title: "精釀啤酒訂購 | 有香 Memory Corner",
-      description:
-        "線上訂購有香 Memory Corner 精選精釀啤酒。提供多種風味，適合搭配我們的經典台式料理。立即選購，享受微醺時光。",
+      description: "線上訂購有香 Memory Corner 精選精釀啤酒。提供多種風味，適合搭配我們的經典台式料理。",
     },
     title: "精釀啤酒 ORDER",
     loading: "商品載入中...",
     add_to_cart: "加入購物車",
-    add_success_prefix: "「",
-    add_success_suffix: "」已加入購物車",
     unit: "箱",
     currency: "NT$",
     breadcrumb: "啤酒訂購",
+    no_product: "此分類尚無產品。",
+    add_success: "已加入購物車",
   },
   en: {
     seo: {
       title: "Craft Beer Order | Memory Corner",
-      description:
-        "Order selected craft beers online from Memory Corner. Various flavors available to pair with our authentic Taiwanese cuisine. Shop now.",
+      description: "Order selected craft beers online from Memory Corner. Various flavors available to pair with our authentic Taiwanese cuisine.",
     },
     title: "Craft Beer ORDER",
     loading: "Loading products...",
     add_to_cart: "Add to Cart",
-    add_success_prefix: "",
-    add_success_suffix: " has been added to cart",
     unit: "box(es)",
     currency: "NT$",
     breadcrumb: "Beer Order",
+    no_product: "No products found in this category.",
+    add_success: "has been added to cart",
   },
 };
 
+// 價格解析 Helper
 const priceFromItem = (p) => {
   if (!p) return 0;
+  // 處理 WooCommerce Store API 格式
   if (p.prices) {
-    const rawPrice =
-      p.prices.price || p.prices.sale_price || p.prices.regular_price;
+    const rawPrice = p.prices.price || p.prices.sale_price || p.prices.regular_price;
     if (rawPrice) return Number(rawPrice) / 100;
   }
+  // 處理 V3 API 或其他格式
   const raw = p.price || p.sale_price || p.regular_price || 0;
   if (typeof raw === "string") return parseFloat(raw);
   return Number(raw);
@@ -82,579 +80,264 @@ export default function BeerOrderPage({ initialItems = [] }) {
   const isEn = locale === "en";
 
   const [products, setProducts] = useState(initialItems);
-  const [loading, setLoading] = useState(!initialItems.length);
   const [qtyMap, setQtyMap] = useState({});
-
-  useEffect(() => {
-    if (initialItems.length > 0) {
-      setQtyMap(Object.fromEntries(initialItems.map((p) => [p.id, 1])));
-      setLoading(false);
-    }
-  }, [initialItems]);
-
-  // Client Fetch Fallback
-  useEffect(() => {
-    if (initialItems.length > 0) return;
-    async function fetchProducts() {
-      try {
-        const res = await fetch("/api/products/beer");
-        const data = await res.json();
-        if (data.ok && Array.isArray(data.items)) {
-          setProducts(data.items);
-          setQtyMap(Object.fromEntries(data.items.map((p) => [p.id, 1])));
-        }
-      } catch (err) {
-        console.error("Fetch Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts();
-  }, [initialItems]);
-
   const [toast, setToast] = useState(null);
-  const toastTimerRef = useRef(null);
-  const showToast = (text) => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    const id = Date.now();
-    setToast({ id, text });
-    toastTimerRef.current = setTimeout(() => setToast(null), 2000);
-  };
-  useEffect(
-    () => () => toastTimerRef.current && clearTimeout(toastTimerRef.current),
-    []
-  );
+  const [showMarquee, setShowMarquee] = useState(false);
 
+  // 初始化數量狀態
+  useEffect(() => {
+    if (initialItems) {
+      setProducts(initialItems);
+      setQtyMap(Object.fromEntries(initialItems.map((p) => [p.id, 1])));
+    }
+  }, [initialItems]);
+
+  // 延遲顯示跑馬燈
+  useEffect(() => {
+    const timer = setTimeout(() => setShowMarquee(true), APPEAR_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 數量控制
   const setQty = (id, next) =>
-    setQtyMap((m) => ({
-      ...m,
-      [id]: Math.max(0, Number.isFinite(+next) ? +next : 0),
-    }));
+    setQtyMap((m) => ({ ...m, [id]: Math.max(0, parseInt(next) || 0) }));
 
-  /* ---------- 加入購物車邏輯 ---------- */
+  // 加入購物車
   const addToCart = (product) => {
-    const raw = qtyMap[product.id] ?? 0;
-    if (raw <= 0) return;
-    const safeQty = Math.max(1, raw);
-    const price = priceFromItem(product);
-
-    const currentName = product.name;
-    const customEnName = product.extensions?.custom_acf?.en_product_name;
-
-    const nameZh = isEn ? currentName : currentName;
-    const nameEn = isEn ? currentName : customEnName || currentName;
-
-    const cartId = product.linkedChineseId || product.id;
-
-    cartStore.add(
-      {
-        id: cartId,
-        productId: product.id,
-        name: currentName,
-        name_zh: nameZh,
-        name_en: nameEn,
-        img: product.img,
-        price,
-      },
-      safeQty
-    );
+    const qty = Math.max(1, qtyMap[product.id] || 0);
+    
+    cartStore.add({
+      id: product.linkedChineseId || product.id, // 優先使用中文 ID 以便庫存同步(若有設定)
+      productId: product.id,
+      name: product.name,
+      // 這裡傳入中英文名稱，方便購物車顯示
+      name_zh: isEn ? (product.name_zh || product.name) : product.name,
+      name_en: isEn ? product.name : (product.name_en || product.name),
+      img: product.img,
+      price: priceFromItem(product),
+    }, qty);
 
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("open-cart"));
     }
 
+    // 按鈕動畫
     const btn = document.getElementById(`btn-${product.id}`);
-    if (btn) {
-      btn.animate(
-        [
-          { transform: "scale(1)", filter: "brightness(1)" },
-          { transform: "scale(1.06)", filter: "brightness(1.15)" },
-          { transform: "scale(1)", filter: "brightness(1)" },
-        ],
-        { duration: 300, easing: "cubic-bezier(.2,.8,.2,1)" }
-      );
-    }
+    if (btn) btn.animate([{ transform: "scale(1)" }, { transform: "scale(1.06)" }, { transform: "scale(1)" }], { duration: 300 });
 
-    const msg = isEn
-      ? `${t.add_success_prefix}${currentName}${t.add_success_suffix} (${safeQty} ${t.unit})`
-      : `${t.add_success_prefix}${currentName}${t.add_success_suffix}（${safeQty} ${t.unit}）`;
-    showToast(msg);
-    setQty(product.id, 0);
+    // Toast 提示
+    const msg = isEn 
+      ? `"${product.name}" ${t.add_success} (${qty} ${t.unit})`
+      : `「${product.name}」${t.add_success} (${qty} ${t.unit})`;
+      
+    setToast({ id: Date.now(), text: msg });
+    setTimeout(() => setToast(null), 2000);
+    setQty(product.id, 0); // 重置數量
   };
 
-  /* 跑馬燈顯示控制 */
-  const [showMarquee, setShowMarquee] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setShowMarquee(true), APPEAR_DELAY_MS);
-    return () => clearTimeout(t);
-  }, []);
-
-  /* =================================================================
-     SEO 結構化資料
-     ================================================================= */
-  const seoProducts = initialItems.length > 0 ? initialItems : products;
+  /* ----- SEO JSON-LD ----- */
   const currentUrl = `${SITE_URL}${asPath}`;
-
+  
+  // 1. 麵包屑結構
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: isEn ? "Home" : "首頁",
-        item: `${SITE_URL}${isEn ? "/en" : ""}`,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: t.breadcrumb,
-        item: currentUrl,
-      },
+      { "@type": "ListItem", position: 1, name: isEn ? "Home" : "首頁", item: `${SITE_URL}${isEn ? "/en" : ""}` },
+      { "@type": "ListItem", position: 2, name: t.breadcrumb, item: currentUrl },
     ],
   };
 
+  // 2. 產品列表結構 (ItemList)
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    itemListElement: seoProducts.map((p, index) => {
-      const enName = p.extensions?.custom_acf?.en_product_name;
-      const displayName = isEn && enName ? enName : p.name;
-      const description =
-        p.extensions?.custom_acf?.en_description || p.short_description || "";
-
-      let fullImageUrl = p.img || "";
-      if (fullImageUrl.startsWith("/")) {
-        fullImageUrl = `${SITE_URL}${fullImageUrl}`;
-      }
-
-      const price = priceFromItem(p);
-      const productUrl = `${SITE_URL}/beer/${p.slug}`;
-
-      return {
-        "@type": "ListItem",
-        position: index + 1,
-        url: productUrl,
-        name: displayName,
-        image: fullImageUrl,
-        description: stripHtml(description),
-        sku: p.sku,
+    itemListElement: products.map((p, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Product",
+        name: p.name,
+        image: p.img,
+        description: stripHtml(p.short_description),
+        sku: p.sku || `${p.id}`,
+        url: `${SITE_URL}/beer/${p.slug}`,
         offers: {
           "@type": "Offer",
-          price: price,
+          price: priceFromItem(p),
           priceCurrency: "TWD",
           availability: "https://schema.org/InStock",
-          url: productUrl,
-        },
-      };
-    }),
+          url: `${SITE_URL}/beer/${p.slug}`
+        }
+      }
+    })),
   };
 
   return (
     <Layout>
       <Head>
-        <title key="title">{t.seo.title}</title>
-        <meta
-          name="description"
-          content={t.seo.description}
-          key="description"
-        />
+        <title>{t.seo.title}</title>
+        <meta name="description" content={t.seo.description} />
         <link rel="canonical" href={currentUrl} />
-
-        <meta property="og:title" content={t.seo.title} key="og:title" />
-        <meta
-          property="og:description"
-          content={t.seo.description}
-          key="og:description"
-        />
-        <meta property="og:type" content="product.group" key="og:type" />
-        <meta property="og:url" content={currentUrl} key="og:url" />
-        <meta
-          property="og:site_name"
-          content="Memory Corner"
-          key="og:site_name"
-        />
-        <meta
-          property="og:image"
-          content={seoProducts[0]?.img || `${SITE_URL}/images/logo-6.png`}
-          key="og:image"
-        />
-        {isEn ? (
-          <meta property="og:locale" content="en_US" key="og:locale" />
-        ) : (
-          <meta property="og:locale" content="zh_TW" key="og:locale" />
-        )}
-
-        <meta
-          name="twitter:card"
-          content="summary_large_image"
-          key="twitter:card"
-        />
-        <meta name="twitter:title" content={t.seo.title} key="twitter:title" />
-        <meta
-          name="twitter:description"
-          content={t.seo.description}
-          key="twitter:description"
-        />
-        <meta
-          name="twitter:image"
-          content={seoProducts[0]?.img || `${SITE_URL}/images/logo-6.png`}
-          key="twitter:image"
-        />
-
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-          key="breadcrumb-schema"
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
-          key="itemlist-schema"
-        />
+        <meta property="og:title" content={t.seo.title} />
+        <meta property="og:description" content={t.seo.description} />
+        <meta property="og:image" content={products[0]?.img || `${SITE_URL}/images/logo-6.png`} />
+        {/* SEO Scripts */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
       </Head>
 
       <main className="bg-[#f9f6f3] min-h-screen">
         {/* Toast */}
-        <div className="pointer-events-none fixed inset-0 z-[200] flex items-end justify-center">
-          <AnimatePresence mode="wait">
-            {toast && (
-              <motion.div
-                key={toast.id}
-                initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: -8, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -24, filter: "blur(6px)" }}
-                transition={{ duration: 0.36 }}
-                className="mb-8 rounded-xl bg-[#c1a46f] text-white px-4 py-2 shadow-lg text-sm sm:text-base"
-              >
-                {toast.text}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        <AnimatePresence>
+          {toast && (
+            <motion.div key={toast.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: -8 }} exit={{ opacity: 0, y: -24 }} className="pointer-events-none fixed inset-0 z-[200] flex items-end justify-center mb-8">
+              <div className="rounded-xl bg-[#c1a46f] text-white px-4 py-2 shadow-lg text-sm sm:text-base">{toast.text}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* [補回] 跑馬燈區塊 */}
+        {/* Marquee */}
         <AnimatePresence>
           {showMarquee && (
-            <motion.div
-              key="marquee-wrap"
-              className="pointer-events-none w-full py-6 overflow-hidden absolute z-50 left-0 top-20"
-              initial={{ opacity: 0, y: 64 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9 }}
-            >
+            <motion.div className="pointer-events-none w-full py-6 overflow-hidden absolute z-50 left-0 top-20" initial={{ opacity: 0, y: 64 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9 }}>
               <Marquee velocity={28} direction="rtl">
                 {MARQUEE_ITEMS.map((item, idx) => (
-                  <div key={`m1-${idx}`} className="mx-6 flex items-center">
-                    <img
-                      src={item.src}
-                      alt={item.alt}
-                      loading="lazy"
-                      className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full"
-                    />
-                  </div>
+                  <div key={`m1-${idx}`} className="mx-6"><img src={item.src} alt={item.alt} className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full" /></div>
                 ))}
               </Marquee>
               <Marquee velocity={24} direction="ltr">
                 {MARQUEE_ITEMS.map((item, idx) => (
-                  <div key={`m2-${idx}`} className="mx-6 flex items-center">
-                    <img
-                      src={item.src}
-                      alt={item.alt}
-                      loading="lazy"
-                      className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full"
-                    />
-                  </div>
+                  <div key={`m2-${idx}`} className="mx-6"><img src={item.src} alt={item.alt} className="w-[clamp(220px,60vw,420px)] sm:w-[clamp(260px,50vw,420px)] object-contain h-auto max-w-full" /></div>
                 ))}
               </Marquee>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Hero Section */}
+        {/* Hero */}
         <section className="relative h-screen overflow-hidden">
-          <motion.div
-            className="absolute right-20 top-20 z-20"
-            animate={{ opacity: 1 }}
-            initial={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-          >
-            <Image
-              src="/images/logo-6.png"
-              alt="Memory Corner Logo"
-              width={800}
-              height={500}
-              priority
-              className="w-[200px]"
-            />
+          <motion.div className="absolute right-20 top-20 z-20" animate={{ opacity: 1 }} initial={{ opacity: 0 }} transition={{ duration: 1 }}>
+            <Image src="/images/logo-6.png" alt="Logo" width={800} height={500} priority className="w-[200px]" />
           </motion.div>
-          <motion.div
-            className="absolute left-[-10%] sm:left-10 bottom-20 z-20"
-            animate={{ opacity: 1 }}
-            initial={{ opacity: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
-          >
-            <Image
-              src="/images/beer02.png"
-              alt="Craft Beer"
-              width={800}
-              height={500}
-              priority
-              className="w-[400px] lg:w-[700px]"
-            />
+          <motion.div className="absolute left-[-10%] sm:left-10 bottom-20 z-20" animate={{ opacity: 1 }} initial={{ opacity: 0 }} transition={{ duration: 1, delay: 0.2 }}>
+            <Image src="/images/beer02.png" alt="Beer" width={800} height={500} priority className="w-[400px] lg:w-[700px]" />
           </motion.div>
           <h1 className="sr-only">{t.seo.title}</h1>
         </section>
 
-        {/* 商品列表 */}
+        {/* Product List */}
         <section className="bg-white min-h-screen py-24">
           <div className="flex justify-center pt-20 items-center">
             <h2 className="text-[22px] font-bold tracking-wider">{t.title}</h2>
           </div>
 
-          {loading ? (
-            <p className="text-center mt-10 text-gray-500">{t.loading}</p>
-          ) : (
-            <div className="grid max-w-[1600px] mx-auto w-[80%] grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 my-8">
-              {products.map((p) => {
-                const q = qtyMap[p.id] ?? 0;
-                const displayPrice = priceFromItem(p);
-                const enName = p.extensions?.custom_acf?.en_product_name;
-                const displayName = isEn && enName ? enName : p.name;
-
-                return (
-                  <article
-                    key={p.id}
-                    className="flex flex-col justify-start items-center group transition"
-                    itemScope
-                    itemType="https://schema.org/Product"
-                  >
-                    <div className="mb-2 text-center px-2">
-                      <h3
-                        className="block min-h-[1.5em] text-lg font-bold"
-                        itemProp="name"
-                      >
-                        {displayName}
-                      </h3>
-                      {displayPrice > 0 && (
-                        <p
-                          className="text-black font-medium text-sm mt-2"
-                          itemProp="offers"
-                          itemScope
-                          itemType="https://schema.org/Offer"
-                        >
-                          <meta itemProp="priceCurrency" content="TWD" />
-                          <span itemProp="price">{displayPrice}</span>{" "}
-                          {t.currency}
-                        </p>
-                      )}
-                    </div>
-
-                    <Link
-                      href={`/beer/${p.slug}`}
-                      aria-label={`View details of ${displayName}`}
-                      className="relative block w-[240px] h-[240px]"
-                    >
-                      <Image
-                        src={p.img}
-                        alt={displayName}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 240px"
-                        className="object-contain p-2 transition-transform group-hover:scale-[1.05]"
-                        itemProp="image"
-                      />
-                    </Link>
-
-                    <div className="mt-4 flex items-center gap-3">
-                      <button
-                        onClick={() => setQty(p.id, q - 1)}
-                        className="rounded-xl border px-4 py-2 hover:bg-gray-50"
-                        disabled={q <= 0}
-                      >
-                        −
-                      </button>
-                      <input
-                        type="number"
-                        min={0}
-                        value={q}
-                        onChange={(e) =>
-                          setQty(
-                            p.id,
-                            Math.max(0, parseInt(e.target.value || "0", 10))
-                          )
-                        }
-                        className="w-20 rounded-xl border px-3 py-2 text-center"
-                      />
-                      <button
-                        onClick={() => setQty(p.id, q + 1)}
-                        className="rounded-xl border px-4 py-2 hover:bg-gray-50"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => addToCart(p)}
-                      id={`btn-${p.id}`}
-                      disabled={q <= 0}
-                      className={`mt-3 rounded-xl px-4 py-2 text-white transition-colors ${
-                        q > 0
-                          ? "bg-black hover:opacity-90"
-                          : "bg-gray-400 cursor-not-allowed"
-                      }`}
-                    >
-                      {t.add_to_cart}
-                    </button>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+          <div className="grid max-w-[1600px] mx-auto w-[80%] grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 my-8">
+            {products.length > 0 ? products.map((p) => {
+              const q = qtyMap[p.id] ?? 0;
+              const displayPrice = priceFromItem(p);
+              return (
+                <article key={p.id} className="flex flex-col justify-start items-center group transition">
+                  <div className="mb-2 text-center px-2">
+                    <h3 className="block min-h-[1.5em] text-lg font-bold">{p.name}</h3>
+                    <p className="text-black font-medium text-sm mt-2">{displayPrice} {t.currency}</p>
+                  </div>
+                  <Link href={`/beer/${p.slug}`} className="relative block w-[240px] h-[240px]">
+                    <Image src={p.img} alt={p.name} fill className="object-contain p-2 transition-transform group-hover:scale-[1.05]" />
+                  </Link>
+                  <div className="mt-4 flex items-center gap-3">
+                    <button onClick={() => setQty(p.id, q - 1)} className="rounded-xl border px-4 py-2 hover:bg-gray-50" disabled={q <= 0}>−</button>
+                    <input type="number" min={0} value={q} onChange={(e) => setQty(p.id, Math.max(0, parseInt(e.target.value || "0", 10)))} className="w-20 rounded-xl border px-3 py-2 text-center" />
+                    <button onClick={() => setQty(p.id, q + 1)} className="rounded-xl border px-4 py-2 hover:bg-gray-50">+</button>
+                  </div>
+                  <button onClick={() => addToCart(p)} id={`btn-${p.id}`} disabled={q <= 0} className={`mt-3 rounded-xl px-4 py-2 text-white transition-colors ${q > 0 ? "bg-black hover:opacity-90" : "bg-gray-400 cursor-not-allowed"}`}>
+                    {t.add_to_cart}
+                  </button>
+                </article>
+              );
+            }) : (
+              <div className="col-span-full text-center py-10 text-gray-500">{t.no_product}</div>
+            )}
+          </div>
         </section>
 
         <section className="bg-white pt-20 flex flex-col">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2608.125676211783!2d-123.1274940232461!3d49.17920177807608!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x548675082541f249%3A0x87d1f92d1d46df5f!2zTWVtb3J5IENvcm5lciDmnInpppk!5e0!3m2!1szh-TW!2stw!4v1759130334759!5m2!1szh-TW!2stw"
-            className="w-full h-[500px]"
-            allowFullScreen
-            loading="lazy"
-          />
+          <iframe src="https://googleusercontent.com/maps.google.com/0" className="w-full h-[500px]" allowFullScreen loading="lazy" />
           <Marquee>
-            {[1, 2, 3, 4].map((i) => (
-              <span
-                key={i}
-                className="text-[70px] mx-3 font-bold text-gray-200"
-              >
-                MEMORY CORNER
-              </span>
-            ))}
+            {[1, 2, 3, 4].map((i) => <span key={i} className="text-[70px] mx-3 font-bold text-gray-200">MEMORY CORNER</span>)}
           </Marquee>
         </section>
       </main>
     </Layout>
   );
 }
-
-/* =================================================================
-   SSG Data Fetching
-   ================================================================= */
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
-  const ck = process.env.WC_CK;
-  const cs = process.env.WC_CS;
+  const wpLang = locale === "en" ? "en" : "zh_TW";
+  
+  // 請確認這裡的 Slug 跟你在 WordPress 後台 -> 商品分類 -> 代稱 一模一樣
+// 配合 WordPress 現在的設定
+const targetSlug = wpLang === "en" ? "beer-en" : "beer-zh";
 
   let initialItems = [];
 
-  const langMap = {
-    "zh-TW": "zh_TW",
-    en: "en",
-  };
-  const wpLang = langMap[locale] || "zh_TW";
+  console.log(`[BeerList] 開始抓取: 語言=${wpLang}, 目標分類Slug=${targetSlug}`);
 
   try {
-    const categoryURL = new URL(
-      `${ensureURL(base)}/wp-json/wc/store/products/categories`
-    );
-    categoryURL.searchParams.set("slug", "beer");
-    categoryURL.searchParams.set("lang", wpLang);
+    // 1. 取得分類 ID
+    const catUrl = new URL(`${ensureURL(base)}/wp-json/wc/store/products/categories`);
+    // 注意：有時候直接用 slug search 會抓到相似的，所以我們抓全部再來 filter 比較保險
+    // 或者直接用 slug 參數
+    catUrl.searchParams.set("slug", targetSlug);
+    
+    const catRes = await fetch(catUrl.toString());
+    const categories = await catRes.json();
+    
+    // 找出完全匹配 slug 的分類 ID
+    const targetCat = Array.isArray(categories) ? categories.find(c => c.slug === targetSlug) : null;
+    const categoryId = targetCat?.id;
 
-    const categoryRes = await fetch(categoryURL.toString(), {
-      headers: { Accept: "application/json" },
-    });
-    const categories = await categoryRes.json();
-    let categoryId = categories?.[0]?.id;
+    if (!categoryId) {
+        console.error(`[BeerList] 找不到分類! Slug: ${targetSlug}. API 回傳:`, categories.length > 0 ? categories[0].slug : "空陣列");
+    } else {
+        console.log(`[BeerList] 找到分類 ID: ${categoryId} (Slug: ${targetCat.slug})`);
 
-    if (categoryId) {
-      const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/store/products`);
-      storeURL.searchParams.set("per_page", "100");
-      storeURL.searchParams.set("category", categoryId);
-      storeURL.searchParams.set("lang", wpLang);
+        // 2. 取得產品
+        const storeUrl = new URL(`${ensureURL(base)}/wp-json/wc/store/products`);
+        storeUrl.searchParams.set("per_page", "100");
+        storeUrl.searchParams.set("category", categoryId);
+        // storeUrl.searchParams.set("lang", wpLang); // 有些環境不需要這行，如果分類 ID 正確的話
 
-      const r = await fetch(storeURL.toString(), {
-        headers: { Accept: "application/json" },
-      });
-      const rawList = await r.json();
-      const list = Array.isArray(rawList) ? rawList : [];
+        const res = await fetch(storeUrl.toString());
+        const rawList = await res.json();
+        
+        console.log(`[BeerList] 抓到產品數量: ${rawList.length}`);
 
-      const ids = list
-        .map((p) => p.id)
-        .filter(Boolean)
-        .slice(0, 100);
+        const list = Array.isArray(rawList) ? rawList : [];
 
-      let metaMap = new Map();
-      if (ids.length && ck && cs) {
-        const v3 = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
-        v3.searchParams.set("include", ids.join(","));
-        v3.searchParams.set("per_page", String(ids.length));
-        v3.searchParams.set(
-          "_fields",
-          "id,meta_data,name,short_description,sku,translations"
-        );
-        v3.searchParams.set("lang", wpLang);
-
-        const vr = await fetch(v3.toString(), {
-          headers: {
-            Accept: "application/json",
-            Authorization: basicAuth(ck, cs),
-          },
+        // 3. 格式化
+        initialItems = list.map((p) => {
+            let imgSrc = p.images?.[0]?.src;
+            if (imgSrc && !imgSrc.startsWith("http")) imgSrc = `${ensureURL(base)}${imgSrc}`;
+            
+            // 這裡如果是中文 Slug，不需要特別處理，前端 Link 會自動編碼，後端 [slug].js 負責解碼即可
+            return {
+            id: p.id,
+            slug: p.slug, 
+            name: p.name,
+            sku: p.sku || "",
+            img: imgSrc || "/images/placeholder.png",
+            linkedChineseId: p.id, 
+            prices: p.prices,
+            short_description: p.short_description || "",
+            };
         });
-        if (vr.ok) {
-          const v3data = await vr.json();
-          (Array.isArray(v3data) ? v3data : []).forEach((it) =>
-            metaMap.set(it.id, {
-              meta: it.meta_data || [],
-              name: it.name,
-              short_description: it.short_description,
-              sku: it.sku,
-              translations: it.translations,
-            })
-          );
-        }
-      }
-
-      initialItems = list.map((p) => {
-        const detail = metaMap.get(p.id) || {
-          meta: [],
-          name: p.name,
-          short_description: "",
-          sku: "",
-          translations: {},
-        };
-
-        const enName = detail.name;
-        const enDesc = detail.short_description;
-
-        if (!p.extensions) p.extensions = {};
-        if (!p.extensions.custom_acf) p.extensions.custom_acf = {};
-        p.extensions.custom_acf.en_product_name = enName;
-        p.extensions.custom_acf.en_description = enDesc;
-        p.sku = detail.sku || "";
-
-        let linkedChineseId = p.id;
-        if (wpLang === "en") {
-          const zhId = detail.translations?.zh || detail.translations?.zh_TW;
-          if (zhId) linkedChineseId = zhId;
-        }
-        p.linkedChineseId = linkedChineseId;
-
-        let imgSrc = p.images?.[0]?.src;
-        if (imgSrc && !imgSrc.startsWith("http"))
-          imgSrc = `${ensureURL(base)}${imgSrc}`;
-        p.img = imgSrc || "/images/placeholder.png";
-
-        return p;
-      });
     }
   } catch (e) {
-    console.error("getStaticProps error:", e);
+    console.error("SSG Error:", e);
   }
 
-  return { props: { initialItems }, revalidate: 60 };
+  return { props: { initialItems }, revalidate: REVALIDATE_TIME };
 }
 
-function ensureURL(u = "") {
-  return String(u).replace(/\/+$/, "");
-}
-function basicAuth(ck, cs) {
-  return "Basic " + Buffer.from(`${ck}:${cs}`).toString("base64");
-}
+function ensureURL(u = "") { return String(u).replace(/\/+$/, ""); }
