@@ -1,9 +1,16 @@
-// middleware.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl
+
+    // ============================================================
+    // [新增] 步驟 0: 檢查是否為本機開發模式
+    // 如果是 'development' 模式 (npm run dev)，直接放行，不顯示維護頁
+    // ============================================================
+    if (process.env.NODE_ENV === 'development') {
+        return NextResponse.next()
+    }
 
     // 1. 設定「白名單」：這些路徑不需要密碼也能看
     // 包含：維護頁面本身、API、靜態資源(圖片、字型等)

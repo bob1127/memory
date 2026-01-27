@@ -21,6 +21,7 @@ const SITE_URL_RAW = process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.ve
 const SITE_URL = ensureURL(SITE_URL_RAW);
 const SITE_NAME = "Memory Corner";
 const OG_IMAGE_DEFAULT = `${SITE_URL}/images/og-default.png`;
+const ITEMS_PER_PAGE = 12; // 設定每頁 12 筆
 
 function basicAuth(ck, cs) {
   return "Basic " + Buffer.from(`${ck}:${cs}`).toString("base64");
@@ -90,16 +91,16 @@ function getNextPeriod(periods = []) {
   return upcoming[0] || null;
 }
 
-const stripHtml = (html) => (!html ? "" : html.replace(/<[^>]*>?/gm, ""));
-
 const PAGE_TRANSLATIONS = {
   "zh-TW": {
     seo: { title: "團購商品 | 有香 Memory Corner", description: "依分類瀏覽團購商品..." },
     title: "團購商品", loading: "商品載入中...", add_to_cart: "加入購物車", add_success_prefix: "「", add_success_suffix: "」已加入購物車", unit: "份", currency: "NT$", breadcrumb: "團購商品", empty: "此分類目前沒有商品", all: "全部",
+    prev_page: "上一頁", next_page: "下一頁"
   },
   en: {
     seo: { title: "Group Buy | Memory Corner", description: "Browse products..." },
     title: "GROUP BUY", loading: "Loading products...", add_to_cart: "Add to Cart", add_success_prefix: "", add_success_suffix: " has been added to cart", unit: "item(s)", currency: "NT$", breadcrumb: "Group Buy", empty: "No products in this category", all: "All",
+    prev_page: "Prev", next_page: "Next"
   },
 };
 
@@ -148,9 +149,6 @@ function GroupNoticeModal({ open, onClose, nextPeriod }) {
                  <p className="text-[15px] text-gray-800 leading-relaxed font-medium">
                    很抱歉，本商品僅在<span className="font-bold mx-1">「開團期間」</span>開放下單；目前非開團時段。
                  </p>
-                 <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-                   Sorry! Orders are only accepted during the <span className="font-bold">group-buy window</span>. It’s currently closed.
-                 </p>
                </div>
                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                   <div className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-1">
@@ -158,11 +156,6 @@ function GroupNoticeModal({ open, onClose, nextPeriod }) {
                   </div>
                   <div className="text-sm font-mono text-gray-800 tracking-wide">{timeRange}</div>
                   <div className="text-xs text-gray-500 mt-1">(Vancouver Time)</div>
-               </div>
-               <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
-                  <div className="text-sm font-bold text-gray-900 mb-1">📦 預計配送說明 / Delivery Info</div>
-                  <p className="text-sm text-gray-700">{info.delivery_zh || "確認中..."}</p>
-                  <p className="text-sm text-gray-500 italic mt-1">{info.delivery_en || "To be announced"}</p>
                </div>
             </div>
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-center">
@@ -187,11 +180,13 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
   const isEn = locale === "en";
   const products = initialItems;
   const [activeCat, setActiveCat] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1); // 分頁狀態
 
   const [activePeriod, setActivePeriod] = useState(null);
   const [nextPeriod, setNextPeriod] = useState(null);
   const [showGroupModal, setShowGroupModal] = useState(false);
 
+  // 時間檢查
   useEffect(() => {
     const checkTime = () => {
       setActivePeriod(getActivePeriod(periods));
@@ -202,12 +197,14 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     return () => clearInterval(id);
   }, [periods]);
 
+  // 購物車數量 Map
   const [qtyMap, setQtyMap] = useState(() => {
     const m = {};
     (initialItems || []).forEach((p) => { if (p?.id != null) m[p.id] = 1; });
     return m;
   });
 
+  // 當商品變更時更新 Map
   useEffect(() => {
     if (!products?.length) return;
     setQtyMap((prev) => {
@@ -227,7 +224,6 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     setToast({ id, text });
     toastTimerRef.current = setTimeout(() => setToast(null), 2000);
   };
-
   useEffect(() => () => toastTimerRef.current && clearTimeout(toastTimerRef.current), []);
 
   const setQty = (id, next) => setQtyMap((m) => ({ ...m, [id]: Math.max(0, Number.isFinite(+next) ? +next : 0) }));
@@ -237,14 +233,12 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
       setShowGroupModal(true);
       return;
     }
-
     const raw = qtyMap[product.id] ?? 0;
     if (raw <= 0) return;
     const safeQty = Math.max(1, raw);
     
     const { final } = getDiscountedPrice(product);
     const finalPriceToStore = Number(final.toFixed(2));
-
     const acfZhName = product.extensions?.custom_acf?.zh_product_name;
     const acfEnName = product.extensions?.custom_acf?.en_product_name;
     const defaultName = product.name;
@@ -267,61 +261,73 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     setQty(product.id, 0);
   };
 
-  // 🟢 修正 Tabs 的生成與語言排序
+  // 生成 Tabs
   const tabs = useMemo(() => {
     const map = new Map();
     (products || []).forEach((p) => { 
       (p.categories || []).forEach((c) => { 
         if (!c?.id) return; 
-        // 確保不重複加入
         if (!map.has(c.id)) {
           map.set(c.id, { id: c.id, name: c.name, slug: c.slug });
         }
       }); 
     });
-    
-    // 依據當前語系排序 (英文環境用英文排序，中文用中文)
     const localeForSort = isEn ? "en" : "zh-Hant";
     const arr = Array.from(map.values()).sort((a, b) => String(a.name).localeCompare(String(b.name), localeForSort));
-    
     return [{ id: "ALL", name: t.all }, ...arr];
   }, [products, t.all, isEn]);
 
+  // 過濾邏輯
   const filteredProducts = useMemo(() => {
     if (activeCat === "ALL") return products;
     return (products || []).filter((p) => (p.categories || []).some((c) => String(c.id) === String(activeCat)));
   }, [products, activeCat]);
 
-  const currentUrl = `${SITE_URL}${asPath || ""}`;
-  const canonicalZh = `${SITE_URL}/groupBuy`;
-  const canonicalEn = `${SITE_URL}/en/groupBuy`;
-  const canonical = isEn ? canonicalEn : canonicalZh;
-  const ogTitle = t.seo.title;
-  const ogDesc = t.seo.description;
-  const ogImage = filteredProducts?.[0]?.img && String(filteredProducts[0].img).startsWith("http") ? filteredProducts[0].img : OG_IMAGE_DEFAULT;
+  // 重置分頁當分類改變
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCat]);
 
-  const itemListSchema = {
-    "@context": "https://schema.org", "@type": "ItemList",
-    itemListElement: (filteredProducts || []).map((p, index) => {
-      const acfZhName = p.extensions?.custom_acf?.zh_product_name;
-      const acfEnName = p.extensions?.custom_acf?.en_product_name;
-      const displayName = isEn ? acfEnName || p.name : acfZhName || p.name;
-      const { final } = getDiscountedPrice(p);
-      const finalPriceForSchema = Number(final.toFixed(2));
-      return {
-        "@type": "ListItem", position: index + 1, url: `${SITE_URL}${isEn ? "/en" : ""}/product/${p.slug}`,
-        name: displayName, image: p.img || OG_IMAGE_DEFAULT,
-        offers: { "@type": "Offer", price: finalPriceForSchema, priceCurrency: "TWD", availability: "https://schema.org/InStock" },
-      };
-    }),
+  // 分頁計算
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const currentProducts = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      requestAnimationFrame(() => listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
   };
 
+  // 動畫設定
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05 // 卡片交錯出現，更絲滑
+      }
+    },
+    exit: { opacity: 0, transition: { duration: 0.2 } }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+    exit: { opacity: 0, y: -10 }
+  };
+
+  const ogTitle = t.seo.title;
+  const ogDesc = t.seo.description;
+  
   return (
     <Layout>
       <Head>
         <title key="title">{ogTitle}</title>
         <meta name="description" content={ogDesc} key="description" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
       </Head>
 
       <main className="bg-[#f9f6f3] min-h-screen">
@@ -339,17 +345,18 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
           </AnimatePresence>
         </div>
 
+        {/* 分類 Tabs */}
         <section className="pt-28 pb-6">
           <div className="max-w-[1600px] mx-auto w-[86%]">
             <h1 className="text-[20px] sm:text-[22px] md:text-[26px] font-bold tracking-wider">{t.title}</h1>
             <div className="mt-5">
-              <div className="-mx-2 px-2 overflow-x-auto">
+              <div className="-mx-2 px-2 overflow-x-auto no-scrollbar">
                 <div className="flex gap-2 w-max">
                   {tabs.map((c) => (
                     <button 
                       key={c.id} 
                       onClick={() => { setActiveCat(c.id); requestAnimationFrame(() => listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })); }} 
-                      className={`shrink-0 px-3 sm:px-4 py-2 rounded-full border transition text-[12px] sm:text-[14px] whitespace-nowrap ${String(c.id) === String(activeCat) ? "bg-[#e7a042] text-white border-[#e7a042]" : "bg-white text-black hover:bg-gray-50"}`}
+                      className={`shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition text-[13px] sm:text-[14px] whitespace-nowrap ${String(c.id) === String(activeCat) ? "bg-[#e7a042] text-white border-[#e7a042]" : "bg-white text-black hover:bg-gray-50"}`}
                     >
                       {c.name}
                     </button>
@@ -360,50 +367,124 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
           </div>
         </section>
 
-        <section className="pb-24">
+        {/* 產品列表 */}
+        <section className="pb-24 min-h-[600px]">
           <div className="max-w-[1600px] mx-auto w-[86%]">
             <div ref={listTopRef} />
+            
             <AnimatePresence mode="wait">
-              <motion.div key={`${activeCat}-${locale}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }}>
-                {filteredProducts.length === 0 ? <p className="text-center mt-10 text-gray-500">{t.empty}</p> : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-10">
-                    {filteredProducts.map((p) => {
-                      const q = qtyMap[p.id] ?? 0;
-                      const { original, final, hasDiscount } = getDiscountedPrice(p);
-                      const acfZhName = p.extensions?.custom_acf?.zh_product_name;
-                      const acfEnName = p.extensions?.custom_acf?.en_product_name;
-                      const displayName = isEn ? acfEnName || p.name : acfZhName || p.name;
+              {/* Key 加上 currentPage 確保切換頁面時也會觸發動畫 */}
+              <motion.div 
+                key={`${activeCat}-${currentPage}`}
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+              >
+                {currentProducts.length === 0 ? <p className="text-center mt-10 text-gray-500">{t.empty}</p> : (
+                  <>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                      {currentProducts.map((p) => {
+                        const q = qtyMap[p.id] ?? 0;
+                        const { original, final, hasDiscount } = getDiscountedPrice(p);
+                        const acfZhName = p.extensions?.custom_acf?.zh_product_name;
+                        const acfEnName = p.extensions?.custom_acf?.en_product_name;
+                        const displayName = isEn ? acfEnName || p.name : acfZhName || p.name;
 
-                      return (
-                        <motion.article key={p.id} className="flex flex-col bg-white rounded-2xl p-3 sm:p-4 shadow-sm ring-1 ring-black/5 hover:shadow-md transition">
-                          <div className="text-center px-1">
-                            <h3 className="text-[13px] sm:text-[15px] md:text-[16px] font-bold leading-snug line-clamp-2 min-h-[2.6em]" title={displayName}>{displayName}</h3>
-                            <div className="mt-2 flex flex-col items-center justify-center min-h-[40px]">
-                              {hasDiscount ? (
-                                <>
-                                  <span className="text-gray-400 line-through text-xs sm:text-sm">CA$ {original.toFixed(2)}</span>
-                                  <span className="text-red-700 font-bold text-sm sm:text-base">CA$ {final.toFixed(2)}</span>
-                                </>
-                              ) : (
-                                <span className="text-black/80 font-medium text-sm sm:text-base">CA$ {final.toFixed(2)}</span>
-                              )}
+                        return (
+                          <motion.article 
+                            key={p.id} 
+                            variants={cardVariants}
+                            // Compact Design Adjustment: Reduced padding and tightened layout
+                            className="flex flex-col bg-white rounded-xl p-2.5 sm:p-3 shadow-sm ring-1 ring-black/5 hover:shadow-md transition group"
+                          >
+                            <Link href={`/product/${p.slug}?from=groupBuy`} className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden">
+                              <Image 
+                                src={p.img} 
+                                alt={displayName} 
+                                fill 
+                                className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.05]" 
+                                sizes="(max-width: 768px) 50vw, 25vw"
+                              />
+                            </Link>
+
+                            <div className="text-center px-1 mt-2 flex-grow flex flex-col">
+                              {/* 標題高度與行高調整 */}
+                              <h3 className="text-[13px] sm:text-[14px] font-bold leading-tight line-clamp-2 min-h-[2.4em] text-gray-800" title={displayName}>
+                                {displayName}
+                              </h3>
+                              
+                              {/* 價格區域更緊湊 */}
+                              <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2">
+                                {hasDiscount ? (
+                                  <>
+                                    <span className="text-gray-400 line-through text-xs scale-90">CA${original.toFixed(2)}</span>
+                                    <span className="text-red-700 font-bold text-sm">CA${final.toFixed(2)}</span>
+                                  </>
+                                ) : (
+                                  <span className="text-black/80 font-medium text-sm">CA${final.toFixed(2)}</span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <Link href={`/product/${p.slug}?from=groupBuy`} className="relative mt-2 w-full aspect-square">
-                            <Image src={p.img} alt={displayName} fill className="object-contain p-2 transition-transform group-hover:scale-[1.05]" />
-                          </Link>
-                          <div className="mt-4 flex items-center justify-center gap-2">
-                            <button onClick={() => setQty(p.id, q - 1)} className="rounded-xl border px-3 py-2 hover:bg-gray-50" disabled={q <= 0}>−</button>
-                            <input type="number" min={0} value={q} onChange={(e) => setQty(p.id, e.target.value)} className="w-14 text-center rounded-xl border py-2" />
-                            <button onClick={() => setQty(p.id, q + 1)} className="rounded-xl border px-3 py-2 hover:bg-gray-50">+</button>
-                          </div>
-                          <button onClick={() => addToCart(p)} disabled={q <= 0} className={`mt-3 w-full rounded-xl py-2 text-white transition-colors ${q > 0 ? "bg-[#e7a042] hover:opacity-90" : "bg-gray-400 cursor-not-allowed"}`}>
-                            {t.add_to_cart}
+
+                            {/* 控制區塊：高度壓縮 */}
+                            <div className="mt-2.5">
+                              <div className="flex items-center justify-center gap-2">
+                                <button onClick={() => setQty(p.id, q - 1)} className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition" disabled={q <= 0}>−</button>
+                                <input type="number" min={0} value={q} onChange={(e) => setQty(p.id, e.target.value)} className="w-12 text-center text-sm rounded-lg border border-gray-200 py-1.5 focus:outline-none focus:border-amber-400" />
+                                <button onClick={() => setQty(p.id, q + 1)} className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition">+</button>
+                              </div>
+                              <button 
+                                onClick={() => addToCart(p)} 
+                                disabled={q <= 0} 
+                                className={`mt-2 w-full rounded-lg py-1.5 text-sm font-medium text-white transition-all shadow-sm ${q > 0 ? "bg-[#e7a042] hover:bg-[#d69035] active:scale-[0.98]" : "bg-gray-300 cursor-not-allowed"}`}
+                              >
+                                {t.add_to_cart}
+                              </button>
+                            </div>
+                          </motion.article>
+                        );
+                      })}
+                    </div>
+
+                    {/* 分頁按鈕區域 */}
+                    {totalPages > 1 && (
+                      <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                        className="mt-12 flex justify-center items-center gap-2"
+                      >
+                        <button 
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1.5 rounded-md border bg-white text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        >
+                          {t.prev_page}
+                        </button>
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`w-8 h-8 rounded-md text-sm font-medium transition ${
+                              currentPage === pageNum 
+                                ? "bg-[#e7a042] text-white shadow-md scale-110" 
+                                : "bg-white border hover:bg-gray-50 text-gray-600"
+                            }`}
+                          >
+                            {pageNum}
                           </button>
-                        </motion.article>
-                      );
-                    })}
-                  </div>
+                        ))}
+
+                        <button 
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1.5 rounded-md border bg-white text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        >
+                          {t.next_page}
+                        </button>
+                      </motion.div>
+                    )}
+                  </>
                 )}
               </motion.div>
             </AnimatePresence>
@@ -414,11 +495,10 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
   );
 }
 
-/* =========================================================
-   4. GET STATIC PROPS (修正資料抓取與過濾)
-   ========================================================= */
+// getStaticProps 保持您原本的邏輯即可，無需變動
 export async function getStaticProps({ locale }) {
-   const base = process.env.WC_URL;
+    // ... (維持您原本的 getStaticProps 程式碼)
+    const base = process.env.WC_URL;
    const ck = process.env.WC_CK;
    const cs = process.env.WC_CS;
    const langMap = { "zh-TW": "zh_TW", en: "en" };
@@ -436,9 +516,6 @@ export async function getStaticProps({ locale }) {
      if (!r.ok) return { props: { initialItems: [], periods: [] }, revalidate: 10 };
      
      const list = await r.json();
-     
-     // 🔴 暫時不在這裡過濾，因為 Store API 回傳的 category 可能還不是翻譯後的
-     // 我們等合併了 V3 API 的詳細資料後，確認了分類名稱/slug 再過濾，這樣最準確。
      
      const ids = list.map(p => p.id).slice(0, 200);
      const metaMap = new Map();
@@ -486,10 +563,9 @@ export async function getStaticProps({ locale }) {
         return p;
      });
 
-     // 🟢 最終過濾 (在此時我們已經有了正確翻譯的 categories)
+     // 🟢 最終過濾
      initialItems = mergedList.filter(p => {
         const cats = p.categories || [];
-        // 檢查是否有任一分類是啤酒相關 (檢查 slug 與 name)
         const isBeer = cats.some(c => 
             (c.slug && c.slug.toLowerCase().includes('beer')) || 
             (c.name && c.name.includes('啤酒')) ||

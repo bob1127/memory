@@ -768,6 +768,7 @@ const handleSwitchLocale = (newLocale) => {
                     onSwitchLocale={handleSwitchLocale}
                     label={t.language}
                   />
+    
                 </div>
               </div>
 
@@ -788,7 +789,19 @@ const handleSwitchLocale = (newLocale) => {
                     {t.order_online}
                   </button>
                 </div>
-
+{/* =========== ✨ 新增：手機版購物車按鈕 (點擊前往 /checkout) =========== */}
+  <Link
+    href="/checkout"
+    className="relative grid h-9 w-9 place-items-center rounded-full border border-black/10 bg-white/50 text-[#3c2514] hover:bg-white active:scale-95 transition-all"
+    aria-label={t.cart}
+  >
+    <ShoppingCart size={20} />
+    {cartCount > 0 && (
+      <span className="absolute -right-1 -top-1 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-[#9c2121] px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+        {cartCount}
+      </span>
+    )}
+  </Link>
                 {isGroupBuyPage && (
                   <>
                     {/* User */}
