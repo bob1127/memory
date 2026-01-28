@@ -66,7 +66,7 @@ export async function getStaticProps({ locale }) {
   };
 }
 
-/* ========== 4. Lightbox 元件 (手機版觸控修復版) ========== */
+/* ========== 4. Lightbox 元件 (已新增右上角關閉按鈕) ========== */
 function ImageLightbox({ open, src, alt, onClose }) {
   useEffect(() => {
     if (!open) return;
@@ -83,7 +83,6 @@ function ImageLightbox({ open, src, alt, onClose }) {
   return (
     <AnimatePresence>
       {open ? (
-        // 【修復關鍵 1】onClick 綁在最外層，確保覆蓋整個螢幕區域
         <div
           className="fixed inset-0 z-[999999999999999] h-[100dvh] w-screen overflow-hidden flex items-center justify-center cursor-pointer"
           onClick={onClose}
@@ -99,9 +98,34 @@ function ImageLightbox({ open, src, alt, onClose }) {
             aria-hidden="true"
           />
 
-          {/* 【修復關鍵 2】Panel 設定 pointer-events-none
-              這讓點擊「空白處/Padding」時，事件會穿透此層，打到最外層的 onClick，觸發關閉。
-          */}
+          {/* ==================== 新增：右上角關閉按鈕 ==================== */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation(); // 避免事件冒泡
+              onClose();
+            }}
+            className="absolute top-5 right-5 z-[1000] p-2 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full backdrop-blur-sm transition-all duration-200 pointer-events-auto flex items-center justify-center"
+            aria-label="Close"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          {/* ========================================================== */}
+
+          {/* Panel 設定 pointer-events-none，讓點擊空白處可穿透關閉 */}
           <motion.div
             key="panel"
             role="dialog"
@@ -112,9 +136,7 @@ function ImageLightbox({ open, src, alt, onClose }) {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* 【修復關鍵 3】Image 設定 pointer-events-auto
-                恢復圖片的可點擊性，並用 stopPropagation 阻止關閉事件冒泡。
-            */}
+            {/* Image 設定 pointer-events-auto，防止點擊圖片時關閉 */}
             <img
               src={src}
               alt={alt}
@@ -199,11 +221,9 @@ export default function Menu01Page({ t, locale }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(imageGallerySchema) }}
       />
 
-      <div className="pt-20   min-h-screen">
-        {/* 手機版間距優化：增加 px-4, 減少垂直間距 py-6 */}
+      <div className="pt-20 min-h-screen">
         <section className="max-w-[1300px] mx-auto xl:w-[90%] md:w-[90%] w-full px-4 sm:px-0 py-6 sm:py-16">
           <div className="text-center mt-4 sm:mt-10">
-            {/* 麵包屑與標題：手機版字體微調 */}
             <div className="text-[14px] sm:text-[18px] text-stone-600 sm:text-stone-500 tracking-wide">
               <Link href="/" className="hover:text-black duration-400">
                 {t.breadcrumb.home}
@@ -230,8 +250,7 @@ export default function Menu01Page({ t, locale }) {
                 animate={center}
                 exit={exit}
                 style={{ willChange: "transform, opacity, filter" }}
-                // 手機版間距優化：mt-8 gap-4
-                className="grid mt-8 sm:mt-16    grid-cols-1 md:grid-cols-2 items-start"
+                className="grid mt-8 sm:mt-16 grid-cols-1 md:grid-cols-2 items-start"
               >
                 {MENU_IMAGES.map((src, i) => {
                   const alt = `${t.imageAlt} ${i + 1}`;
@@ -246,7 +265,6 @@ export default function Menu01Page({ t, locale }) {
                       exit={{ opacity: 0, y: -18 }}
                       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      {/* 手機版圖片全寬 w-full */}
                       <img
                         src={src}
                         alt={alt}

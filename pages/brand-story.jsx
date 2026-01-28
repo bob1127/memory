@@ -473,7 +473,7 @@ function FadeUp({ children, delay = 0, className = "" }) {
 // 【修改點 1】集團內容：將「旗下品牌」區塊移至此處底部
 const ContentGroup = ({ t }) => (
   <div className="space-y-8">
-    <div className="border-t border-[#c9b79a] pt-6">
+    <div className="  pt-6">
       {/* 跑馬燈容器 */}
       <div className="mb-6 border border-[#c9b79a] bg-white overflow-hidden relative">
         <div className="w-full relative flex whitespace-nowrap overflow-hidden">
@@ -520,7 +520,7 @@ const ContentGroup = ({ t }) => (
     {/* 【移入】旗下品牌列表 (僅顯示於集團 Tab) */}
     {t.brandList && (
       <FadeUp delay={0.2}>
-        <section className="mt-16 pt-16 border-t border-[#c9b79a]">
+        <section className="mt-16 pt-16  ">
           <div className="max-w-4xl mx-auto text-center px-4">
             {/* 標題 */}
             <h3 className="text-3xl font-bold mb-6 tracking-[0.2em] text-[#3b2a1a]">
@@ -990,7 +990,13 @@ export default function BrandStoryPage({ t, locale }) {
           style={{ backgroundImage: `url('${getHeaderBg()}')` }}
         />
 
-        <div className="mx-auto max-w-[1380px] z-50 relative px-4 pb-20 pt-[200px]">
+        {/* --- 這裡修改容器寬度邏輯 --- */}
+        <div 
+          className={`
+            mx-auto z-50 relative px-4 pb-20 pt-[200px]
+            ${isGroup ? "w-full max-w-none" : "max-w-[1380px]"}
+          `}
+        >
           <FadeUp>
             <div
               className="mb-8 flex flex-wrap justify-center gap-3"
@@ -1029,7 +1035,7 @@ export default function BrandStoryPage({ t, locale }) {
           <FadeUp delay={0.05}>
             <section className="mt-10 sm:mb-[10px] mb-10 xl:mb-[10px] relative">
               <div className="absolute z-50 left-1/2 -translate-x-1/2 w-screen pointer-events-none bg-gradient-to-t from-[#f0e3cd] to-transparent h-72 bottom-[50px] sm:bottom-[-0px] md:h-52 md:bottom-[-100px]" />
-              <div className="mx-auto w-full relative z-[99999] py-6">
+              <div className="mx-auto w-full max-w-[1380px] relative z-[99999] py-6">
                 <div className="space-y-[3px]">
                   <div className="h-[2px] bg-[#2b211a]" />
                   <div className="h-[2px] bg-[#2b211a]" />
@@ -1082,7 +1088,7 @@ export default function BrandStoryPage({ t, locale }) {
                 : "grid md:grid-cols-[280px,minmax(0,1fr)]"
             }`}
           >
-            {/* ✅ group tab：直接不渲染左側門市區塊，避免顯示「此品牌目前無相關門市資訊」 */}
+            {/* group tab：不渲染左側門市區塊 */}
             {!isGroup && (
               <aside className="sticky md:top-28 self-start">
                 <FadeUp delay={0.08}>
@@ -1101,7 +1107,7 @@ export default function BrandStoryPage({ t, locale }) {
               </aside>
             )}
 
-            {/* ✅ 右側內容：group tab 時讓內容水平置中 + 限制最大寬度 */}
+            {/* 右側內容 */}
             <div className={`space-y-10 z-10 ${isGroup ? "w-full" : ""}`}>
               <AnimatePresence mode="wait">
                 <motion.article
@@ -1113,7 +1119,7 @@ export default function BrandStoryPage({ t, locale }) {
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 16, filter: "blur(6px)" }}
                   transition={{ duration: 0.7, ease: easeOut }}
-                  className={isGroup ? "w-full max-w-5xl mx-auto" : ""}
+                  className={isGroup ? "w-full  mx-auto" : ""}
                 >
                   {renderContent()}
                 </motion.article>
@@ -1128,8 +1134,6 @@ export default function BrandStoryPage({ t, locale }) {
               </FadeUp>
             </div>
           </section>
-
-          {/* 【已移除】原本位於此處的品牌列表區塊，已移動至 ContentGroup 內 */}
         </div>
 
         <div className="h-[130px] lg:h-[330px]">

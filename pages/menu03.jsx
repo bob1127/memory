@@ -55,7 +55,7 @@ export async function getStaticProps({ locale }) {
   };
 }
 
-/* ========== 4. Lightbox 元件 (手機版觸控修復版) ========== */
+/* ========== 4. Lightbox 元件 (已新增關閉按鈕) ========== */
 function ImageLightbox({ open, src, alt, onClose }) {
   useEffect(() => {
     if (!open) return;
@@ -72,7 +72,6 @@ function ImageLightbox({ open, src, alt, onClose }) {
   return (
     <AnimatePresence>
       {open ? (
-        // 最外層綁定 onClick，確保點擊任何空白處都能關閉
         <div
           className="fixed inset-0 z-[999999999999999] h-[100dvh] w-screen overflow-hidden flex items-center justify-center cursor-pointer"
           onClick={onClose}
@@ -88,12 +87,39 @@ function ImageLightbox({ open, src, alt, onClose }) {
             aria-hidden="true"
           />
 
+          {/* ==================== 新增：右上角關閉按鈕 ==================== */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation(); // 避免事件冒泡
+              onClose();
+            }}
+            className="absolute top-5 right-5 z-[1000] p-2 text-white/80 hover:text-white bg-black/40 hover:bg-black/60 rounded-full backdrop-blur-sm transition-all duration-200 pointer-events-auto flex items-center justify-center"
+            aria-label="Close"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          {/* ========================================================== */}
+
           {/* Panel 設定 pointer-events-none，讓點擊穿透到外層 */}
           <motion.div
             key="panel"
             role="dialog"
             aria-modal="true"
-            className="relative   h-auto sm:h-full max-w-[1200px] p-4 flex items-center justify-center pointer-events-none"
+            className="relative h-auto sm:h-full max-w-[1200px] p-4 flex items-center justify-center pointer-events-none"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -215,12 +241,9 @@ export default function Menu03Page({ t, locale }) {
         />
       </Head>
 
-      {/* 修改點：背景改為 bg-white */}
-      <div className="pt-20  min-h-screen">
-        {/* 手機版間距優化：px-4 py-6 */}
+      <div className="pt-20 min-h-screen">
         <section className="max-w-[1300px] mx-auto xl:w-[90%] md:w-[90%] w-full px-4 sm:px-0 py-6 sm:py-16">
           <div className="text-center mt-4 sm:mt-10">
-            {/* 麵包屑文字縮小 */}
             <div className="text-[14px] sm:text-[18px] text-stone-600 sm:text-stone-500 tracking-wide">
               <Link href="/" className="hover:text-black duration-400">
                 {t.breadcrumb.home}
@@ -234,7 +257,6 @@ export default function Menu03Page({ t, locale }) {
                 {t.breadcrumb.current}
               </span>
             </div>
-            {/* 標題文字縮小 */}
             <h1 className="mt-4 sm:mt-8 text-lg sm:text-3xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-stone-800 uppercase">
               {t.heading}
             </h1>
@@ -248,8 +270,7 @@ export default function Menu03Page({ t, locale }) {
                 animate={center}
                 exit={exit}
                 style={{ willChange: "transform, opacity, filter" }}
-                // 手機版間距優化：gap-4 mt-8
-                className="grid mt-8 sm:mt-16   grid-cols-1 md:grid-cols-2 items-start"
+                className="grid mt-8 sm:mt-16 grid-cols-1 md:grid-cols-2 items-start"
               >
                 {MENU_IMAGES.map((src, i) => {
                   const alt = `${t.imageAlt} ${i + 1}`;
@@ -264,12 +285,11 @@ export default function Menu03Page({ t, locale }) {
                       exit={{ opacity: 0, y: -18 }}
                       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      {/* 手機版圖片全寬 */}
                       <img
                         src={src}
                         alt={alt}
                         className="w-full sm:w-[100%] mx-auto my-4 h-auto shadow-md bg-white transition-transform duration-500 ease-out group-hover:scale-[1.015]"
-                        loading="eager" // 只有2張圖，直接 eager
+                        loading="eager"
                         decoding="async"
                       />
                     </motion.button>

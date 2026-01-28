@@ -212,7 +212,7 @@ export default function MenuPage({ t, locale }) {
               key={index}
               href={item.href}
               title={item.title}
-              className="bg-white group hover:scale-[1.02] hover:shadow-2xl transition-all duration-500 border border-stone-400 w-full h-[540px] flex flex-col relative overflow-hidden"
+              className="bg-white group hover:scale-[1.02] hover:shadow-2xl transition-all duration-500 border border-stone-400 w-full h-[550px] sm:h-[480px] flex flex-col relative overflow-hidden"
             >
               {/* 圖片區塊容器 */}
               <div className="aspect-[5/3] w-full relative shrink-0 overflow-hidden">

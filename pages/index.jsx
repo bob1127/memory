@@ -584,7 +584,7 @@ export default function Home({ t, locale }) {
           <AutoSwapImage
             base="/images/index/banner-05"
             alt="Memory Corner Character Mascot"
-            positionClass="z-20 right-[0%] bottom-[-2%]"
+            positionClass="z-20 right-[-150px] bottom-0"
             className="w-[70vw] sm:w-[55vw] lg:w-[50vw] xl:w-[52vw]"
             width={800}
             height={500}
