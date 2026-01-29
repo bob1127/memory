@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link"; // 新增引用
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,27 +24,27 @@ const TRANSLATIONS = {
       ogLocale: "zh_TW",
     },
     brandLogos: {
-      group: "/images/brand-story/有香logo.png",
-      youxiang: "/images/brand-story/有香logo.png",
-      memory: "/images/brand-story/憶點點logo.png",
-      corner: "/images/brand-story/有香灶腳logo.png",
+      group: "/images/品牌門店logo/有香logo.png",
+      youxiang: "/images/品牌門店logo/有香logo.png",
+      memory: "/images/品牌門店logo/憶點點logo.png",
+      corner: "/images/品牌門店logo/有香ㄟ灶腳LOGO.png",
     },
     brandList: {
       title: "旗下品牌",
       desc: "有香餐飲集團匯聚多元品牌，從經典台菜、懷舊甜品到便利即時料理，用心傳承台灣飲食文化，全方位滿足您的味蕾。",
       logos: [
         {
-          src: "/images/brand-story/有香logo.png",
+          src: "/images/品牌門店logo/有香LOGO.png",
           alt: "Memory Corner 有香",
           width: 140,
         },
         {
-          src: "/images/brand-story/憶點點logo.png",
+          src: "/images/品牌門店logo/憶點點LOGO.png",
           alt: "Sweet Memory 憶點點",
           width: 140,
         },
         {
-          src: "/images/brand-story/有香灶腳logo.png",
+          src: "/images/品牌門店logo/有香ㄟ灶腳LOGO.png",
           alt: "Kitchen Corner 有香ㄟ灶腳",
           width: 140,
         },
@@ -64,6 +65,8 @@ const TRANSLATIONS = {
       stay_tuned: "敬請期待更多美味故事...",
       home: "首頁",
       breadcrumb: "品牌故事",
+      view_menu: "查看菜單",
+      online_shop: "線上購物",
     },
     content: {
       group: {
@@ -93,7 +96,7 @@ const TRANSLATIONS = {
           caption: "牆上一面面獎牌，是老屋中一磚一瓦傳承四十年的古厝。",
           title: "以榮譽為延續，<br />為熱情守初心",
           paragraphs: [
-            "這些年來，有香屢獲各式獎項與肯定：從地方票選人氣餐廳、到美食媒體專題報導，每一面獎牌的背後，都是團隊在廚房裡一鍋一鍋反覆試驗的結果。",
+            "這些年來，有香屢獲各式獎項與肯定：從地方票選人氣餐廳、到美食媒體專題報導，每一面獎牌的背背後，都是團隊在廚房裡一鍋一鍋反覆試驗的結果。",
             "對我們來說，獎牌不只是光環，更是一種提醒——提醒自己不能被掌聲沖昏頭，仍要保有最初那份對料理的執著與熱情。",
           ],
         },
@@ -161,8 +164,7 @@ const TRANSLATIONS = {
           streetAddress: "1110-4651 Garden City Rd",
           hours: "11:30 AM–10:30 PM",
           img: "/images/brand-story/memory-corner-01.png",
-          mapUrl:
-            "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
+          mapUrl: "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
         },
         {
           id: "store-youxiang-burnaby",
@@ -176,8 +178,7 @@ const TRANSLATIONS = {
           streetAddress: "1234 Kingsway",
           hours: "11:30 AM–10:00 PM",
           img: "/images/brand-story/memory-corner-02.png",
-          mapUrl:
-            "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
+          mapUrl: "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
         },
       ],
       memory: [
@@ -192,9 +193,8 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "8080 Leslie Rd",
           hours: "11:30 AM–12:30 AM",
-          img: "/images/brand-story/憶點點/DSC07015.webp",
-          mapUrl:
-            "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
+          img: "/images/brand-story/憶點點/憶點點(1280 x 650 像素).webp",
+          mapUrl: "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
         },
       ],
       corner: [
@@ -209,7 +209,7 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "",
           hours: "11:00 AM–08:00 PM",
-          img: "/images/brand-story/DSC07330.webp",
+          img: "/images/brand-story/有香ㄟ灶腳上方(1280 x 650 像素).webp",
           mapUrl: "#",
         },
       ],
@@ -227,28 +227,28 @@ const TRANSLATIONS = {
       ogLocale: "en_US",
     },
     brandLogos: {
-      group: "/images/brand-story/有香logo.png",
-      youxiang: "/images/brand-story/有香logo.png",
-      memory: "/images/brand-story/憶點點logo.png",
-      corner: "/images/brand-story/有香灶腳logo.png",
+      group: "/images/品牌門店logo/有香logo.png",
+      youxiang: "/images/品牌門店logo/有香logo.png",
+      memory: "/images/品牌門店logo/憶點點logo.png",
+      corner: "/images/品牌門店logo/有香ㄟ灶腳LOGO.png",
     },
     brandList: {
       title: "OUR BRANDS",
       desc: "Memory Corner Group brings together diverse brands, from classic Taiwanese cuisine and nostalgic desserts to convenient instant meals, satisfying your taste buds in every way.",
       logos: [
         {
-          src: "/images/brand-story/有香logo.png",
-          alt: "Memory Corner",
+          src: "/images/品牌門店logo/有香LOGO.png",
+          alt: "Memory Corner 有香",
           width: 140,
         },
         {
-          src: "/images/brand-story/憶點點logo.png",
-          alt: "Sweet Memory",
+          src: "/images/品牌門店logo/憶點點LOGO.png",
+          alt: "Sweet Memory 憶點點",
           width: 140,
         },
         {
-          src: "/images/brand-story/有香灶腳logo.png",
-          alt: "Kitchen Corner",
+          src: "/images/品牌門店logo/有香ㄟ灶腳LOGO.png",
+          alt: "Kitchen Corner 有香ㄟ灶腳",
           width: 140,
         },
       ],
@@ -268,6 +268,8 @@ const TRANSLATIONS = {
       stay_tuned: "Stay tuned for more delicious stories...",
       home: "Home",
       breadcrumb: "Brand Story",
+      view_menu: "View Menu",
+      online_shop: "Online-shop",
     },
     content: {
       group: {
@@ -307,9 +309,7 @@ const TRANSLATIONS = {
           label: "【CLASSIC】",
           title:
             "This door is open quietly at Memory Corner,<br />Waiting for you to enter,<br />And meet the beauty of Taiwan.",
-          paragraphs: [
-            "The store collects various nostalgic Taiwanese items...",
-          ],
+          paragraphs: ["The store collects various nostalgic Taiwanese items..."],
         },
       },
       memory: {
@@ -385,8 +385,7 @@ const TRANSLATIONS = {
           streetAddress: "1110-4651 Garden City Rd",
           hours: "11:30 AM–10:30 PM",
           img: "/images/brand-story/memory-corner-01.png",
-          mapUrl:
-            "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
+          mapUrl: "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
         },
         {
           id: "store-youxiang-burnaby",
@@ -400,8 +399,7 @@ const TRANSLATIONS = {
           streetAddress: "1234 Kingsway",
           hours: "11:30 AM–10:00 PM",
           img: "/images/brand-story/memory-corner-02.png",
-          mapUrl:
-            "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
+          mapUrl: "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
         },
       ],
       memory: [
@@ -416,9 +414,8 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "8080 Leslie Rd",
           hours: "11:30 AM–12:30 AM",
-          img: "/images/brand-story/憶點點/DSC07015.webp",
-          mapUrl:
-            "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
+          img: "/images/brand-story/憶點點/憶點點(1280 x 650 像素).webp",
+          mapUrl: "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
         },
       ],
       corner: [
@@ -433,7 +430,7 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "",
           hours: "11:00 AM–08:00 PM",
-          img: "/images/brand-story/DSC07330.webp",
+          img: "/images/brand-story/有香ㄟ灶腳上方(1280 x 650 像素).webp",
           mapUrl: "#",
         },
       ],
@@ -508,7 +505,7 @@ const ContentGroup = ({ t }) => (
       </div>
 
       <div className="space-y-4 text-[16px] flex flex-col justify-center items-center max-w-[700px] mx-auto leading-8 tracking-[0.05em] text-[#3b2a1a]">
-        <h1 className="mb-6 text-4xl font-bold leading-relaxed md:text-5xl text-center">
+        <h1 className="mb-6 text-3xl font-bold leading-relaxed md:text-4xl text-center">
           {t.content.group.title}
         </h1>
         {t.content.group.paragraphs.map((p, idx) => (
@@ -523,7 +520,7 @@ const ContentGroup = ({ t }) => (
         <section className="mt-16 pt-16  ">
           <div className="max-w-4xl mx-auto text-center px-4">
             {/* 標題 */}
-            <h3 className="text-3xl font-bold mb-6 tracking-[0.2em] text-[#3b2a1a]">
+            <h3 className="text-3xl  font-bold mb-6 tracking-[0.2em] text-[#3b2a1a]">
               {t.brandList.title}
             </h3>
 
@@ -537,7 +534,8 @@ const ContentGroup = ({ t }) => (
               {t.brandList.logos.map((logo, index) => (
                 <div
                   key={index}
-                  className="relative w-[140px] h-[80px] grayscale hover:grayscale-0 transition-all duration-500 opacity-80 hover:opacity-100 hover:scale-110"
+                  // 修改處：移除了 'grayscale' 和 'hover:grayscale-0'
+                  className="relative w-[190px] h-[110px] transition-all duration-500  hover:scale-110"
                 >
                   <Image
                     src={logo.src}
@@ -566,14 +564,14 @@ const ContentYouxiang = ({ t }) => (
       </h1>
       <div className="mb-2 border border-[#c9b79a] bg-white">
         <Image
-          src="/images/brand-story/DSC06790.webp"
+          src="/images/brand-story/有香上方(1280 x 650 像素).webp"
           alt="Memory Corner Origin"
           width={880}
           height={520}
           className="h-auto w-full object-cover"
         />
       </div>
-      <p className="mb-4 text-[11px] tracking-[0.2em] text-[#7b5b33]">
+      <p className="mb-4 text-[14px] tracking-[0.2em] text-[#7b5b33]">
         {t.content.youxiang.origin.caption}
       </p>
       <div className="space-y-3 text-[16px] leading-relaxed tracking-[0.05em] text-[#3b2a1a]">
@@ -598,7 +596,7 @@ const ContentYouxiang = ({ t }) => (
               className="h-auto w-full object-cover"
             />
           </div>
-          <p className="mt-3 text-[11px] tracking-[0.2em] text-[#7b5b33]">
+          <p className="mt-3 text-[14px] tracking-[0.2em] text-[#7b5b33]">
             {t.content.youxiang.glory.caption}
           </p>
         </div>
@@ -622,7 +620,7 @@ const ContentYouxiang = ({ t }) => (
       </h2>
       <div className="border border-[#c9b79a] bg-white">
         <Image
-          src="/images/brand-story/DAV01968.webp"
+          src="/images/brand-story/有香下方（1400 x 700）.webp"
           alt="Memory Corner Classic"
           width={880}
           height={520}
@@ -638,6 +636,14 @@ const ContentYouxiang = ({ t }) => (
           <p key={i}>{p}</p>
         ))}
       </div>
+    </div>
+    {/* 新增: 查看菜單按鈕 */}
+    <div className="pt-8 flex justify-center border-t border-[#c9b79a]">
+      <Link href="/menu01">
+        <span className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+          {t.ui.view_menu}
+        </span>
+      </Link>
     </div>
   </div>
 );
@@ -656,7 +662,7 @@ const ContentMemory = ({ t }) => (
       </div>
       <div className="mb-2 border border-[#c9b79a] bg-white">
         <Image
-          src="/images/brand-story/憶點點/DSC07015.webp"
+          src="/images/brand-story/憶點點/憶點點(1280 x 650 像素).webp"
           alt="Sweet Memory Origin"
           width={880}
           height={520}
@@ -678,14 +684,14 @@ const ContentMemory = ({ t }) => (
         <div className="md:w-1/2">
           <div className="border border-[#c9b79a] bg-white">
             <Image
-              src="/images/brand-story/憶點點/DSC07378.webp"
+              src="/images/brand-story/憶點點/憶點點中(500 x 600 像素)拷貝.webp"
               alt="Sweet Memory Persistence"
               width={880}
               height={520}
               className="h-auto w-full object-cover"
             />
           </div>
-          <p className="mt-2 text-[11px] tracking-[0.2em] text-[#7b5b33]">
+          <p className="mt-2 text-[14px] tracking-[0.2em] text-[#7b5b33]">
             {t.content.memory.persist.caption}
           </p>
         </div>
@@ -712,14 +718,14 @@ const ContentMemory = ({ t }) => (
       <div>
         <div className="border border-[#c9b79a] bg-white">
           <Image
-            src="/images/brand-story/憶點點/DSC06868.webp"
+            src="/images/brand-story/憶點點/憶點點下方（1400 x 700）.webp"
             alt="Sweet Memory Classic"
             width={880}
             height={520}
             className="h-auto w-full object-cover"
           />
         </div>
-        <p className="mt-2 text-[11px] tracking-[0.2em] text-[#7b5b33]">
+        <p className="mt-2 text-[14px] tracking-[0.2em] text-[#7b5b33]">
           {t.content.memory.classic.caption}
         </p>
         <div className="mt-8 space-y-4 text-[15px] md:text-[16px] leading-8 tracking-[0.05em] text-[#3b2a1a]">
@@ -732,6 +738,14 @@ const ContentMemory = ({ t }) => (
           ))}
         </div>
       </div>
+    </div>
+    {/* 新增: 查看菜單按鈕 */}
+    <div className="pt-8 flex justify-center border-t border-[#c9b79a]">
+      <Link href="/menu02">
+        <span className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+          {t.ui.view_menu}
+        </span>
+      </Link>
     </div>
   </div>
 );
@@ -747,14 +761,14 @@ const ContentCorner = ({ t }) => (
       </h1>
       <div className="mb-2 border border-[#c9b79a] bg-white">
         <Image
-          src="/images/brand-story/DSC07330.webp"
+          src="/images/brand-story/有香ㄟ灶腳上方(1280 x 650 像素).webp"
           alt="Kitchen Corner"
           width={880}
           height={520}
           className="h-auto w-full object-cover"
         />
       </div>
-      <p className="mb-4 text-[11px] tracking-[0.2em] text-[#7b5b33]">
+      <p className="mb-4 text-[14px] tracking-[0.2em] text-[#7b5b33]">
         {t.content.corner.origin.caption}
       </p>
       <div className="space-y-3 text-[16px] leading-relaxed tracking-[0.05em] text-[#3b2a1a]">
@@ -762,6 +776,14 @@ const ContentCorner = ({ t }) => (
           <p key={i}>{p}</p>
         ))}
       </div>
+    </div>
+    {/* 新增: 線上購物按鈕 */}
+    <div className="pt-8 flex justify-center border-t border-[#c9b79a]">
+      <Link href="/groupBuy">
+        <span className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+          {t.ui.online_shop}
+        </span>
+      </Link>
     </div>
   </div>
 );
@@ -789,7 +811,7 @@ function StoreCard({ store }) {
           itemProp="image"
         />
       </a>
-      <div className="px-4 pb-4 pt-3">
+      <div className="px-4 pb-4 pt-3 relative">
         <a
           href={store.mapUrl}
           target="_blank"
@@ -818,6 +840,35 @@ function StoreCard({ store }) {
             {store.hours}
           </p>
         </div>
+
+        {/* 修改處：移除背景圓圈，改為純深色 Icon，稍微加大尺寸與調整位置 */}
+        <a
+          href={store.mapUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-4 right-4 text-[#4b2c1d] hover:text-[#2b211a] hover:scale-110 transition-all duration-300 z-10"
+          title="Open in Google Maps"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="w-7 h-7"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+            />
+          </svg>
+        </a>
       </div>
     </div>
   );
@@ -868,7 +919,7 @@ export default function BrandStoryPage({ t, locale }) {
 
   const brandLogos = t.brandLogos || {};
   const currentBrandLogo =
-    brandLogos[activeTab] || "/images/logo/memory-corner-logo.png";
+    brandLogos[activeTab] || "/images/品牌門店logo/有香ㄟ灶腳LOGO.png";
 
   const getHeaderBg = () => {
     switch (activeTab) {
@@ -877,9 +928,9 @@ export default function BrandStoryPage({ t, locale }) {
       case "youxiang":
         return "/images/index/about/DAV01968.jpg";
       case "memory":
-        return "/images/brand-story/憶點點/DSC07015.webp";
+        return "/images/brand-story/憶點點/憶點點(1280 x 650 像素).webp";
       case "corner":
-        return "/images/brand-story/DSC07330.webp";
+        return "/images/brand-story/有香ㄟ灶腳上方(1280 x 650 像素).webp";
       default:
         return "/images/index/about/DAV01968.jpg";
     }
@@ -1124,14 +1175,6 @@ export default function BrandStoryPage({ t, locale }) {
                   {renderContent()}
                 </motion.article>
               </AnimatePresence>
-
-              <FadeUp delay={0.1}>
-                <section className="mt-10 border-t border-[#c9b79a] pt-8">
-                  <button className="flex justify-center items-center gap-3 py-4 text-sm tracking-[0.35em] text-[#dba839] bg-stone-800 rounded-full mx-auto w-[200px] transition-colors">
-                    <span>{t.ui.more_info}</span>
-                  </button>
-                </section>
-              </FadeUp>
             </div>
           </section>
         </div>

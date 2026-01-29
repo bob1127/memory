@@ -63,6 +63,7 @@ const TRANSLATIONS = {
       desc1: "販售各式台灣經典零食、懷舊童玩，以及方便好料理的台灣小吃冷凍包。",
       desc2: "帶你重溫最經典的台灣味。",
       desc3: "喜歡台味的朋友，能線上輕鬆訂購， 也歡迎到店逛逛！",
+      online_shop: "線上購物", // 新增
     },
     about: {
       title: "ABOUT US",
@@ -76,6 +77,7 @@ const TRANSLATIONS = {
       title: "REWARDS APP",
       subtitle: "Earn Points with Every Purchase",
       marquee: "Join Now — Start Earning Points!",
+      more_info: "更多資訊", // 新增
     },
   },
   en: {
@@ -116,6 +118,7 @@ const TRANSLATIONS = {
       desc2: "Relive the most classic Taiwanese flavors.",
       desc3:
         "Fans of Taiwanese taste can order online easily, or visit our store!",
+      online_shop: "Online-Shop", // 新增
     },
     about: {
       title: "ABOUT US",
@@ -130,6 +133,7 @@ const TRANSLATIONS = {
       title: "REWARDS APP",
       subtitle: "Earn Points with Every Purchase",
       marquee: "Join Now — Start Earning Points!",
+      more_info: "More", // 新增
     },
   },
 };
@@ -640,12 +644,12 @@ export default function Home({ t, locale }) {
       <section className="section_Dinging mx-auto bg-[#efefef] relative overflow-x-hidden">
         <div
           ref={dingingRef}
-          className="mx-auto py-3 sm:py-20 max-w-[1920px] px-4 sm:px-6"
+          className="mx-auto  sm:pt-20 max-w-[1920px] px-4 sm:px-6"
         >
           <div className="flex flex-col lg:flex-row justify-center">
             <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
               <video
-                className="w-full h-full scale-[1.5] object-cover"
+                className="w-full h-full scale-[2.1] pb-[150px] object-cover"
                 src="/video/灶腳.webm"
                 autoPlay
                 loop
@@ -684,19 +688,10 @@ export default function Home({ t, locale }) {
                     </FadeUp>
 
                     <FadeUp delay={0.04}>
-                      <Link
-                        href="/app"
-                        className="group"
-                        aria-label="Go to App"
-                      >
-                        <Image
-                          src="/images/more-btn.png"
-                          width={400}
-                          height={400}
-                          alt="Read more about variety products"
-                          loading="lazy"
-                          className="w-[200px] mx-auto sm:mx-0 mt-5 group-hover:scale-105 scale-100 duration-300 h-auto"
-                        />
+                      <Link href="/groupBuy">
+                        <span className="inline-block bg-stone-800 mt-5 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+                          {t.variety.online_shop}
+                        </span>
                       </Link>
                     </FadeUp>
                   </div>
@@ -861,15 +856,10 @@ export default function Home({ t, locale }) {
                     </p>
                   </FadeUp>
                   <FadeUp delay={0.04}>
-                    <Link href="/app" className="group" aria-label="Join App">
-                      <Image
-                        src="/images/more-btn.png"
-                        width={400}
-                        height={400}
-                        alt="Join App Button"
-                        loading="lazy"
-                        className="w-[200px] mx-auto sm:mx-0 group-hover:scale-105 scale-100 duration-300 h-auto"
-                      />
+                    <Link href="/app">
+                      <span className="inline-block mt-5 bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+                        {t.app.more_info}
+                      </span>
                     </Link>
                   </FadeUp>
                 </div>

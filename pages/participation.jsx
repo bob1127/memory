@@ -457,20 +457,12 @@ export default function FranchiseInfoPage({ t, locale }) {
               {/* CTA Button */}
               <FadeUp delay={0.24}>
                 <div className="flex justify-center mt-12">
-                  <Link
-                    href={t.ctaLink}
-                    title={t.cta}
-                    className="
-                      inline-block bg-stone-800 text-[#dd8b34] rounded-full px-8 py-3 font-semibold text-lg
-                      shadow-[4px_4px_0_0_#7d7d7c] 
-                      transition-all duration-200 
-                      hover:translate-x-[-2px] hover:translate-y-[-2px] 
-                      hover:shadow-[6px_6px_0_0_#7d7d7c]
-                      active:translate-x-[1px] active:translate-y-[1px] active:shadow-[2px_2px_0_0_#7d7d7c]
-                    "
-                  >
-                    {t.cta}
-                  </Link>
+                  <Link     href={t.ctaLink}>
+  <span className="inline-block mt-5 bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+    更多資訊
+  </span>
+</Link>
+                   
                 </div>
               </FadeUp>
             </div>

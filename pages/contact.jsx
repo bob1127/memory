@@ -393,7 +393,7 @@ export default function ContactPage({ t, locale }) {
               <div className="actions">
                 <button
                   type="submit"
-                  className="bg-stone-800 text-[#e19d37] rounded-full py-4 w-[200px]"
+                className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300"
                   disabled={loading}
                 >
                   {loading ? t.form.submitting : t.form.submit}
