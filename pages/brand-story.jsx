@@ -1133,7 +1133,7 @@ export default function BrandStoryPage({ t, locale }) {
           </FadeUp>
 
           <section
-            className={`relative gap-10 bg-[#f0e3cd] ${
+            className={`relative gap-10  mt-20 bg-[#f0e3cd] ${
               isGroup
                 ? "grid md:grid-cols-1 justify-items-center"
                 : "grid md:grid-cols-[280px,minmax(0,1fr)]"
