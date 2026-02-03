@@ -9,7 +9,9 @@
   font-weight: normal;
   font-style: normal;
 }
-
+p,b,h1,h2,h3,h4,h5{
+   color: #191919 !important;
+}
 /* =========================================
    新增：LXGW WenKai TC (霞鶩文楷) 完整設定
    對應截圖中的三個檔案

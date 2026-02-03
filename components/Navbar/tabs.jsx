@@ -929,7 +929,7 @@ const handleSwitchLocale = (newLocale) => {
         </div>
 
         <div className="overflow-hidden p-2 sm:p-5">
-          <div className="grid grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 mx-auto w-[80%]">
             <Link
               href="https://h5.posking.ca/#/shop?id=598"
               className="block w-full h-full"
@@ -972,37 +972,10 @@ const handleSwitchLocale = (newLocale) => {
                 height={600}
               />
             </Link>
-            <Link
-              href="https://h5.posking.ca/#/shop?id=598"
-              className="block w-full h-full"
-              target="_blank"
-            >
-              <Image
-                src="/images/online-store/desktop-05.png"
-                alt=""
-                className="w-full h-auto duration-300 scale-100 hover:scale-105"
-                placeholder="empty"
-                width={1920}
-                height={600}
-              />
-            </Link>
+           
           </div>
 
-          <Link
-            href="https://h5.posking.ca/#/shop?id=598"
-            className="block w-full h-full"
-            target="_blank"
-          >
-            <Image
-              src="/images/online-store/desktop-06.png"
-              alt=""
-              className="w-full h-auto duration-300 scale-100 hover:scale-105"
-              placeholder="empty"
-              width={1920}
-              height={600}
-            />
-          </Link>
-
+         
           <Link
             href="https://h5.posking.ca/#/shop?id=598"
             className="block w-full h-full"

@@ -535,7 +535,7 @@ const ContentGroup = ({ t }) => (
                 <div
                   key={index}
                   // 修改處：移除了 'grayscale' 和 'hover:grayscale-0'
-                  className="relative w-[190px] h-[110px] transition-all duration-500  hover:scale-110"
+                  className="relative w-[230px] h-[130px] transition-all duration-500  hover:scale-110"
                 >
                   <Image
                     src={logo.src}
