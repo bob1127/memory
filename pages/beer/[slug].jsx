@@ -155,7 +155,7 @@ export default function BeerDetailPage({ product, relatedProducts }) {
     setQty(newQty);
   };
 
-  // 加入購物車 (主商品)
+  // 🟢 [修改重點 1] 加入購物車 (主商品) - 加入 store_type: 'beer'
   const addToCart = () => {
     const cartId = product.sku && product.sku !== "" ? product.sku : product.id;
 
@@ -171,6 +171,9 @@ export default function BeerDetailPage({ product, relatedProducts }) {
         img: product.img,
         price: priceFromItem(product),
         sku: product.sku,
+
+        // 👇👇👇 新增這行
+        store_type: 'beer',
       },
       qty
     );
@@ -187,7 +190,7 @@ export default function BeerDetailPage({ product, relatedProducts }) {
     setTimeout(() => setToast(null), 2500);
   };
 
-  // 加入購物車 (推薦商品簡化版)
+  // 🟢 [修改重點 2] 加入購物車 (推薦商品) - 加入 store_type: 'beer'
   const addRelatedToCart = (relatedItem) => {
     const cartId = relatedItem.sku || relatedItem.id;
     
@@ -199,7 +202,10 @@ export default function BeerDetailPage({ product, relatedProducts }) {
         name_en: relatedItem.name, 
         img: relatedItem.img,
         price: priceFromItem(relatedItem),
-        sku: relatedItem.sku
+        sku: relatedItem.sku,
+
+        // 👇👇👇 新增這行
+        store_type: 'beer',
     }, 1);
 
     if (typeof window !== "undefined") window.dispatchEvent(new Event("open-cart"));

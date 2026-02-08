@@ -109,7 +109,7 @@ export default function BeerOrderPage({ initialItems = [] }) {
   const setQty = (id, next) =>
     setQtyMap((m) => ({ ...m, [id]: Math.max(0, parseInt(next) || 0) }));
 
-  // 加入購物車
+  // 🟢 [修改重點] 加入購物車時，標記 store_type: 'beer'
   const addToCart = (product) => {
     const qty = Math.max(1, qtyMap[product.id] || 0);
     
@@ -121,6 +121,9 @@ export default function BeerOrderPage({ initialItems = [] }) {
       name_en: isEn ? product.name : (product.name_en || product.name),
       img: product.img,
       price: priceFromItem(product),
+
+      // 👇👇👇 新增這行：標記為啤酒商品
+      store_type: 'beer',
     }, qty);
 
     if (typeof window !== "undefined") {

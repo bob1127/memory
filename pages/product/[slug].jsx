@@ -133,6 +133,7 @@ export default function ProductInner({ product, periods=[], redirectDestination,
   const hrefLangZh = zhSlug ? `${SITE_URL}/product/${zhSlug}` : `${SITE_URL}/`;
   const hrefLangEn = enSlug ? `${SITE_URL}/en/product/${enSlug}` : `${SITE_URL}/en/`;
 
+  // 🟢 [修改重點] 加入 store_type: 'group_buy'
   const addToCart = () => {
     // 阻擋下單
     if (!activePeriod) { setShowModal(true); return; }
@@ -141,9 +142,16 @@ export default function ProductInner({ product, periods=[], redirectDestination,
     const priceToStore = Number(finalPrice.toFixed(2));
 
     cartStore.add({
-      id: product.linkedChineseId || product.id, productId: product.id, name: displayName,
-      name_zh: product.name_zh || product.name, name_en: product.name_en || product.name,
-      img: mainImage, price: priceToStore,
+      id: product.linkedChineseId || product.id, 
+      productId: product.id, 
+      name: displayName,
+      name_zh: product.name_zh || product.name, 
+      name_en: product.name_en || product.name,
+      img: mainImage, 
+      price: priceToStore,
+
+      // 👇👇👇 新增這行：標記為團購商品
+      store_type: 'group_buy', 
     }, qty);
 
     if (typeof window !== "undefined") window.dispatchEvent(new Event("open-cart"));

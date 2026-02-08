@@ -228,6 +228,7 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
 
   const setQty = (id, next) => setQtyMap((m) => ({ ...m, [id]: Math.max(0, Number.isFinite(+next) ? +next : 0) }));
 
+  // 🟢 [修改重點] 加入購物車時，標記 store_type: 'group_buy'
   const addToCart = (product) => {
     if (!activePeriod) {
       setShowGroupModal(true);
@@ -246,9 +247,16 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     const cartId = product.linkedChineseId || product.id;
 
     cartStore.add({
-        id: cartId, productId: product.id, name: displayName,
-        name_zh: acfZhName || defaultName, name_en: acfEnName || defaultName,
-        img: product.img, price: finalPriceToStore,
+        id: cartId, 
+        productId: product.id, 
+        name: displayName,
+        name_zh: acfZhName || defaultName, 
+        name_en: acfEnName || defaultName,
+        img: product.img, 
+        price: finalPriceToStore,
+
+        // 👇👇👇 新增這行：標記為團購商品
+        store_type: 'group_buy', 
     }, safeQty);
 
     if (typeof window !== "undefined") window.dispatchEvent(new Event("open-cart"));
