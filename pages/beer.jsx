@@ -260,7 +260,7 @@ export default function BeerOrderPage({ initialItems = [] }) {
         {/* Product List Section */}
         <section className="bg-white min-h-screen py-24 relative z-10">
           <div ref={listTopRef} className="flex justify-center pt-10 pb-6 items-center">
-            <h2 className="text-[20px] md:text-[24px] font-bold tracking-wider uppercase border-b-2 border-[#e7a042] pb-1">{t.title}</h2>
+            <h2 className="text-[20px] md:text-[24px] font-bold tracking-wider uppercase border-b-2 border-[#e7a042] pb-2">{t.title}</h2>
           </div>
 
           <div className="max-w-[1600px] mx-auto w-[90%] md:w-[86%]">
