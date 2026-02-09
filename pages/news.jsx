@@ -234,7 +234,7 @@ function Pagination({ page, totalPages, onChange, t }) {
     "px-3 h-9 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed text-sm";
 
   return (
-    <div className="mt-10 flex flex-wrap gap-2 justify-center">
+    <div className="mt-10 flex flex-wrap gap-3 justify-center">
       <motion.button
         className={btnBase}
         onClick={() => onChange(Math.max(1, page - 1))}
