@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import Link from "next/link"; // 新增引用
+import Link from "next/link";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { motion, AnimatePresence } from "framer-motion";
@@ -137,6 +137,7 @@ const TRANSLATIONS = {
           ],
         },
       },
+      // 【修改處】擴充 corner 資料結構以符合新版型
       corner: {
         origin: {
           label: "【緣起】",
@@ -146,6 +147,25 @@ const TRANSLATIONS = {
             "有香ㄟ灶腳(Old Memory Kitchen)是有香餐飲集團為了嚴格控管產品製程、追求極致品質，於2022年成立。",
             "門店販售各式各樣台灣人氣零食、懷舊童玩、熱銷冷凍台味美食，讓你不用飛到台灣，在這裡就能一站買齊所有想念的台灣味！",
             "我們也打造了台味便利店網路商城，只要動動手指，台式小吃的香氣就能從冰箱復刻、童年的好玩更能輕鬆採買。用最熟悉、最療癒的台灣味，陪你過每一天。",
+          ],
+        },
+        // 新增結構 (光采 - 這裡用作強調品質)
+        glory: {
+          label: "【品質】",
+          caption: "嚴格把關，只為呈現最好的台灣味。",
+          title: "從源頭到餐桌，<br />守護記憶中的味道",
+          paragraphs: [
+            "為了讓在異鄉的遊子能吃到最正宗的台灣味，我們成立了專屬的中央廚房與選品團隊。每一道冷凍調理包，都經過無數次還原度的測試；每一款上架的零食，都是台灣人從小吃到大的經典。",
+            "我們相信，便利不代表隨便。即便是一包簡單的乾拌麵，也要有如同現煮般的靈魂與香氣。",
+          ],
+        },
+        // 新增結構 (老味道 - 這裡用作強調便利)
+        classic: {
+          label: "【便利】",
+          title: "把台灣搬進你的冰箱，<br />隨時隨地，想吃就吃。",
+          paragraphs: [
+            "想念台灣夜市的鹹酥雞？懷念巷口的滷肉飯？在有香ㄟ灶腳，這些都不再遙不可及。我們致力於將台灣的街頭美味，轉化為方便保存與烹調的形式。",
+            "打開冰箱，加熱幾分鐘，道地的台灣味立刻上桌。這是我們給您的承諾——讓家鄉味，成為您生活中最垂手可得的幸福。",
           ],
         },
       },
@@ -177,7 +197,7 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "1234 Kingsway",
           hours: "11:30 AM–10:00 PM",
-          img: "/images/brand-story/memory-corner-02.png",
+          img: "/images/brand-story/有香光采.webp",
           mapUrl: "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
         },
       ],
@@ -340,6 +360,7 @@ const TRANSLATIONS = {
           paragraphs: ["At Sweet Memory, we treat you with sincerity..."],
         },
       },
+      // 【修改處】Enlarged corner structure for English
       corner: {
         origin: {
           label: "【ORIGIN】",
@@ -351,6 +372,23 @@ const TRANSLATIONS = {
             "Old Memory Kitchen was established in 2022 by the Youxiang Catering Group to rigorously control product processes and pursue the highest standards of quality.",
             "Our shop stocks an array of popular Taiwanese snacks, nostalgic childhood toys, and best-selling frozen Taiwanese delicacies. No need to fly to Taiwan – find all the flavours you crave right here in one convenient location!",
             "We've also created an online Taiwanese-style convenience store. With just a few taps, the aromas of Taiwanese snacks can be recreated straight from your fridge, while the fun of childhood can be effortlessly rediscovered. Let the most familiar, most comforting flavours of Taiwan accompany you through every day.",
+          ],
+        },
+        glory: {
+          label: "【QUALITY】",
+          caption: "Strictly controlled, only presenting the best taste of Taiwan.",
+          title: "From Source to Table,<br />Guarding the Taste of Memory",
+          paragraphs: [
+             "To ensure that wanderers abroad can taste the most authentic Taiwanese flavors, we established a dedicated central kitchen and selection team.",
+             "We believe that convenience does not mean compromise. Even a simple pack of dried noodles must have the soul and aroma of being freshly cooked."
+          ],
+        },
+        classic: {
+          label: "【CONVENIENCE】",
+          title: "Move Taiwan into your Fridge,<br />Enjoy Anytime, Anywhere.",
+          paragraphs: [
+             "Missing Taiwanese night market fried chicken? Craving braised pork rice? At Kitchen Corner, these are no longer out of reach.",
+             "Open the fridge, heat it up for a few minutes, and authentic Taiwanese flavor is served. This is our promise to you."
           ],
         },
       },
@@ -398,7 +436,7 @@ const TRANSLATIONS = {
           addressRegion: "BC",
           streetAddress: "1234 Kingsway",
           hours: "11:30 AM–10:00 PM",
-          img: "/images/brand-story/memory-corner-02.png",
+          img: "/images/brand-story/有香光采.webp",
           mapUrl: "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
         },
       ],
@@ -467,12 +505,11 @@ function FadeUp({ children, delay = 0, className = "" }) {
 
 /* ========== 4. 內容組件 (Content Components) ========== */
 
-// 【修改點 1】集團內容：將「旗下品牌」區塊移至此處底部
 const ContentGroup = ({ t }) => (
   <div className="space-y-8">
     <div className="  pt-6">
       {/* 跑馬燈容器 */}
-      <div className="mb-6 border border-[#c9b79a] bg-white overflow-hidden relative">
+      <div className="mb-6   overflow-hidden relative">
         <div className="w-full relative flex whitespace-nowrap overflow-hidden">
           <motion.div
             className="flex min-w-full"
@@ -514,27 +551,21 @@ const ContentGroup = ({ t }) => (
       </div>
     </div>
 
-    {/* 【移入】旗下品牌列表 (僅顯示於集團 Tab) */}
+    {/* 旗下品牌列表 */}
     {t.brandList && (
       <FadeUp delay={0.2}>
         <section className="mt-16 pt-16  ">
           <div className="max-w-4xl mx-auto text-center px-4">
-            {/* 標題 */}
             <h3 className="text-3xl  font-bold mb-6 tracking-[0.2em] text-[#3b2a1a]">
               {t.brandList.title}
             </h3>
-
-            {/* 文字描述 */}
             <p className="mb-12 text-[#5c4e42] text-[16px] leading-8 tracking-widest max-w-2xl mx-auto">
               {t.brandList.desc}
             </p>
-
-            {/* 品牌 Logo 列表 */}
             <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20">
               {t.brandList.logos.map((logo, index) => (
                 <div
                   key={index}
-                  // 修改處：移除了 'grayscale' 和 'hover:grayscale-0'
                   className="relative w-[230px] h-[130px] transition-all duration-500  hover:scale-110"
                 >
                   <Image
@@ -562,7 +593,7 @@ const ContentYouxiang = ({ t }) => (
       <h1 className="mb-6 text-2xl font-bold leading-relaxed md:text-5xl">
         {t.content.youxiang.origin.title}
       </h1>
-      <div className="mb-2 border border-[#c9b79a] bg-white">
+      <div className="mb-2  ">
         <Image
           src="/images/brand-story/有香上方(1280 x 650 像素).webp"
           alt="Memory Corner Origin"
@@ -587,9 +618,9 @@ const ContentYouxiang = ({ t }) => (
       </h2>
       <div className="flex flex-col gap-6 md:flex-row">
         <div className="md:w-1/2">
-          <div className="border border-[#c9b79a] bg-white">
+          <div className=" ">
             <Image
-              src="/images/brand-story/memory-corner-02.png"
+              src="/images/brand-story/有香光采.webp"
               alt="Memory Corner Glory"
               width={880}
               height={520}
@@ -618,7 +649,7 @@ const ContentYouxiang = ({ t }) => (
       <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
         {t.content.youxiang.classic.label}
       </h2>
-      <div className="border border-[#c9b79a] bg-white">
+      <div className=" ">
         <Image
           src="/images/brand-story/有香下方（1400 x 700）.webp"
           alt="Memory Corner Classic"
@@ -637,7 +668,6 @@ const ContentYouxiang = ({ t }) => (
         ))}
       </div>
     </div>
-    {/* 新增: 查看菜單按鈕 */}
     <div className="pt-8 flex justify-center border-t border-[#c9b79a]">
       <Link href="/menu01">
         <span className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
@@ -660,13 +690,13 @@ const ContentMemory = ({ t }) => (
           {t.content.memory.origin.label}
         </h2>
       </div>
-      <div className="mb-2 border border-[#c9b79a] bg-white">
+      <div className="mb-2  ">
         <Image
           src="/images/brand-story/憶點點/憶點點(1280 x 650 像素).webp"
           alt="Sweet Memory Origin"
           width={880}
           height={520}
-          className="h-auto w-full object-cover"
+          className=" w-full  "
         />
       </div>
       <div className="space-y-4 max-w-[700px] text-[15px] md:text-[16px] leading-8 tracking-[0.05em] text-[#3b2a1a]">
@@ -682,7 +712,7 @@ const ContentMemory = ({ t }) => (
       </div>
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-1/2">
-          <div className="border border-[#c9b79a] bg-white">
+          <div className=" ">
             <Image
               src="/images/brand-story/憶點點/憶點點中(500 x 600 像素)拷貝.webp"
               alt="Sweet Memory Persistence"
@@ -716,7 +746,7 @@ const ContentMemory = ({ t }) => (
         </h2>
       </div>
       <div>
-        <div className="border border-[#c9b79a] bg-white">
+        <div className=" ">
           <Image
             src="/images/brand-story/憶點點/憶點點下方（1400 x 700）.webp"
             alt="Sweet Memory Classic"
@@ -739,7 +769,6 @@ const ContentMemory = ({ t }) => (
         </div>
       </div>
     </div>
-    {/* 新增: 查看菜單按鈕 */}
     <div className="pt-8 flex justify-center border-t border-[#c9b79a]">
       <Link href="/menu02">
         <span className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
@@ -750,8 +779,10 @@ const ContentMemory = ({ t }) => (
   </div>
 );
 
+// 【修改處】大幅調整 ContentCorner 結構，參照 ContentYouxiang 版型
 const ContentCorner = ({ t }) => (
   <div className="space-y-10">
+    {/* 第一區塊：緣起 (全寬圖) */}
     <div className="border-t border-[#c9b79a] pt-6">
       <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
         {t.content.corner.origin.label}
@@ -759,10 +790,10 @@ const ContentCorner = ({ t }) => (
       <h1 className="mb-6 text-2xl font-bold leading-relaxed md:text-5xl">
         {t.content.corner.origin.title}
       </h1>
-      <div className="mb-2 border border-[#c9b79a] bg-white">
+      <div className="mb-2  ">
         <Image
           src="/images/brand-story/有香ㄟ灶腳上方(1280 x 650 像素).webp"
-          alt="Kitchen Corner"
+          alt="Kitchen Corner Origin"
           width={880}
           height={520}
           className="h-auto w-full object-cover"
@@ -777,7 +808,69 @@ const ContentCorner = ({ t }) => (
         ))}
       </div>
     </div>
-    {/* 新增: 線上購物按鈕 */}
+
+    {/* 第二區塊：光采/品質 (左圖右文) */}
+    <div className="border-t pt-6">
+      <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
+        {t.content.corner.glory.label}
+      </h2>
+      <div className="flex flex-col gap-6 md:flex-row">
+        <div className="md:w-1/2">
+          <div className=" ">
+            {/* 暫時使用相同圖片，或替換為空白圖片 */}
+            <Image
+              src="/images/brand-story/灶腳直立式小圖.webp"
+              alt="Kitchen Corner Quality"
+              width={880}
+              height={520}
+              className="h-auto w-full object-cover"
+            />
+          </div>
+          <p className="mt-3 text-[14px] tracking-[0.2em] text-[#7b5b33]">
+            {t.content.corner.glory.caption}
+          </p>
+        </div>
+        <div className="md:w-1/2 md:pl-8">
+          <h3
+            className="text-3xl leading-snug md:text-4xl"
+            dangerouslySetInnerHTML={{ __html: t.content.corner.glory.title }}
+          />
+          <div className="mt-4 space-y-3 text-[16px] leading-relaxed tracking-[0.05em]">
+            {t.content.corner.glory.paragraphs.map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* 第三區塊：老味道/便利 (全寬圖) */}
+    <div className="border-t border-[#c9b79a] pt-6">
+      <h2 className="mb-4 text-sm font-semibold tracking-[0.4em] text-[#7b5b33]">
+        {t.content.corner.classic.label}
+      </h2>
+      <div className=" ">
+         {/* 暫時使用相同圖片，或替換為空白圖片 */}
+        <Image
+          src="/images/brand-story/灶腳三色芋圓產品-2.webp"
+          alt="Kitchen Corner Classic"
+          width={880}
+          height={520}
+          className="h-auto w-full object-cover"
+        />
+      </div>
+      <div className="mt-6 space-y-3 text-[16px] leading-relaxed tracking-[0.05em]">
+        <p
+          className="text-2xl font-bold leading-relaxed md:text-3xl"
+          dangerouslySetInnerHTML={{ __html: t.content.corner.classic.title }}
+        />
+        {t.content.corner.classic.paragraphs.map((p, i) => (
+          <p key={i}>{p}</p>
+        ))}
+      </div>
+    </div>
+
+    {/* 線上購物按鈕 */}
     <div className="pt-8 flex justify-center border-t border-[#c9b79a]">
       <Link href="/groupBuy">
         <span className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
@@ -791,7 +884,7 @@ const ContentCorner = ({ t }) => (
 function StoreCard({ store }) {
   return (
     <div
-      className="border border-[#c9b79a] bg-[#f7ecdd]"
+      className=" bg-[#f7ecdd]"
       itemScope
       itemType="https://schema.org/Restaurant"
     >
@@ -841,7 +934,6 @@ function StoreCard({ store }) {
           </p>
         </div>
 
-        {/* 修改處：移除背景圓圈，改為純深色 Icon，稍微加大尺寸與調整位置 */}
         <a
           href={store.mapUrl}
           target="_blank"
@@ -1041,7 +1133,6 @@ export default function BrandStoryPage({ t, locale }) {
           style={{ backgroundImage: `url('${getHeaderBg()}')` }}
         />
 
-        {/* --- 這裡修改容器寬度邏輯 --- */}
         <div 
           className={`
             mx-auto z-50 relative px-4 pb-20 pt-[200px]
@@ -1149,7 +1240,7 @@ export default function BrandStoryPage({ t, locale }) {
                         <StoreCard key={store.id} store={store} />
                       ))
                     ) : (
-                      <div className="p-4 border border-[#c9b79a] text-center text-xs text-[#7b5b33] tracking-widest">
+                      <div className="p-4  text-center text-xs text-[#7b5b33] tracking-widest">
                         {t.ui.store_no_data}
                       </div>
                     )}

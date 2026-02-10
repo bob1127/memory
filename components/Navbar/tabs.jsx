@@ -578,7 +578,6 @@ const handleSwitchLocale = (newLocale) => {
           {/* ✅ 用一個容器，同時支援：mobile/tablet 與 desktop */}
           <div className="w-full">
             {/* ================= Mobile / Tablet (<= lg) ================= */}
-            {/* ================= Mobile / Tablet (<= lg) ================= */}
             <div className="xl:hidden grid grid-cols-[44px_minmax(200px,1fr)_auto] items-center gap-2">
               {/* Left: hamburger */}
               <div className="flex items-center justify-start">
@@ -609,20 +608,8 @@ const handleSwitchLocale = (newLocale) => {
 
               {/* Right: CTA（字可小，按鈕可窄，避免擠壓 Logo） */}
               <div className=" hidden xl:flex items-center justify-end gap-2">
-                <Link
-                  href="/groupBuy"
-                  target="_blank"
-                  className="rounded-full bg-stone-800 px-2.5 sm:px-3.5 py-2 text-[11px] sm:text-[12px] md:text-[13px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
-                >
-                  <span className="relative z-10">{t.group_buy}</span>
-                </Link>
-
-                <button
-                  onClick={() => setShowOrderPopup(true)}
-                  className="rounded-full bg-stone-800 px-2.5 sm:px-3.5 py-2 text-[11px] sm:text-[12px] md:text-[13px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
-                >
-                  {t.order_online}
-                </button>
+                
+                {/* ❌ [已刪除] Mobile 版 團購商城與線上點餐按鈕 */}
 
                 {/* 會員/購物車：仍只在 groupBuy 顯示 */}
                 {isGroupBuyPage && (
@@ -775,19 +762,7 @@ const handleSwitchLocale = (newLocale) => {
               {/* 右側 */}
               <div className=" flex w-[20%] items-center justify-end gap-2 sm:gap-3">
                 <div className="hidden xl:flex items-center gap-3">
-                  <Link
-                    href="/groupBuy"
-                    target="_blank"
-                    className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
-                  >
-                    <span className="relative z-10">{t.group_buy}</span>
-                  </Link>
-                  <button
-                    onClick={() => setShowOrderPopup(true)}
-                    className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
-                  >
-                    {t.order_online}
-                  </button>
+                   {/* ❌ [已刪除] Desktop 版 團購商城與線上點餐按鈕 */}
                 </div>
 {/* =========== ✨ 新增：手機版購物車按鈕 (點擊前往 /checkout) =========== */}
   <Link
@@ -1681,25 +1656,7 @@ function MobileNavSheet({
               </div>
 
               <div className="border-t border-black/10 p-4 bg-white">
-                <div className="grid grid-cols-2 gap-3">
-                  <Link
-                    href={cta.groupBuy.href}
-                    target="_blank"
-                    className="rounded-full flex justify-center bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
-                    onClick={onClose}
-                  >
-                    {t.group_buy}
-                  </Link>
-                  <button
-                    onClick={() => {
-                      onOrderClick?.();
-                      onClose?.();
-                    }}
-                    className="rounded-full bg-stone-800 px-5 py-2 text-[15px] text-[#df9e36] transition-colors shadow-sm whitespace-nowrap"
-                  >
-                    {t.order_online}
-                  </button>
-                </div>
+                {/* ❌ [已刪除] Mobile Menu Sheet 中的團購商城與線上點餐按鈕 */}
                 <div className="mt-3 text-center text-[10px] text-black/40">
                   © {new Date().getFullYear()} Memory Corner
                 </div>

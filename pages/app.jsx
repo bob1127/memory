@@ -145,9 +145,9 @@ export default function Home() {
                 <div className="step flex flex-col md:flex-row md:items-center border-b border-gray-200 py-6 sm:py-8">
                   <div className="w-full md:w-[40%] p-2 sm:p-4">
                     <Image
-                      src="/images/app/Step5.png"
+                      src="/images/app/手機app Step  5.webp"
                       alt="Step 5"
-                      className="w-full h-auto"
+                      className="w-[70%] mx-auto h-auto"
                       width={800}
                       height={800}
                     />
