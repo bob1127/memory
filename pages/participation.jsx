@@ -40,7 +40,7 @@ const TRANSLATIONS = {
         tag: "研發",
         title: "研發團隊不斷創新",
         desc: "以傳統工法為基礎，融合創新思維，用心打造每一道能代表品牌精神的料理。",
-        img: "/images/participation/炒菜.png",
+        img: "/images/participation/炒菜.webp",
       },
       {
         tag: "培訓",
@@ -396,7 +396,7 @@ export default function FranchiseInfoPage({ t, locale }) {
                         amount={0.25}
                         className={!isEven ? "order-1 lg:order-none" : ""}
                       >
-                        <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg shadow-lg">
+                        <div className="relative w-full aspect-[5/3.2] overflow-hidden rounded-lg shadow-lg">
                           <ParallaxImage
                             src={feature.img}
                             alt={feature.title}
