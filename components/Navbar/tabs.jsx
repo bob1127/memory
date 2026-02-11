@@ -406,7 +406,7 @@ function AddToCartPopup({
                 <div className="text-sm font-semibold">
                   CA${" "}
                   {Number(
-                    (item.price || 0) * Number(item.qty || 1)
+                    (item.price || 0) * Number(item.qty || 1),
                   ).toLocaleString()}
                 </div>
               </div>
@@ -472,11 +472,10 @@ function OrderPopup({ open, onClose, children }) {
 }
 
 /* =================== 主元件 =================== */
-export const SlideTabsExample = ( ) => {
- 
-const router = useRouter();
+export const SlideTabsExample = () => {
+  const router = useRouter();
   const { locale, pathname, query, asPath } = router;
-  
+
   // ✅ 改從 Context 拿資料
   const { customSwitchLink } = useNav();
   const t = NAV_TRANSLATIONS[locale] || NAV_TRANSLATIONS["zh-TW"];
@@ -492,20 +491,21 @@ const router = useRouter();
       a.startsWith("/en/groupBuy")
     );
   }, [pathname, asPath]);
-const handleSwitchLocale = (newLocale) => {
+  const handleSwitchLocale = (newLocale) => {
     if (newLocale === locale) return;
 
+    // 🟢 新增這段：檢查是否有自訂連結 (產品內頁用)
     if (customSwitchLink) {
-      console.log("🚀 [Context] 使用自訂連結切換:", customSwitchLink);
-      // 強制帶上 locale 設定
+      console.log("🚀 [Nav] 使用自訂連結切換:", customSwitchLink);
+      // 強制帶上 locale 設定，並跳轉到指定的完整網址
       router.push(customSwitchLink, customSwitchLink, { locale: newLocale });
       return;
     }
 
+    // 原本的邏輯 (給一般頁面用)
     router.push({ pathname, query }, asPath, { locale: newLocale });
   };
-    // 原本的邏輯 (給一般頁面用)
- 
+
   const [isScrolled, setIsScrolled] = useState(false);
   useEffect(() => {
     const handleScroll = () => {
@@ -542,7 +542,7 @@ const handleSwitchLocale = (newLocale) => {
   const cartCount = cart.reduce((n, it) => n + (it.qty || 0), 0);
   const subtotal = cart.reduce(
     (sum, it) => sum + Number(it.price || 0) * (it.qty || 0),
-    0
+    0,
   );
 
   const [auth, setAuth] = useState(authStore.get?.() || {});
@@ -607,105 +607,97 @@ const handleSwitchLocale = (newLocale) => {
               </div>
 
               {/* Right: CTA（字可小，按鈕可窄，避免擠壓 Logo） */}
-              <div className=" hidden xl:flex items-center justify-end gap-2">
-                
-                {/* ❌ [已刪除] Mobile 版 團購商城與線上點餐按鈕 */}
+              <div className="flex xl:flex items-center justify-end gap-2">
+                {/* 1. Mobile 恢復顯示會員圖示 (移除了 isGroupBuyPage 判斷) */}
+                <div className="relative block">
+                  <button
+                    aria-label="user"
+                    onClick={() => setUserOpen((v) => !v)}
+                    className={`grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                      isScrolled || isMenuOpen
+                        ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                        : "border-black/10 bg-black/5 text-[#3c2514]"
+                    }`}
+                  >
+                    <User2 size={20} />
+                    {auth?.user && (
+                      <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
+                    )}
+                  </button>
 
-                {/* 會員/購物車：仍只在 groupBuy 顯示 */}
-                {isGroupBuyPage && (
-                  <>
-                    {/* User（小螢幕可先隱藏避免擠壓，sm 才顯示） */}
-                    <div className="relative hidden sm:block">
-                      <button
-                        aria-label="user"
-                        onClick={() => setUserOpen((v) => !v)}
-                        className={`grid h-10 w-10 place-items-center rounded-full border transition-all ${
-                          isScrolled || isMenuOpen
-                            ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
-                            : "border-black/10 bg-black/5 text-[#3c2514]"
-                        }`}
+                  <AnimatePresence>
+                    {userOpen && (
+                      <motion.div
+                        {...fadeUp}
+                        className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden z-[1100]"
                       >
-                        <User2 size={20} />
-                        {auth?.user && (
-                          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
-                        )}
-                      </button>
-
-                      <AnimatePresence>
-                        {userOpen && (
-                          <motion.div
-                            {...fadeUp}
-                            className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden"
-                          >
-                            {!auth?.user ? (
-                              <div className="p-2">
-                                <button
-                                  onClick={() => {
-                                    setShowAuthModal(true);
-                                    setAuthMode("login");
-                                    setUserOpen(false);
-                                  }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
-                                >
-                                  <LogIn size={18} />
-                                  <span className="text-[15px]">{t.login}</span>
-                                </button>
+                        {!auth?.user ? (
+                          <div className="p-2">
+                            <button
+                              onClick={() => {
+                                setShowAuthModal(true);
+                                setAuthMode("login");
+                                setUserOpen(false);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                            >
+                              <LogIn size={18} />
+                              <span className="text-[15px]">{t.login}</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="p-2">
+                            <div className="px-4 py-3 border-b border-white/10 mb-1">
+                              <div className="text-xs text-white/50 uppercase tracking-wider">
+                                Signed in as
                               </div>
-                            ) : (
-                              <div className="p-2">
-                                <div className="px-4 py-3 border-b border-white/10 mb-1">
-                                  <div className="text-xs text-white/50 uppercase tracking-wider">
-                                    Signed in as
-                                  </div>
-                                  <div className="truncate font-medium text-[15px] mt-0.5">
-                                    {auth.user.displayName ||
-                                      auth.user.name ||
-                                      auth.user.email}
-                                  </div>
-                                </div>
-                                <Link
-                                  href="/account"
-                                  className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
-                                  onClick={() => setUserOpen(false)}
-                                >
-                                  <User2 size={16} /> {t.my_account}
-                                </Link>
-                                <button
-                                  onClick={async () => {
-                                    await authStore.logout?.();
-                                    setUserOpen(false);
-                                    window.location.reload();
-                                  }}
-                                  className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
-                                >
-                                  <LogOut size={16} /> {t.logout}
-                                </button>
+                              <div className="truncate font-medium text-[15px] mt-0.5">
+                                {auth.user.displayName ||
+                                  auth.user.name ||
+                                  auth.user.email}
                               </div>
-                            )}
-                          </motion.div>
+                            </div>
+                            <Link
+                              href="/account"
+                              className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                              onClick={() => setUserOpen(false)}
+                            >
+                              <User2 size={16} /> {t.my_account}
+                            </Link>
+                            <button
+                              onClick={async () => {
+                                await authStore.logout?.();
+                                setUserOpen(false);
+                                window.location.reload();
+                              }}
+                              className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
+                            >
+                              <LogOut size={16} /> {t.logout}
+                            </button>
+                          </div>
                         )}
-                      </AnimatePresence>
-                    </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-                    {/* Cart */}
-                    <button
-                      aria-label="cart"
-                      onClick={() => setCartOpen((v) => !v)}
-                      className={`relative grid h-10 w-10 place-items-center rounded-full border transition-all ${
-                        isScrolled || isMenuOpen
-                          ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
-                          : "border-black/10 bg-black/5 text-[#3c2514]"
-                      }`}
-                    >
-                      <ShoppingCart size={20} />
-                      {cartCount > 0 && (
-                        <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
-                          {cartCount}
-                        </span>
-                      )}
-                    </button>
-                  </>
-                )}
+                {/* 2. Mobile 恢復顯示購物車圖示 (移除了 isGroupBuyPage 判斷) */}
+                <button
+                  aria-label="cart"
+                  onClick={() => setCartOpen((v) => !v)}
+                  className={`relative grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                    isScrolled || isMenuOpen
+                      ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                      : "border-black/10 bg-black/5 text-[#3c2514]"
+                  }`}
+                >
+                  <ShoppingCart size={20} />
+                  {cartCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -755,122 +747,105 @@ const handleSwitchLocale = (newLocale) => {
                     onSwitchLocale={handleSwitchLocale}
                     label={t.language}
                   />
-    
                 </div>
               </div>
 
               {/* 右側 */}
               <div className=" flex w-[20%] items-center justify-end gap-2 sm:gap-3">
                 <div className="hidden xl:flex items-center gap-3">
-                   {/* ❌ [已刪除] Desktop 版 團購商城與線上點餐按鈕 */}
+                  {/* ❌ [已刪除] Desktop 版 團購商城與線上點餐按鈕 */}
                 </div>
-{/* =========== ✨ 新增：手機版購物車按鈕 (點擊前往 /checkout) =========== */}
-  <Link
-    href="/checkout"
-    className="relative grid h-9 w-9 place-items-center rounded-full border border-black/10 bg-white/50 text-[#3c2514] hover:bg-white active:scale-95 transition-all"
-    aria-label={t.cart}
-  >
-    <ShoppingCart size={20} />
-    {cartCount > 0 && (
-      <span className="absolute -right-1 -top-1 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-[#9c2121] px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
-        {cartCount}
-      </span>
-    )}
-  </Link>
-                {isGroupBuyPage && (
-                  <>
-                    {/* User */}
-                    <div className="relative hidden sm:block">
-                      <button
-                        aria-label="user"
-                        onClick={() => setUserOpen((v) => !v)}
-                        className={`grid h-10 w-10 place-items-center rounded-full border transition-all ${
-                          isScrolled || isMenuOpen
-                            ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
-                            : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
-                        }`}
+
+                {/* 3. Desktop 恢復顯示會員圖示 (移除了 isGroupBuyPage 判斷) */}
+                <div className="relative block">
+                  <button
+                    aria-label="user"
+                    onClick={() => setUserOpen((v) => !v)}
+                    className={`grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                      isScrolled || isMenuOpen
+                        ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                        : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
+                    }`}
+                  >
+                    <User2 size={20} />
+                    {auth?.user && (
+                      <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {userOpen && (
+                      <motion.div
+                        {...fadeUp}
+                        className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden z-[1100]"
                       >
-                        <User2 size={20} />
-                        {auth?.user && (
-                          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 shadow ring-2 ring-white" />
-                        )}
-                      </button>
-
-                      <AnimatePresence>
-                        {userOpen && (
-                          <motion.div
-                            {...fadeUp}
-                            className="absolute right-0 mt-3 w-72 rounded-xl border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-md overflow-hidden"
-                          >
-                            {!auth?.user ? (
-                              <div className="p-2">
-                                <button
-                                  onClick={() => {
-                                    setShowAuthModal(true);
-                                    setAuthMode("login");
-                                    setUserOpen(false);
-                                  }}
-                                  className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
-                                >
-                                  <LogIn size={18} />{" "}
-                                  <span className="text-[15px]">{t.login}</span>
-                                </button>
+                        {!auth?.user ? (
+                          <div className="p-2">
+                            <button
+                              onClick={() => {
+                                setShowAuthModal(true);
+                                setAuthMode("login");
+                                setUserOpen(false);
+                              }}
+                              className="flex w-full items-center gap-3 rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                            >
+                              <LogIn size={18} />{" "}
+                              <span className="text-[15px]">{t.login}</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="p-2">
+                            <div className="px-4 py-3 border-b border-white/10 mb-1">
+                              <div className="text-xs text-white/50 uppercase tracking-wider">
+                                Signed in as
                               </div>
-                            ) : (
-                              <div className="p-2">
-                                <div className="px-4 py-3 border-b border-white/10 mb-1">
-                                  <div className="text-xs text-white/50 uppercase tracking-wider">
-                                    Signed in as
-                                  </div>
-                                  <div className="truncate font-medium text-[15px] mt-0.5">
-                                    {auth.user.displayName ||
-                                      auth.user.name ||
-                                      auth.user.email}
-                                  </div>
-                                </div>
-                                <Link
-                                  href="/account"
-                                  className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
-                                  onClick={() => setUserOpen(false)}
-                                >
-                                  <User2 size={16} /> {t.my_account}
-                                </Link>
-                                <button
-                                  onClick={async () => {
-                                    await authStore.logout?.();
-                                    setUserOpen(false);
-                                    window.location.reload();
-                                  }}
-                                  className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
-                                >
-                                  <LogOut size={16} /> {t.logout}
-                                </button>
+                              <div className="truncate font-medium text-[15px] mt-0.5">
+                                {auth.user.displayName ||
+                                  auth.user.name ||
+                                  auth.user.email}
                               </div>
-                            )}
-                          </motion.div>
+                            </div>
+                            <Link
+                              href="/account"
+                              className="flex items-center gap-3 w-full rounded-lg px-4 py-3 hover:bg-white/10 transition-colors"
+                              onClick={() => setUserOpen(false)}
+                            >
+                              <User2 size={16} /> {t.my_account}
+                            </Link>
+                            <button
+                              onClick={async () => {
+                                await authStore.logout?.();
+                                setUserOpen(false);
+                                window.location.reload();
+                              }}
+                              className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
+                            >
+                              <LogOut size={16} /> {t.logout}
+                            </button>
+                          </div>
                         )}
-                      </AnimatePresence>
-                    </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-                    {/* Cart */}
-                    <button
-                      aria-label="cart"
-                      onClick={() => setCartOpen((v) => !v)}
-                      className={`relative grid h-10 w-10 place-items-center rounded-full border transition-all ${
-                        isScrolled || isMenuOpen
-                          ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
-                          : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
-                      }`}
-                    >
-                      <ShoppingCart size={20} />
-                      {cartCount > 0 && (
-                        <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
-                          {cartCount}
-                        </span>
-                      )}
-                    </button>
-                  </>
-                )}
+                {/* 4. Desktop 恢復顯示購物車圖示 (移除了 isGroupBuyPage 判斷) */}
+                <button
+                  aria-label="cart"
+                  onClick={() => setCartOpen((v) => !v)}
+                  className={`relative grid h-10 w-10 place-items-center rounded-full border transition-all ${
+                    isScrolled || isMenuOpen
+                      ? "border-black/10 bg-black/5 hover:bg-black/10 text-[#3c2514]"
+                      : "xl:border-white/20 xl:bg-black/20 xl:text-white xl:hover:bg-white/20 border-black/10 bg-black/5 text-[#3c2514]"
+                  }`}
+                >
+                  <ShoppingCart size={20} />
+                  {cartCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#9c2121] px-1 text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -947,10 +922,8 @@ const handleSwitchLocale = (newLocale) => {
                 height={600}
               />
             </Link>
-           
           </div>
 
-         
           <Link
             href="https://h5.posking.ca/#/shop?id=598"
             className="block w-full h-full"
@@ -1034,7 +1007,7 @@ const handleSwitchLocale = (newLocale) => {
                                     onClick={() =>
                                       cartStore.setQty?.(
                                         it.id,
-                                        Math.max(1, (it.qty || 1) - 1)
+                                        Math.max(1, (it.qty || 1) - 1),
                                       )
                                     }
                                   >
@@ -1048,8 +1021,8 @@ const handleSwitchLocale = (newLocale) => {
                                         it.id,
                                         Math.max(
                                           1,
-                                          parseInt(e.target.value || "1", 10)
-                                        )
+                                          parseInt(e.target.value || "1", 10),
+                                        ),
                                       )
                                     }
                                   />
@@ -1058,7 +1031,7 @@ const handleSwitchLocale = (newLocale) => {
                                     onClick={() =>
                                       cartStore.setQty?.(
                                         it.id,
-                                        (it.qty || 1) + 1
+                                        (it.qty || 1) + 1,
                                       )
                                     }
                                   >
@@ -1070,7 +1043,7 @@ const handleSwitchLocale = (newLocale) => {
                                 <div className="text-sm font-semibold whitespace-nowrap">
                                   CA${" "}
                                   {Number(
-                                    Number(it.price || 0) * Number(it.qty || 0)
+                                    Number(it.price || 0) * Number(it.qty || 0),
                                   ).toLocaleString()}
                                 </div>
                                 <button
