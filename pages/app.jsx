@@ -1,202 +1,216 @@
-// app/page.jsx
+// app/page.jsx (或 pages/app.jsx)
 "use client";
 
-import { useRef, useEffect, useLayoutEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import Layout from "./Layout";
 import { motion, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
-import SplitType from "split-type";
 
-export default function Home() {
+/* =================================================================
+   1. 翻譯資料庫 (區分中英文)
+   ================================================================= */
+const TRANSLATIONS = {
+  "zh-TW": {
+    promo: {
+      title: "最高享LINE POINTS 10% 回饋",
+      desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit, saepe!",
+    },
+    title: "輕鬆加入會員並開始集點",
+    subtitle: "先掃描門店提供的會員 QR Code",
+    steps: [
+      {
+        num: "Step-1",
+        text1: "點擊 「Free Claim」",
+        text2: "",
+        img: "/images/app/Step1.png",
+      },
+      {
+        num: "Step-2",
+        text1: "輸入手機號碼",
+        text2: "",
+        img: "/images/app/Step2.png",
+      },
+      {
+        num: "Step-3",
+        text1: "輸入簡訊驗證碼",
+        text2: "",
+        img: "/images/app/Step3.png",
+      },
+      {
+        num: "Step-4",
+        text1: "設定會員密碼",
+        text2: "",
+        img: "/images/app/Step4.png",
+      },
+      {
+        num: "Step-5",
+        text1: "成功取得會員號碼",
+        text2: "",
+        img: "/images/app/Step5.png",
+      },
+      {
+        num: "Step-6",
+        text1: "點擊會員卡",
+        text2: "👉 出示 QR Code 給店員掃描，即可累積點數",
+        img: "/images/app/Step6.png",
+      },
+    ],
+    termsTitle: "會員注意事項",
+    terms: [
+      "本會員回饋計畫適用於 有香（Richmond）・憶點點・有香ㄟ灶腳 三家門市。",
+      "一個會員帳號可於上述三家門市累積與使用點數。",
+      "點數僅適用於原價商品，恕不與其他折扣併用。",
+      "點數累積部分項目可能有所限制，詳情請以店內公告為準。",
+    ],
+  },
+  en: {
+    promo: {
+      title: "Earn up to 10% LINE POINTS back",
+      desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit, saepe!",
+    },
+    title: "How to Join Our Membership",
+    subtitle: "Scan the membership QR code provided in-store",
+    steps: [
+      {
+        num: "Step-1",
+        text1: 'Click "Free Claim"',
+        text2: "",
+        img: "/images/app/Step1.png",
+      },
+      {
+        num: "Step-2",
+        text1: "Enter your mobile number",
+        text2: "",
+        img: "/images/app/Step2.png",
+      },
+      {
+        num: "Step-3",
+        text1: "Enter the SMS verification code",
+        text2: "",
+        img: "/images/app/Step3.png",
+      },
+      {
+        num: "Step-4",
+        text1: "Set your password",
+        text2: "",
+        img: "/images/app/Step4.png",
+      },
+      {
+        num: "Step-5",
+        text1: "Your membership number is successfully created",
+        text2: "",
+        img: "/images/app/Step5.png",
+      },
+      {
+        num: "Step-6",
+        text1: "Open your digital membership card",
+        text2: "👉 Show the QR code to our staff to earn points",
+        img: "/images/app/Step6.png",
+      },
+    ],
+    termsTitle: "Member Terms",
+    terms: [
+      "Valid at Memory Corner (Richmond), Sweet Memory, and Old Memory Kitchen.",
+      "Earn and redeem points across all three locations with one account.",
+      "Points apply to regular-priced items only. Not valid with other offers.",
+      "Some items may be excluded. See in-store details.",
+    ],
+  },
+};
+
+/* =================================================================
+   2. 主頁面元件
+   ================================================================= */
+export default function AppGuidePage() {
+  const router = useRouter();
+  // 取得當前語系，預設為 zh-TW
+  const locale = router.locale || "zh-TW";
+  const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
+
   return (
     <Layout>
       <div className="pt-[88px] bg-[#ede5d6] sm:pt-[100px] pb-10">
         <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            {/* Left / Sticky promo */}
+            {/* 左側：促銷活動 (Sticky) */}
             <div className="w-full lg:w-[40%]">
               <div className="lg:sticky lg:top-[110px]">
                 <div className="flex flex-col items-center">
                   <Image
                     src="/images/news-01.png"
-                    alt="最高享LINE POINTS 10% 回饋"
+                    alt={t.promo.title}
                     className="w-full max-w-[520px] lg:max-w-[400px] rounded-md"
                     width={800}
                     height={800}
                     priority
                   />
-                  <div className="mt-4 flex flex-col w-full max-w-[520px] lg:max-w-[400px] gap-2">
+                  <div className="mt-4 flex flex-col w-full max-w-[520px] lg:max-w-[400px] gap-2 text-gray-800">
                     <b className="text-xl sm:text-2xl md:text-3xl leading-snug">
-                      最高享LINE POINTS 10% 回饋
+                      {t.promo.title}
                     </b>
-                    <span className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Odit, saepe!
+                    <span className="text-sm sm:text-base leading-relaxed">
+                      {t.promo.desc}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right / Steps */}
-            <div className="w-full lg:w-[60%]">
-              <h1 className="text-3xl text-center mt-10 sm:text-4xl md:text-5xl lg:text-6xl  font-bold leading-tight">
-                How to Join Our Membership
+            {/* 右側：步驟教學 */}
+            <div className="w-full lg:w-[60%] text-gray-900">
+              <h1 className="text-3xl text-center mt-10 sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                {t.title}
               </h1>
+              <p className="text-center text-lg sm:text-xl md:text-2xl mt-4 font-medium text-gray-700">
+                {t.subtitle}
+              </p>
 
-              <div className="steps mt-6 sm:mt-8">
-                {/* Step 1 */}
-                <div className="step flex flex-col md:flex-row md:items-center border-b border-gray-200 py-6 sm:py-8">
-                  <div className="w-full md:w-[40%] p-2 sm:p-4">
-                    <Image
-                      src="/images/app/Step1.png"
-                      alt="Step 1"
-                      className="w-full h-auto"
-                      width={800}
-                      height={800}
-                    />
+              <div className="steps mt-8 sm:mt-10">
+                {/* 使用 map 渲染 6 個步驟，保持代碼乾淨 */}
+                {t.steps.map((step, index) => (
+                  <div
+                    key={index}
+                    className="step flex flex-col md:flex-row md:items-center border-b border-gray-300 py-8 sm:py-10"
+                  >
+                    <div className="w-full md:w-[40%] p-4 flex justify-center">
+                      <Image
+                        src={step.img}
+                        alt={step.num}
+                        className="w-full max-w-[400px] h-auto object-contain"
+                        width={800}
+                        height={800}
+                      />
+                    </div>
+                    <div className="w-full md:w-[60%] p-4">
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+                        {step.num}
+                      </h2>
+                      <p className="text-lg sm:text-xl md:text-2xl font-medium">
+                        {step.text1}
+                      </p>
+                      {step.text2 && (
+                        <p className="text-base sm:text-lg md:text-xl text-gray-700 mt-2 flex items-start">
+                          {step.text2}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="w-full md:w-[60%] p-2 sm:p-4">
-                    {" "}
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-3
-                    </h2>
-                    <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Tap to Claim Free Offer
-                    </p>
-                    <p className="text-lg sm:text-xl md:text-2xl">
-                      點擊加入會員
-                    </p>
-                  </div>
-                </div>
+                ))}
 
-                {/* Step 2 */}
-                <div className="step flex flex-col md:flex-row md:items-center border-b border-gray-200 py-6 sm:py-8">
-                  <div className="w-full md:w-[40%] p-2 sm:p-4">
-                    <Image
-                      src="/images/app/Step2.png"
-                      alt="Step 2"
-                      className="w-full h-auto"
-                      width={800}
-                      height={800}
-                    />
+                {/* 會員注意事項 */}
+                <div className="mt-10 sm:mt-12 bg-white p-6 sm:p-8 rounded-xl border border-gray-200 shadow-sm">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">
+                    {t.termsTitle}
+                  </h3>
+                  <div className="space-y-4 text-base sm:text-lg text-gray-800 leading-relaxed">
+                    {t.terms.map((term, index) => (
+                      <div key={index} className="flex">
+                        <span className="mr-2 text-[#e7a042] font-bold">•</span>
+                        <p>{term}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div className="w-full md:w-[60%] p-2 sm:p-4">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-2
-                    </h2>
-                    <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Enter Your Cell Number
-                    </p>
-                    <p className="text-lg sm:text-xl md:text-2xl">
-                      輸入手機號碼
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="step flex flex-col md:flex-row md:items-center border-b border-gray-200 py-6 sm:py-8">
-                  <div className="w-full md:w-[40%] p-2 sm:p-4">
-                    <Image
-                      src="/images/app/Step3.png"
-                      alt="Step 3"
-                      className="w-full h-auto"
-                      width={800}
-                      height={800}
-                    />
-                  </div>
-                  <div className="w-full md:w-[60%] p-2 sm:p-4">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-3
-                    </h2>
-                    <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Enter The SMS Verification Code
-                    </p>
-                    <p className="text-lg sm:text-xl md:text-2xl">
-                      輸入簡訊驗證碼
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 4 */}
-                <div className="step flex flex-col md:flex-row md:items-center border-b border-gray-200 py-6 sm:py-8">
-                  <div className="w-full md:w-[40%] p-2 sm:p-4">
-                    <Image
-                      src="/images/app/Step4.png"
-                      alt="Step 4"
-                      className="w-full h-auto"
-                      width={800}
-                      height={800}
-                    />
-                  </div>
-                  <div className="w-full md:w-[60%] p-2 sm:p-4">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-4
-                    </h2>
-                    <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Set Your Password
-                    </p>
-                    <p className="text-lg sm:text-xl md:text-2xl">設定密碼</p>
-                  </div>
-                </div>
-
-                {/* Step 5 */}
-                <div className="step flex flex-col md:flex-row md:items-center border-b border-gray-200 py-6 sm:py-8">
-                  <div className="w-full md:w-[40%] p-2 sm:p-4">
-                    <Image
-                      src="/images/app/手機app Step  5.webp"
-                      alt="Step 5"
-                      className="w-[70%] mx-auto h-auto"
-                      width={800}
-                      height={800}
-                    />
-                  </div>
-                  <div className="w-full md:w-[60%] p-2 sm:p-4">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-5
-                    </h2>
-                    <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Membership Registeration Successful
-                    </p>
-                    <p className="text-lg sm:text-xl md:text-2xl">
-                      成功加入會員
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 6 */}
-                <div className="step flex flex-col md:flex-row md:items-center border-b border-gray-200 py-6 sm:py-8">
-                  <div className="w-full md:w-[40%] p-2 sm:p-4">
-                    <Image
-                      src="/images/app/Step6.png"
-                      alt="Step 6"
-                      className="w-full h-auto"
-                      width={800}
-                      height={800}
-                    />
-                  </div>
-                  <div className="w-full md:w-[60%] p-2 sm:p-4">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-                      Step-6
-                    </h2>
-                    <p className="text-lg sm:text-xl md:text-2xl mt-2">
-                      Earn Points with Every Purchase
-                    </p>
-                    <p className="text-lg sm:text-xl md:text-2xl">
-                      消費即可累積點數
-                    </p>
-                  </div>
-                </div>
-
-                {/* Note */}
-                <div className="mt-4 sm:mt-6 flex flex-col bg-white p-4 sm:p-5 rounded-lg border border-gray-100">
-                  <span className="text-base sm:text-lg text-gray-800">
-                    Point accumulation is subject to some restrictions
-                  </span>
-                  <b className="text-base sm:text-lg mt-1">
-                    點數累積有部分限制
-                  </b>
                 </div>
               </div>
             </div>

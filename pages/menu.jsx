@@ -24,7 +24,7 @@ const TRANSLATIONS = {
       home: "首頁",
       breadcrumb: "美味菜單",
     },
-    pageTitle: "菜單一覽",
+    pageTitle: "『餐廳菜單 & 線上商品一覽』",
     // LOGO 資料
     logos: [
       "/images/logo/有香-logo.png",
@@ -35,25 +35,38 @@ const TRANSLATIONS = {
       {
         id: "menu01",
         href: "/menu01",
-        title: "【經典台菜】傳承三代手路菜， 體驗台灣特有的飲食文化",
-        desc: "正港的台灣料理―祖傳當歸羊肉鍋、小火鍋、台式簡餐、熱炒料理、炸物小吃和台灣啤酒於有香呈現给您",
+        title: "【經典台灣料理】半世紀傳承，體驗台灣獨特的飲食文化",
+        desc: [
+          "從祖傳當歸羊肉鍋、台式火鍋，",
+          "到經典熱炒與酥香炸物，",
+          "再配上一杯台灣精釀啤酒，",
+          "在有香一次品嚐最經典的台味料理。",
+        ],
         img: "/images/menu/DAV01683.webp",
-        logoIndex: 0, // 對應到 logos 陣列的索引
+        logoIndex: 0,
       },
       {
         id: "menu02",
         href: "/menu02",
-        title: "【甜點鹹食】手工製作、品嘗的 到最地道的懷舊巷弄小吃",
-        desc: "匯聚台灣北中南美食，提供古早味甜品及經典小吃，無法抗拒的好滋味，等您來細細品嚐",
+        title: "【療癒甜點與鹹食】細緻手作台味，難忘的美食饗宴",
+        desc: [
+          "匯聚台灣北、中、南的甜點與鹹食，",
+          "從一口甜到一口鹹，",
+          "在每一次入口之間，",
+          "留下療癒又難忘的美食記憶。",
+        ],
         img: "/images/menu/Sweet-Memory-16-燒仙草＋凍氛圍照-2.webp",
         logoIndex: 1,
       },
       {
         id: "menu03",
         href: "/menu03",
-        title: "【台灣雜貨店】回味純真時光、 溫習童年小確幸",
-        desc: "販售與門店口味一致冷凍料理包，讓在家也能輕鬆品嚐美食。除此之外，也能夠買到古早味零食糖果和懷舊小物",
-
+        title: "【台味便利店】台灣好滋味，線上購物更方便",
+        desc: [
+          "從人氣零食到冷凍台味料理，",
+          "一鍵下單，輕鬆享受，",
+          "可選門店自取，或宅配到家。",
+        ],
         img: "/images/menu/DSC07304.webp",
         logoIndex: 2,
       },
@@ -72,7 +85,7 @@ const TRANSLATIONS = {
       home: "Home",
       breadcrumb: "Menu",
     },
-    pageTitle: "Our Menu",
+    pageTitle: "『Restaurant Menus & Online Product Overview』",
     logos: [
       "/images/logo/有香-logo.png",
       "/images/logo/億點點-logo.png",
@@ -82,25 +95,37 @@ const TRANSLATIONS = {
       {
         id: "menu01",
         href: "/menu01",
-        title: "【Classic Cuisine】Heritage Recipes, Unique Taiwanese Culture",
-        desc: "Authentic Taiwanese dishes - Ancestral Angelica Lamb Hot Pot, mini hot pots, set meals, stir-fries, fried snacks, and Taiwan Beer.",
+        title:
+          "【Classic Taiwanese Cuisine】Timeless flavours shaped by generations.",
+        desc: [
+          "Herbal lamb hot pot, classic stir-fries, crispy favourites,",
+          "and Taiwanese craft beer — all the essentials of Taiwan, in one place.",
+        ],
         img: "/images/menu/DAV01683.webp",
         logoIndex: 0,
       },
       {
         id: "menu02",
         href: "/menu02",
-        title: "【Desserts & Savory】Handmade, Authentic Nostalgic Street Food",
-        desc: "Gathering delicacies from North to South Taiwan, offering traditional desserts and classic snacks. Irresistible flavors waiting for you.",
+        title: "【Sweet & Savoury Delights】A Memorable Dining Experience",
+        desc: [
+          "Bringing together sweet and savoury delights from across Taiwan,",
+          "from the north to the south.",
+          "From one sweet bite to one savoury bite,",
+          "each moment leaves a comforting and unforgettable food memory.",
+        ],
         img: "/images/menu/Sweet-Memory-16-燒仙草＋凍氛圍照-2.webp",
         logoIndex: 1,
       },
       {
         id: "menu03",
         href: "/menu03",
-        title: "【Taiwan Grocery】Relive Innocent Times, Childhood Happiness",
-        desc: "Selling frozen meal packs with the same taste as in-store, allowing you to enjoy gourmet food at home. Also offering vintage snacks and items.",
-
+        title:
+          "【Taiwanese Convenience Store】Authentic Flavours, Easy Online Shopping",
+        desc: [
+          "From popular snacks to classic Taiwanese frozen meals,",
+          "order in just one click and enjoy with ease.Choose store pickup or home delivery.",
+        ],
         img: "/images/menu/DSC07304.webp",
         logoIndex: 2,
       },
@@ -139,7 +164,7 @@ export default function MenuPage({ t, locale }) {
       "@type": "ListItem",
       position: index + 1,
       name: item.title,
-      description: item.desc,
+      description: Array.isArray(item.desc) ? item.desc.join(" ") : item.desc,
       url: `${SITE_DOMAIN}${item.href}`,
       image: `${SITE_DOMAIN}${item.img}`,
     })),
@@ -207,50 +232,73 @@ export default function MenuPage({ t, locale }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-[1300px] px-4">
-          {t.items.map((item, index) => (
-            <Link
-              key={index}
-              href={item.href}
-              title={item.title}
-              className="bg-white group hover:scale-[1.02] hover:shadow-2xl transition-all duration-500 border border-stone-400 w-full h-[550px] sm:h-[480px] flex flex-col relative overflow-hidden"
-            >
-              {/* 圖片區塊容器 */}
-              <div className="aspect-[5/3] w-full relative shrink-0 overflow-hidden">
-                {/* 背景圖片 */}
-                <Image
-                  src={item.img}
-                  fill
-                  alt={item.title}
-                  className="object-cover transition-transform duration-700 group-hover:scale-110 brightness-90 group-hover:brightness-100" // 稍微調暗背景，讓 Logo 更突出，hover時恢復
-                  placeholder="empty"
-                  loading="lazy"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
+          {t.items.map((item, index) => {
+            // 處理標題拆分：以 "】" 作為分隔點
+            const titleParts = item.title.split("】");
+            const mainTitle = titleParts[0] + "】";
+            const subTitle = titleParts[1] || "";
 
-                {/* 【新增】Logo 覆蓋層：水平垂直居中 */}
-                <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-10">
-                  <div className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 transition-transform duration-500 group-hover:scale-105">
-                    <Image
-                      src={t.logos[item.logoIndex]}
-                      alt={`${item.title} Logo`}
-                      fill
-                      className="object-contain drop-shadow-lg" // 增加陰影讓白色 logo 更清楚
-                    />
+            return (
+              <Link
+                key={index}
+                href={item.href}
+                title={item.title}
+                className="bg-white group hover:scale-[1.02] hover:shadow-2xl transition-all duration-500 border border-stone-400 w-full min-h-[550px] sm:min-h-[480px] flex flex-col relative overflow-hidden"
+              >
+                {/* 圖片區塊容器 */}
+                <div className="aspect-[5/3] w-full relative shrink-0 overflow-hidden">
+                  {/* 背景圖片 */}
+                  <Image
+                    src={item.img}
+                    fill
+                    alt={item.title}
+                    className="object-cover transition-transform duration-700 group-hover:scale-110 brightness-90 group-hover:brightness-100"
+                    placeholder="empty"
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+
+                  {/* Logo 覆蓋層 */}
+                  <div className="absolute inset-0 flex justify-center items-center pointer-events-none z-10">
+                    <div className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 transition-transform duration-500 group-hover:scale-105">
+                      <Image
+                        src={t.logos[item.logoIndex]}
+                        alt={`${item.title} Logo`}
+                        fill
+                        className="object-contain drop-shadow-lg"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 文字區塊 */}
-              <div className="description p-8 flex-1 flex flex-col overflow-hidden bg-white relative z-20">
-                <h2 className="text-[22px] font-bold mb-4 text-[#3b2a1a] leading-snug line-clamp-2">
-                  {item.title}
-                </h2>
-                <p className="text-[15px] text-[#5c4e42] leading-relaxed line-clamp-4">
-                  {item.desc}
-                </p>
-              </div>
-            </Link>
-          ))}
+                {/* 文字區塊 */}
+                <div className="description p-8 flex-1 flex flex-col bg-white relative z-20">
+                  {/* 標題區塊 */}
+                  <h2 className="font-bold text-[#3b2a1a] leading-snug">
+                    <span className="block text-[22px] tracking-wide">
+                      {mainTitle}
+                    </span>
+                    {subTitle && (
+                      <span className="block text-[16px] italic font-normal text-[#7b5b33] mt-2 tracking-wider">
+                        {subTitle}
+                      </span>
+                    )}
+                  </h2>
+
+                  {/* 描述區塊 (陣列斷行渲染) */}
+                  <div className="text-[15px] text-[#5c4e42] leading-loose mt-5">
+                    {Array.isArray(item.desc)
+                      ? item.desc.map((line, idx) => (
+                          <span key={idx} className="block">
+                            {line}
+                          </span>
+                        ))
+                      : item.desc}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </main>
     </Layout>

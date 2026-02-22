@@ -39,7 +39,7 @@ const TRANSLATIONS = {
       brand_menu: "品牌菜單",
       current: "有香菜單",
     },
-    heading: "有香 ｜ 台 灣 小 吃 ｜ 菜 單",
+    heading: "有香 ｜ 『經典台灣料理』｜ 菜 單",
     imageAlt: "有香菜單頁面",
   },
   en: {
@@ -53,7 +53,7 @@ const TRANSLATIONS = {
       brand_menu: "Brand Menu",
       current: "Memory Corner Menu",
     },
-    heading: "MEMORY CORNER | TAIWANESE SNACKS | MENU",
+    heading: "Memory Corner | Classic Taiwanese Cuisine | Menu",
     imageAlt: "Memory Corner Menu Page",
   },
 };
@@ -237,7 +237,7 @@ export default function Menu01Page({ t, locale }) {
                 {t.breadcrumb.current}
               </span>
             </div>
-            <h1 className="mt-4 sm:mt-8 text-lg sm:text-3xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-stone-800 uppercase">
+            <h1 className="mt-4 sm:mt-8 text-lg sm:text-3xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-stone-800 ">
               {t.heading}
             </h1>
           </div>

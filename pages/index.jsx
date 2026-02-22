@@ -58,26 +58,29 @@ const TRANSLATIONS = {
       },
     },
     variety: {
-      title: "VARIETY",
-      subtitle: "Traditional grocery shop",
-      desc1: "販售各式台灣經典零食、懷舊童玩，以及方便好料理的台灣小吃冷凍包。",
-      desc2: "帶你重溫最經典的台灣味。",
-      desc3: "喜歡台味的朋友，能線上輕鬆訂購， 也歡迎到店逛逛！",
-      online_shop: "線上購物", // 新增
+      title: "台味便利店",
+      subtitle: "把台灣的好滋味，帶進你生活裡",
+      desc1:
+        "從最受喜愛的人氣零食，到熱銷的台味冷凍家常美食，把好滋味變得輕鬆簡單，隨時為你準備好。",
+      desc2: "門市選購或線上購物，讓台灣的好滋味，成為你每天的日常。",
+
+      online_shop: "線上購物",
+      store_info: "門店資訊", // 新增
     },
     about: {
       title: "ABOUT US",
       group_desc:
-        "始於1975年台灣高雄，在北美這片 土地上<br/>傳遞家的溫度與歸屬感",
-      memory_desc: "傳承三代手路菜<br/>正港的台灣料理",
+        "始於 1975 年，從一間街角餐廳，<br/>走向三個品牌與中央廚房的餐飲集團。<br/>我們將台灣的味道帶到北美溫哥華，<br/>讓每一道料理，都承載家的溫度與歸屬。",
+      memory_desc:
+        "大火快炒、慢燉入味與酥香炸物，<br/>成就半世紀傳承的經典台灣料理。",
       sweet_desc:
-        "手作甜點與飲品，蒐集生活裡那些 <br/>一點點卻很重要的甜美記憶。",
+        "細緻手作的台味甜點與鹹食，<br/>以療癒的滋味，帶來難忘的美食饗宴。",
     },
     app: {
-      title: "REWARDS APP",
-      subtitle: "Earn Points with Every Purchase",
+      title: "會員回饋計畫",
+      subtitle: "消費就有回饋",
       marquee: "Join Now — Start Earning Points!",
-      more_info: "更多資訊", // 新增
+      more_info: "立即加入會員",
     },
   },
   en: {
@@ -90,50 +93,49 @@ const TRANSLATIONS = {
     },
     beer: {
       honey: {
-        title: "Honey Lager Series",
+        title: "Honey-Infused Craft Beer Collection",
         description:
           "Rare, elegant longan honey perfectly blended with refreshing beer. Addictive from the first sip!",
       },
       girl: {
-        title: "Micro-Drunk Series",
+        title: "The Tipsy Girl Collection",
         description:
           "Cheeks blush, heart sweetens; a light buzz brings out your charm.",
       },
       fruit: {
-        title: "Fruit Brewing Series",
+        title: "Fruit-Infused Craft Beer Collection",
         description:
           "Direct fruit aroma, smooth and refreshing; every sip is the pure joy of fruit brewing.",
       },
       craft: {
-        title: "Artisan Brewing Series",
+        title: "Artisan Craft Beer Collection",
         description:
           "Award-winning smoothness. From easy-drinking to full-bodied, taste the stability, precision, and richness of the craftsman.",
       },
     },
     variety: {
-      title: "VARIETY",
-      subtitle: "Traditional Grocery Shop",
-      desc1:
-        "We sell a variety of classic Taiwanese snacks, nostalgic toys, and convenient frozen Taiwanese street food packs.",
-      desc2: "Relive the most classic Taiwanese flavors.",
-      desc3:
-        "Fans of Taiwanese taste can order online easily, or visit our store!",
-      online_shop: "Online-Shop", // 新增
+      title: "TAIWANESE CONVENIENCE STORE",
+      subtitle: "Bringing the flavors of Taiwan into your everyday life.",
+      desc1: "From our most-loved snacks to comforting Taiwanese frozen meals,",
+      desc2: "great flavors made easy — ready whenever you are.",
+      desc3: "In-store or online.",
+      online_shop: "Online-Shop",
+      store_info: "Store Info", // 新增
     },
     about: {
       title: "ABOUT US",
       group_desc:
-        "Started in Kaohsiung, Taiwan in 1975.<br/>Delivering the warmth of home and belonging in North America.",
+        "Founded in 1975,<br/>from one restaurant to three brands and a central kitchen,<br/>we bring Taiwanese food culture to life in North America,<br/>sharing the warmth and sense of home.",
       memory_desc:
-        "Inheriting three generations of culinary skills.<br/>Authentic Taiwanese cuisine.",
+        "From fiery stir-fries and slow-simmered dishes<br/>to crispy golden favourites,we craft timeless Taiwanese flavours.",
       sweet_desc:
-        "Handmade desserts and drinks.<br/>Collecting those small but important sweet memories in life.",
+        "Handcrafted Taiwanese desserts and savoury delights,<br/>bringing comforting flavours and unforgettable memories.",
     },
     app: {
-      title: "REWARDS APP",
-      subtitle: "Earn Points with Every Purchase",
+      title: "Member Rewards",
+      subtitle: "Earn Rewards with Every Purchase",
       marquee: "Join Now — Start Earning Points!",
-      more_info: "More", // 新增
+      more_info: "Join Our Community",
     },
   },
 };
@@ -207,7 +209,7 @@ function AutoSwapImage({
     if (isControlled || prefersReduced) return;
     const first = setTimeout(
       () => setInternalShowB((v) => !v),
-      initialDelay || interval
+      initialDelay || interval,
     );
     const timer = setInterval(() => setInternalShowB((v) => !v), interval);
     return () => {
@@ -454,7 +456,6 @@ export default function Home({ t, locale }) {
     name: SITE_NAME,
     url: SITE_URL,
     inLanguage: isEn ? "en" : "zh-Hant",
-    // 如果你站上沒有 /search，建議刪掉這段
     potentialAction: {
       "@type": "SearchAction",
       target: `${SITE_URL}/search?q={search_term_string}`,
@@ -474,7 +475,6 @@ export default function Home({ t, locale }) {
     ],
   };
 
-  // ✅ 地址/電話/座標請填「真實資料」，不確定就先不要放，避免 SEO 反效果
   const restaurantSchema = {
     "@context": "https://schema.org",
     "@type": "Restaurant",
@@ -483,9 +483,6 @@ export default function Home({ t, locale }) {
     priceRange: "$$",
     servesCuisine: "Taiwanese",
     url: SITE_URL,
-    // address: { ... }, // ✅ 有把握再填
-    // geo: { ... },     // ✅ 有把握再填
-    // telephone: "...", // ✅ 有把握再填
   };
 
   const webPageSchema = {
@@ -501,7 +498,6 @@ export default function Home({ t, locale }) {
     },
   };
 
-  // VideoObject：如果你能提供「真實上傳日期」就填 uploadDate
   const videoSchema = {
     "@context": "https://schema.org",
     "@type": "VideoObject",
@@ -644,7 +640,7 @@ export default function Home({ t, locale }) {
       <section className="section_Dinging mx-auto bg-[#efefef] relative overflow-x-hidden">
         <div
           ref={dingingRef}
-          className="mx-auto  sm:pt-20 max-w-[1920px] px-4 sm:px-6"
+          className="mx-auto sm:pt-20 max-w-[1920px] px-4 sm:px-6"
         >
           <div className="flex flex-col lg:flex-row justify-center">
             <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
@@ -663,7 +659,7 @@ export default function Home({ t, locale }) {
               <FadeUp amount={0.35} className="w-full max-w-[680px]">
                 <article className="flex flex-col">
                   <FadeUp>
-                    <h2 className="title-large font-bold m-0 p-0 leading-none">
+                    <h2 className="  font-extrabold m-0 p-0 leading-none">
                       {t.variety.title}
                     </h2>
                   </FadeUp>
@@ -682,17 +678,26 @@ export default function Home({ t, locale }) {
                       <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
                         {t.variety.desc2}
                       </p>
-                      <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
-                        {t.variety.desc3}
-                      </p>
+                      {t.variety.desc3 && (
+                        <p className="mt-2 text-[#333333] text-sm sm:text-xl leading-relaxed">
+                          {t.variety.desc3}
+                        </p>
+                      )}
                     </FadeUp>
 
                     <FadeUp delay={0.04}>
-                      <Link href="/groupBuy">
-                        <span className="inline-block bg-stone-800 mt-5 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
-                          {t.variety.online_shop}
-                        </span>
-                      </Link>
+                      <div className="flex flex-wrap gap-4 mt-5">
+                        <Link href="/groupBuy">
+                          <span className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+                            {t.variety.online_shop}
+                          </span>
+                        </Link>
+                        <Link href="/brand-story?tab=corner">
+                          <span className="inline-block border border-stone-800 text-stone-800 bg-transparent px-5 py-2 rounded-[3px] hover:bg-stone-800 hover:text-stone-50 hover:scale-105 scale-100 tracking-widest duration-300">
+                            {t.variety.store_info}
+                          </span>
+                        </Link>
+                      </div>
                     </FadeUp>
                   </div>
                 </article>
@@ -842,9 +847,9 @@ export default function Home({ t, locale }) {
         <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center md:px-10 px-5 xl:px-20 md:items-stretch gap-10 md:gap-16">
           <div className="w-full md:w-[50%] flex sm:p-10 p-8 md:p-20 items-center">
             <FadeUp amount={0.35} className="w-full">
-              <article className="flex flex-col justify-center items-center">
+              <article className="flex flex-col  ">
                 <FadeUp>
-                  <h2 className="title-large font-bold text-[#3b2619] leading-none text-wrap">
+                  <h2 className=" text-left font-extrabold text-7xl text-[#3b2619] leading-none text-wrap">
                     {t.app.title}
                   </h2>
                 </FadeUp>

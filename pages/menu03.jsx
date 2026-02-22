@@ -28,21 +28,22 @@ const TRANSLATIONS = {
       brand_menu: "品牌菜單",
       current: "有香ㄟ灶腳",
     },
-    heading: "有 香 ㄟ 灶 腳 ｜ 宅 配 美 味 ｜ 菜 單",
+    heading: "『有香ㄟ灶腳｜台味便利店｜線上商品一覽』",
     imageAlt: "有香ㄟ灶腳 Kitchen Corner 菜單",
   },
   en: {
     meta: {
-      title: "Menu | Kitchen Corner",
+      title: "Menu | 『Old Memory Kitchen Online Product Overview』",
       description:
         "Delivery menu of Kitchen Corner. Offering frozen meal packs and authentic Taiwanese home-cooked meals.",
     },
     breadcrumb: {
       home: "Home",
       brand_menu: "Brand Menu",
-      current: "Kitchen Corner",
+      current: "『Old Memory Kitchen Online Product Overview』",
     },
-    heading: "KITCHEN CORNER | DELIVERY MENU",
+    heading:
+      "Old Memory Kitchen ｜ Taiwanese Convenience Store ｜ Online Product Overview",
     imageAlt: "Kitchen Corner Delivery Menu",
   },
 };
@@ -257,7 +258,7 @@ export default function Menu03Page({ t, locale }) {
                 {t.breadcrumb.current}
               </span>
             </div>
-            <h1 className="mt-4 sm:mt-8 text-lg sm:text-3xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-stone-800 uppercase">
+            <h1 className="mt-4 sm:mt-8 text-lg sm:text-3xl font-bold tracking-[0.15em] sm:tracking-[0.25em] text-stone-800  ">
               {t.heading}
             </h1>
           </div>
