@@ -61,7 +61,7 @@ const NAV_TRANSLATIONS = {
       remove: "刪除",
     },
     sub_stores: [
-      { t: "關於有香餐飲集團", href: "/brand-story?tab=group" },
+      { t: "關於集團", href: "/brand-story?tab=group" },
       { t: "關於有香", href: "/brand-story?tab=youxiang" },
       { t: "關於憶點點", href: "/brand-story?tab=memory" },
       { t: "關於有香ㄟ灶腳", href: "/brand-story?tab=corner" },
@@ -101,10 +101,10 @@ const NAV_TRANSLATIONS = {
       remove: "Remove",
     },
     sub_stores: [
-      { t: "About Group", href: "/brand-story?tab=group" },
+      { t: "Our Group", href: "/brand-story?tab=group" },
       { t: "Memory Corner", href: "/brand-story?tab=youxiang" },
       { t: "Sweet Memory", href: "/brand-story?tab=memory" },
-      { t: "Kitchen Corner", href: "/brand-story?tab=corner" },
+      { t: "Old Memory Kitchen", href: "/brand-story?tab=corner" },
     ],
     sub_menus: [
       { t: "All Menus", href: "/menu" },

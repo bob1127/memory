@@ -206,64 +206,67 @@ const TRANSLATIONS = {
           id: "store-youxiang-van",
           name: "Memory Corner 有香 (Richmond)",
           tel: "(604) 284-5434",
-          addrLine1: "1110-4651 Garden City Rd",
-          addrLine2: "Richmond BC V6X 2K4",
+          addrLine1: "4651 Garden City Rd #1110",
+          addrLine2: "Richmond, BC V6X 2K4",
           postalCode: "V6X 2K4",
           addressLocality: "Richmond",
           addressRegion: "BC",
-          streetAddress: "1110-4651 Garden City Rd",
-          hours: "11:30 AM–10:30 PM",
+          streetAddress: "4651 Garden City Rd #1110",
+          hours:
+            "Sun-Thur\n• 11:30 AM – 3:00 PM (Last Call: 2:45 PM)\n• 4:00 PM – 10:00 PM (Last Call: 9:15 PM)\n\nFri & Sat\n• 11:30 AM – 3:00 PM (Last Call: 2:45 PM)\n• 4:00 PM – 11:00 PM (Last Call: 10:15 PM)",
           img: "/images/brand-story/memory-corner-01.png",
           mapUrl:
-            "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
+            "https://maps.google.com/?q=4651+Garden+City+Rd+%231110,+Richmond,+BC+V6X+2K4",
         },
         {
-          id: "store-youxiang-burnaby",
-          name: "Memory Corner 有香 (Burnaby)",
-          tel: "(604) 000-1234",
-          addrLine1: "1234 Kingsway",
-          addrLine2: "Burnaby BC V5H 2E2",
-          postalCode: "V5H 2E2",
-          addressLocality: "Burnaby",
+          id: "store-youxiang-coquitlam",
+          name: "Memory Corner 有香 (Coquitlam)",
+          tel: "(604) 917-0168",
+          addrLine1: "345 North Rd",
+          addrLine2: "Coquitlam, BC V3K 3V8",
+          postalCode: "V3K 3V8",
+          addressLocality: "Coquitlam",
           addressRegion: "BC",
-          streetAddress: "1234 Kingsway",
-          hours: "11:30 AM–10:00 PM",
+          streetAddress: "345 North Rd",
+          hours: "Daily\n• 11:30 AM – 11:00 PM",
           img: "/images/brand-story/有香光采.webp",
           mapUrl:
-            "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
+            "https://maps.google.com/?q=345+North+Rd,+Coquitlam,+BC+V3K+3V8",
         },
       ],
       memory: [
         {
           id: "store-memory-1",
           name: "Sweet Memory 憶點點",
-          tel: "(604) 370 - 2882",
-          addrLine1: "8080 Leslie Rd",
+          tel: "(604) 370-2882",
+          addrLine1: "8080 Leslie Rd #130",
           addrLine2: "Richmond, BC V6X 4A8",
           postalCode: "V6X 4A8",
           addressLocality: "Richmond",
           addressRegion: "BC",
-          streetAddress: "8080 Leslie Rd",
-          hours: "11:30 AM–12:30 AM",
+          streetAddress: "8080 Leslie Rd #130",
+          hours:
+            "Mon–Fri\n• 5:00 PM – 12:30 AM\n\nSat, Sun & All Holidays\n• 11:30 AM – 12:30 AM\n(All Holidays include school breaks)",
           img: "/images/brand-story/憶點點/憶點點(1280 x 650 像素).webp",
           mapUrl:
-            "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
+            "https://maps.google.com/?q=8080+Leslie+Rd+%23130,+Richmond,+BC+V6X+4A8",
         },
       ],
       corner: [
         {
           id: "store-corner-1",
-          name: "Kitchen Corner 有香ㄟ灶腳",
-          tel: "(604) 000 - 0000",
-          addrLine1: "Coming Soon",
-          addrLine2: "Vancouver, BC",
-          postalCode: "",
-          addressLocality: "Vancouver",
+          name: "Old Memory Kitchen 有香ㄟ灶腳",
+          tel: "(778) 723-1685",
+          addrLine1: "8080 Leslie Rd #150",
+          addrLine2: "Richmond, BC V6X 4A8",
+          postalCode: "V6X 4A8",
+          addressLocality: "Richmond",
           addressRegion: "BC",
-          streetAddress: "",
-          hours: "11:00 AM–08:00 PM",
+          streetAddress: "8080 Leslie Rd #150",
+          hours: "Daily\n• 10:00 AM – 7:00 PM",
           img: "/images/brand-story/有香ㄟ灶腳上方(1280 x 650 像素).webp",
-          mapUrl: "#",
+          mapUrl:
+            "https://maps.google.com/?q=8080+Leslie+Rd+%23150,+Richmond,+BC+V6X+4A8",
         },
       ],
     },
@@ -310,7 +313,7 @@ const TRANSLATIONS = {
       { id: "group", label: "Group" },
       { id: "youxiang", label: "Memory Corner" },
       { id: "memory", label: "Sweet Memory" },
-      { id: "corner", label: "Kitchen Corner" },
+      { id: "corner", label: " Old Memory Corner" },
     ],
     ui: {
       more_info: "MORE INFO",
@@ -495,64 +498,67 @@ const TRANSLATIONS = {
           id: "store-youxiang-van",
           name: "Memory Corner (Richmond)",
           tel: "(604) 284-5434",
-          addrLine1: "1110-4651 Garden City Rd",
-          addrLine2: "Richmond BC V6X 2K4",
+          addrLine1: "4651 Garden City Rd #1110",
+          addrLine2: "Richmond, BC V6X 2K4",
           postalCode: "V6X 2K4",
           addressLocality: "Richmond",
           addressRegion: "BC",
-          streetAddress: "1110-4651 Garden City Rd",
-          hours: "11:30 AM–10:30 PM",
+          streetAddress: "4651 Garden City Rd #1110",
+          hours:
+            "Sun-Thur\n• 11:30 AM – 3:00 PM (Last Call: 2:45 PM)\n• 4:00 PM – 10:00 PM (Last Call: 9:15 PM)\n\nFri & Sat\n• 11:30 AM – 3:00 PM (Last Call: 2:45 PM)\n• 4:00 PM – 11:00 PM (Last Call: 10:15 PM)",
           img: "/images/brand-story/memory-corner-01.png",
           mapUrl:
-            "https://www.google.com/maps/place/1110-4651+Garden+City+Rd,+Richmond,+BC+V6X+2K4",
+            "https://maps.google.com/?q=4651+Garden+City+Rd+%231110,+Richmond,+BC+V6X+2K4",
         },
         {
-          id: "store-youxiang-burnaby",
-          name: "Memory Corner (Burnaby)",
-          tel: "(604) 000-1234",
-          addrLine1: "1234 Kingsway",
-          addrLine2: "Burnaby BC V5H 2E2",
-          postalCode: "V5H 2E2",
-          addressLocality: "Burnaby",
+          id: "store-youxiang-coquitlam",
+          name: "Memory Corner (Coquitlam)",
+          tel: "(604) 917-0168",
+          addrLine1: "345 North Rd",
+          addrLine2: "Coquitlam, BC V3K 3V8",
+          postalCode: "V3K 3V8",
+          addressLocality: "Coquitlam",
           addressRegion: "BC",
-          streetAddress: "1234 Kingsway",
-          hours: "11:30 AM–10:00 PM",
+          streetAddress: "345 North Rd",
+          hours: "Daily\n• 11:30 AM – 11:00 PM",
           img: "/images/brand-story/有香光采.webp",
           mapUrl:
-            "https://www.google.com/maps/place/1234+Kingsway,+Burnaby,+BC",
+            "https://maps.google.com/?q=345+North+Rd,+Coquitlam,+BC+V3K+3V8",
         },
       ],
       memory: [
         {
           id: "store-memory-1",
           name: "Sweet Memory",
-          tel: "(604) 370 - 2882",
-          addrLine1: "8080 Leslie Rd",
+          tel: "(604) 370-2882",
+          addrLine1: "8080 Leslie Rd #130",
           addrLine2: "Richmond, BC V6X 4A8",
           postalCode: "V6X 4A8",
           addressLocality: "Richmond",
           addressRegion: "BC",
-          streetAddress: "8080 Leslie Rd",
-          hours: "11:30 AM–12:30 AM",
+          streetAddress: "8080 Leslie Rd #130",
+          hours:
+            "Mon–Fri\n• 5:00 PM – 12:30 AM\n\nSat, Sun & All Holidays\n• 11:30 AM – 12:30 AM\n(All Holidays include school breaks)",
           img: "/images/brand-story/憶點點/憶點點(1280 x 650 像素).webp",
           mapUrl:
-            "https://maps.google.com/?cid=11719382924442405009&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQ",
+            "https://maps.google.com/?q=8080+Leslie+Rd+%23130,+Richmond,+BC+V6X+4A8",
         },
       ],
       corner: [
         {
           id: "store-corner-1",
-          name: "Kitchen Corner",
-          tel: "(604) 000 - 0000",
-          addrLine1: "Coming Soon",
-          addrLine2: "Vancouver, BC",
-          postalCode: "",
-          addressLocality: "Vancouver",
+          name: "Old Memory Kitchen",
+          tel: "(778) 723-1685",
+          addrLine1: "8080 Leslie Rd #150",
+          addrLine2: "Richmond, BC V6X 4A8",
+          postalCode: "V6X 4A8",
+          addressLocality: "Richmond",
           addressRegion: "BC",
-          streetAddress: "",
-          hours: "11:00 AM–08:00 PM",
+          streetAddress: "8080 Leslie Rd #150",
+          hours: "Daily\n• 10:00 AM – 7:00 PM",
           img: "/images/brand-story/有香ㄟ灶腳上方(1280 x 650 像素).webp",
-          mapUrl: "#",
+          mapUrl:
+            "https://maps.google.com/?q=8080+Leslie+Rd+%23150,+Richmond,+BC+V6X+4A8",
         },
       ],
     },
@@ -1013,7 +1019,9 @@ function StoreCard({ store }) {
           itemScope
           itemType="https://schema.org/PostalAddress"
         >
-          <p itemProp="telephone">{store.tel}</p>
+          <p itemProp="telephone" className="font-bold text-[#4b2c1d]">
+            {store.tel}
+          </p>
           <p>
             <span itemProp="streetAddress">{store.streetAddress}</span>
             <br />
@@ -1022,9 +1030,13 @@ function StoreCard({ store }) {
             </span>, <span itemProp="addressRegion">{store.addressRegion}</span>{" "}
             <span itemProp="postalCode">{store.postalCode}</span>
           </p>
-          <p itemProp="openingHours" content={store.hours}>
+          <div
+            itemProp="openingHours"
+            content={store.hours.replace(/\n/g, " ")}
+            className="whitespace-pre-line mt-2 text-[#5c4e42]"
+          >
             {store.hours}
-          </p>
+          </div>
         </div>
 
         <a
@@ -1192,7 +1204,7 @@ export default function BrandStoryPage({ t, locale }) {
     },
     priceRange: "$$",
     servesCuisine: "Taiwanese",
-    openingHours: store.hours,
+    openingHours: store.hours.replace(/\n/g, " "),
   }));
 
   const jsonLdList = [breadcrumbSchema, organizationSchema, ...storesSchemas];
