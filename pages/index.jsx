@@ -646,13 +646,19 @@ export default function Home({ t, locale }) {
             <div className="left w-full lg:w-1/2 overflow-hidden aspect-[3/4] sm:aspect-[4/4] relative">
               <video
                 className="w-full h-full scale-[2.1] pb-[150px] object-cover"
-                src="/video/灶腳.webm"
                 autoPlay
                 loop
                 muted
                 playsInline
                 aria-label="Video of Taiwanese grocery shop"
-              />
+              >
+                {/* 優先提供給 Safari 讀取的透明背景格式 */}
+                <source src="/video/灶腳.mov" type="video/quicktime" />
+                {/* 提供給 Chrome / Firefox 讀取的透明背景格式 */}
+                <source src="/video/灶腳.webm" type="video/webm" />
+                {/* 可選：加入備用文字，當瀏覽器完全不支援時顯示 */}
+                您的瀏覽器不支援此影片格式。
+              </video>
             </div>
 
             <div className="right p-7 md:p-20 w-full lg:w-1/2 flex justify-center items-center px-4 sm:px-6 lg:px-8">
