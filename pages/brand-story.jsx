@@ -23,15 +23,21 @@ const TRANSLATIONS = {
       siteName: "有香餐飲集團 Memory Corner",
       ogLocale: "zh_TW",
     },
+    brandNames: {
+      group: "有香餐飲集團",
+      youxiang: "有香 Memory Corner",
+      memory: "憶點點 Sweet Memory",
+      corner: "有香ㄟ灶腳 Old Memory Kitchen",
+    },
     brandLogos: {
-      group: "/images/品牌門店logo/有香logo.png",
-      youxiang: "/images/品牌門店logo/有香logo.png",
-      memory: "/images/品牌門店logo/憶點點logo.png",
+      group: "/images/品牌門店logo/有香LOGO.png",
+      youxiang: "/images/品牌門店logo/有香LOGO.png",
+      memory: "/images/品牌門店logo/憶點點LOGO.png",
       corner: "/images/品牌門店logo/有香ㄟ灶腳LOGO.png",
     },
     brandList: {
       title: "旗下品牌",
-      desc: "有香餐飲集團匯聚多元品牌，從經典台菜、懷舊甜品到便利即時料理，用心傳承台灣飲食文化，全方位滿足您的味蕾。",
+      desc: "有香餐飲集團匯聚多元品牌，始終以料理為核心，從經典台灣料理到療癒甜點與鹹食，再到日常冷凍台式家常美味，持續傳承台灣飲食文化的深厚底蘊。凡事台味，生活更有滋味。",
       logos: [
         {
           src: "/images/品牌門店logo/有香LOGO.png",
@@ -282,10 +288,16 @@ const TRANSLATIONS = {
       siteName: "Memory Corner Group",
       ogLocale: "en_US",
     },
+    brandNames: {
+      group: "Memory Dining Group",
+      youxiang: "Memory Corner",
+      memory: "Sweet Memory",
+      corner: "Old Memory Kitchen",
+    },
     brandLogos: {
-      group: "/images/品牌門店logo/有香logo.png",
-      youxiang: "/images/品牌門店logo/有香logo.png",
-      memory: "/images/品牌門店logo/憶點點logo.png",
+      group: "/images/品牌門店logo/有香LOGO.png",
+      youxiang: "/images/品牌門店logo/有香LOGO.png",
+      memory: "/images/品牌門店logo/憶點點LOGO.png",
       corner: "/images/品牌門店logo/有香ㄟ灶腳LOGO.png",
     },
     brandList: {
@@ -1303,6 +1315,8 @@ export default function BrandStoryPage({ t, locale }) {
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           transition={{ duration: 0.3 }}
+                          // 👇 新增 flex 讓文字可以置中排在 Logo 下方
+                          className="flex flex-col items-center justify-center"
                         >
                           <Image
                             src={currentBrandLogo}
@@ -1311,6 +1325,10 @@ export default function BrandStoryPage({ t, locale }) {
                             height={80}
                             className="object-contain h-auto w-auto max-h-[80px]"
                           />
+                          {/* 👇 新增這行：動態顯示各分頁對應的公司名稱 */}
+                          <span className="mt-3 text-sm font-bold tracking-[0.15em] text-[#4b2c1d]">
+                            {t.brandNames?.[activeTab]}
+                          </span>
                         </motion.div>
                       </AnimatePresence>
                     </div>
