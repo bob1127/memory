@@ -154,7 +154,7 @@ function OrderPopup({ open, onClose }) {
             <div className="mx-auto w-full max-w-5xl hover:opacity-90 transition-opacity duration-300">
               <Link
                 href="https://h5.posking.ca/#/shop?id=598"
-                className="block w-full h-full drop-shadow-lg rounded-xl overflow-hidden"
+                className="block w-full h-full  rounded-xl overflow-hidden"
                 target="_blank"
               >
                 <Image

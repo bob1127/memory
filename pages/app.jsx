@@ -47,7 +47,7 @@ const TRANSLATIONS = {
         num: "Step-5",
         text1: "成功取得會員號碼",
         text2: "",
-        img: "/images/app/Step5.png",
+        img: "/images/app/手機app-Step--5.png",
       },
       {
         num: "Step-6",
@@ -100,7 +100,7 @@ const TRANSLATIONS = {
         num: "Step-5",
         text1: "Your membership number is successfully created",
         text2: "",
-        img: "/images/app/Step5.png",
+        img: "/images/app/手機app-Step--5.png",
       },
       {
         num: "Step-6",
