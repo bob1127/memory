@@ -25,9 +25,9 @@ const TRANSLATIONS = {
       ogLocale: "zh_TW", // FB/IG 用的語系代碼
     },
     hero: {
-      title: "為什麼選擇加盟有香？",
-      desc: "集團擁有多年餐飲經驗，從產品研發、門市營運到行銷推廣，皆具備成熟的系統與完善資源。我們提供可複製的成功模式與完善支援，加盟主可快速上手核心營運、穩定獲利。",
-      subtitle: "加盟創業首選品牌",
+      title: "加盟有香",
+      desc: "用對的方法，把餐廳生意做得更穩、更久有香餐飲集團深耕北美多年，從品牌定位、產品研發、供應鏈整合、營運系統到行銷推廣，皆建立起成熟且完善的營運架構。我們不只提供一個品牌招牌，而是一套經過市場驗證、可複製且能真正落地執行的開店模式。透過標準化流程、中央廚房支援與實務營運輔導，讓加盟夥伴能夠快速上手、降低風險，朝穩定營運與長期獲利邁進。",
+      subtitle: "用對的方法，把餐廳生意做得更穩、更久",
     },
     features: [
       {
@@ -351,15 +351,15 @@ export default function FranchiseInfoPage({ t, locale }) {
                   </h1>
                 </FadeUp>
                 <FadeUp delay={0.06}>
+                  <h2 className="text-[32px] mt-20 mx-auto font-bold text-center text-[#3b2a1a]">
+                    {t.hero.subtitle}
+                  </h2>
+
                   <p className="mt-5 max-w-prose text-base sm:text-[17px] leading-relaxed text-stone-800/90">
                     {t.hero.desc}
                   </p>
                 </FadeUp>
               </header>
-
-              <h2 className="text-[32px] mt-20 mx-auto font-bold text-center text-[#3b2a1a]">
-                {t.hero.subtitle}
-              </h2>
 
               {/* Features List */}
               <div className="mt-16 lg:mt-20 space-y-24">
@@ -457,12 +457,11 @@ export default function FranchiseInfoPage({ t, locale }) {
               {/* CTA Button */}
               <FadeUp delay={0.24}>
                 <div className="flex justify-center mt-12">
-                  <Link     href={t.ctaLink}>
-  <span className="inline-block mt-5 bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
-    更多資訊
-  </span>
-</Link>
-                   
+                  <Link href={t.ctaLink}>
+                    <span className="inline-block mt-5 bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300">
+                      更多資訊
+                    </span>
+                  </Link>
                 </div>
               </FadeUp>
             </div>
