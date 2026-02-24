@@ -681,12 +681,23 @@ export async function getStaticProps({ locale }) {
 
     initialItems = mergedList.filter((p) => {
       const cats = p.categories || [];
-      const isBeer = cats.some(
-        (c) =>
-          (c.slug && c.slug.toLowerCase().includes("beer")) ||
-          (c.name && c.name.includes("啤酒")),
-      );
+      const productName = (p.name || "").toLowerCase();
+      const productSlug = (p.slug || "").toLowerCase();
+
+      // 🛑 嚴格篩選：檢查分類名稱、產品名稱、產品網址代稱 是否包含「啤酒」或「beer」
+      const isBeer =
+        cats.some(
+          (c) =>
+            (c.slug && c.slug.toLowerCase().includes("beer")) ||
+            (c.name && c.name.includes("啤酒")),
+        ) ||
+        productName.includes("beer") ||
+        productName.includes("啤酒") ||
+        productSlug.includes("beer") ||
+        productSlug.includes("啤酒");
+
       if (isBeer) return false;
+
       if (p.lang) {
         if (locale === "en" && !p.lang.startsWith("en")) return false;
         if (locale === "zh-TW" && p.lang.startsWith("en")) return false;
