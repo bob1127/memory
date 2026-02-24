@@ -122,13 +122,17 @@ function splitName(full = "") {
 /* =================================================================
    3. API 主程式 (Handler)
    ================================================================= */
+/* =================================================================
+   3. API 主程式 (Handler)
+   ================================================================= */
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ ok: false, message: "Method not allowed" });
   }
 
   try {
-    const { cart = [], form = {}, shipping_fee = 0, tax = 0, customerId } = req.body || {};
+    // 💡 這裡新增接收 fulfillment_method 參數
+    const { cart = [], form = {}, shipping_fee = 0, tax = 0, customerId, fulfillment_method } = req.body || {};
     const { email = "", phone = "", name = "", deliveryAddress = "" } = form || {};
 
     // 基本驗證
@@ -172,9 +176,26 @@ export default async function handler(req, res) {
       quantity: Number(it.qty || 1),
     }));
 
-    const shipping_lines = Number(shipping_fee) > 0
-        ? [{ method_id: "flat_rate", method_title: "Flat rate", total: String(shipping_fee) }]
-        : [];
+    // 💡 修正運送方式判定：不管運費是不是 0，都根據前端傳來的 method 給予正確的標題
+    let shipping_lines = [];
+    if (fulfillment_method === "pickup") {
+      shipping_lines = [{ 
+        method_id: "local_pickup", 
+        method_title: "來店自取 (Store Pickup)", 
+        total: "0" 
+      }];
+    } else if (fulfillment_method === "delivery") {
+      shipping_lines = [{ 
+        method_id: "flat_rate", 
+        method_title: "外送宅配 (Delivery)", 
+        total: String(shipping_fee) 
+      }];
+    } else {
+      // 預防萬一的 Fallback
+      if (Number(shipping_fee) > 0) {
+        shipping_lines = [{ method_id: "flat_rate", method_title: "Flat rate", total: String(shipping_fee) }];
+      }
+    }
 
     const fee_lines = Number(tax) > 0
         ? [{ name: "Tax", total: String(tax) }]
@@ -187,7 +208,7 @@ export default async function handler(req, res) {
       billing,
       shipping,
       line_items,
-      shipping_lines,
+      shipping_lines, // 這裡會把設定好的運送方式傳給 Woo
       fee_lines,
     };
 
@@ -225,8 +246,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // 🟢 成功後發送 LINE 通知 (不等待，避免卡住前端回應)
-    // 注意：這裡使用 await 是為了確保 Lambda 執行完畢，避免 Vercel 提早殺掉 process
+    // 🟢 成功後發送 LINE 通知
+    // 因為上面有寫入 shipping_lines，這裡產生的 data.shipping_lines 就不會是空的了！
     await sendLineNotification(data, cart);
 
     // 回傳成功

@@ -777,7 +777,30 @@ export default function CheckoutPage() {
                           <line x1="12" y1="16" x2="12.01" y2="16"></line>
                         </svg>
                       </div>
-                      <div className="text-sm font-medium text-amber-800 leading-relaxed">
+                      <div className="text-sm font-medium text-amber-800 leading-relaxed w-full">
+                        {/* 這裡動態抓取後台的配送說明 */}
+                        {activePeriod &&
+                          (activePeriod.delivery_zh ||
+                            activePeriod.delivery_en) && (
+                            <div className="mb-3 p-2.5 bg-amber-200/40 rounded border border-amber-200/60 flex items-center gap-2">
+                              <span className="text-lg">🚚</span>
+                              <div>
+                                <div className="font-bold text-amber-900">
+                                  {locale === "en"
+                                    ? "Estimated Delivery:"
+                                    : "預計配送時間："}
+                                </div>
+                                <div className="text-amber-800 font-bold text-base mt-0.5">
+                                  {locale === "en"
+                                    ? activePeriod.delivery_en ||
+                                      activePeriod.delivery_zh
+                                    : activePeriod.delivery_zh ||
+                                      activePeriod.delivery_en}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                         <p>＊訂單送出後，將由專人致電與您聯繫安排配送日</p>
                         <p className="mt-1">
                           ＊After your order is placed, we will call you to

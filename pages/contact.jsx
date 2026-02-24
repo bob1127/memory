@@ -20,27 +20,39 @@ const TRANSLATIONS = {
       phone: "聯絡電話 (Phone Number)",
       phone_ph: "請輸入您的聯絡電話（可略過）",
       reason: "聯絡主題 (Reason for Contact)",
-      reason_default: "請選擇聯絡主題",
+      reason_default: "請選擇聯絡原因",
       store: "相關分店 (Store Location)",
       store_default: "請選擇分店（可略過）",
       date: "消費日期 (Date of Visit)",
       date_hint: "幫助我們追溯當天情況。",
       message: "訊息內容 (Message)",
-      message_ph: "請盡可能詳細描述您的情況。",
+      message_ph: "請寫下您的需求或想與我們分享的內容。",
       attachment: "上傳附件 (Attachment)",
       attachment_hint: "例如：收據、照片（可略過）。",
-      submit: "送出表單",
+      submit: "送出訊息",
       submitting: "送出中...",
+      reply_time: "我們會盡快回覆您，通常會在 1–3 個工作天內與您聯繫。",
       note: "* 為必填欄位",
       optional: "（選填）",
     },
     options: {
       reasons: [
-        { value: "Complaint: Food Quality", label: "客訴：餐點品質" },
-        { value: "Complaint: Service", label: "客訴：服務態度" },
-        { value: "Complaint: Store Environment", label: "客訴：環境清潔" },
-        { value: "General Suggestion", label: "一般建議" },
-        { value: "Business Cooperation", label: "商業合作" },
+        { value: "Dining Experience", label: "餐廳用餐相關" },
+        { value: "Convenience Store", label: "台味便利店購物相關" },
+        {
+          value: "Online Order (Restaurant Pickup)",
+          label: "線上訂購 (餐廳點餐自取)",
+        },
+        {
+          value: "Online Order (Online Shopping)",
+          label: "線上訂購 (線上購物)",
+        },
+        { value: "Online Order (Beer Order)", label: "線上訂購 (啤酒訂購)" },
+        { value: "General Suggestion & Feedback", label: "一般建議與回饋" },
+        {
+          value: "Business Cooperation / Media Inquiry",
+          label: "商業合作／媒體洽詢",
+        },
         { value: "Other", label: "其他" },
       ],
       stores: [
@@ -53,8 +65,8 @@ const TRANSLATIONS = {
           label: "憶點點 Sweet Memory (Richmond)",
         },
         {
-          value: "Kitchen Corner Richmond",
-          label: "有香ㄟ灶腳 Kitchen Corner (Richmond)",
+          value: "Old Memory Kitchen Richmond",
+          label: "有香ㄟ灶腳 Old Memory Kitchen (Richmond)",
         },
         {
           value: "Memory Corner Coquitlam",
@@ -63,8 +75,8 @@ const TRANSLATIONS = {
       ],
     },
     messages: {
-      error_store: "若為客訴，請選擇相關分店。",
-      error_date: "若為客訴，請填寫消費日期。",
+      error_store: "若為餐廳用餐相關，請選擇相關分店。",
+      error_date: "若為餐廳用餐相關，請填寫消費日期。",
       success: "表單已送出，我們會在 2–3 個工作日內回覆您，感謝！",
       fail: "送出失敗，請稍後再試，或改用其他聯絡方式，謝謝。",
     },
@@ -85,38 +97,56 @@ const TRANSLATIONS = {
       phone: "Phone Number",
       phone_ph: "Enter your phone number (Optional)",
       reason: "Reason for Contact",
-      reason_default: "Select a reason",
+      reason_default: "Please select a reason for contacting us.",
       store: "Store Location",
       store_default: "Select a store (Optional)",
       date: "Date of Visit",
       date_hint: "Helps us trace the incident.",
       message: "Message",
-      message_ph: "Please describe your situation in detail.",
+      message_ph: "Please share the details of your inquiry or message here.",
       attachment: "Attachment",
       attachment_hint: "E.g., Receipt, Photo (Optional).",
-      submit: "Submit",
+      submit: "Submit Inquiry",
       submitting: "Submitting...",
+      reply_time: "We’ll get back to you within 1–3 business days.",
       note: "* Required fields",
       optional: "(Optional)",
     },
     options: {
       reasons: [
-        { value: "Complaint: Food Quality", label: "Complaint: Food Quality" },
-        { value: "Complaint: Service", label: "Complaint: Service" },
+        { value: "Dining Experience", label: "Dining Experience" },
         {
-          value: "Complaint: Store Environment",
-          label: "Complaint: Store Environment",
+          value: "Convenience Store",
+          label: "Taiwanese Convenience Store Shopping",
         },
-        { value: "General Suggestion", label: "General Suggestion" },
-        { value: "Business Cooperation", label: "Business Cooperation" },
+        {
+          value: "Online Order (Restaurant Pickup)",
+          label: "Online Order (Restaurant Pickup)",
+        },
+        {
+          value: "Online Order (Online Shopping)",
+          label: "Online Order (Online Shopping)",
+        },
+        {
+          value: "Online Order (Beer Order)",
+          label: "Online Order (Beer Order)",
+        },
+        {
+          value: "General Suggestion & Feedback",
+          label: "General Suggestions & Feedback",
+        },
+        {
+          value: "Business Cooperation / Media Inquiry",
+          label: "Business Cooperation / Media Inquiry",
+        },
         { value: "Other", label: "Other" },
       ],
       stores: [
         { value: "Memory Corner Richmond", label: "Memory Corner (Richmond)" },
         { value: "Sweet Memory Richmond", label: "Sweet Memory (Richmond)" },
         {
-          value: "Kitchen Corner Richmond",
-          label: "Kitchen Corner (Richmond)",
+          value: "Old Memory Kitchen Richmond",
+          label: "Old Memory Kitchen (Richmond)",
         },
         {
           value: "Memory Corner Coquitlam",
@@ -125,8 +155,10 @@ const TRANSLATIONS = {
       ],
     },
     messages: {
-      error_store: "Please select a store location for complaints.",
-      error_date: "Please specify the date of visit for complaints.",
+      error_store:
+        "Please select a store location for dining experience inquiries.",
+      error_date:
+        "Please specify the date of visit for dining experience inquiries.",
       success:
         "Form submitted! We will get back to you within 2-3 business days. Thank you!",
       fail: "Submission failed. Please try again later or contact us via other methods.",
@@ -148,11 +180,8 @@ export default function ContactPage({ t, locale }) {
   const [status, setStatus] = useState({ type: "", message: "" });
   const [reason, setReason] = useState("");
 
-  // 判斷是否為客訴 (邏輯依賴 value 值，這些值在不同語系下保持一致)
-  const isComplaint =
-    reason === "Complaint: Food Quality" ||
-    reason === "Complaint: Service" ||
-    reason === "Complaint: Store Environment";
+  // 判斷是否與餐廳用餐體驗相關，藉此要求提供分店與日期資訊
+  const isStoreVisit = reason === "Dining Experience";
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -161,8 +190,8 @@ export default function ContactPage({ t, locale }) {
 
     const form = e.currentTarget;
 
-    // 額外驗證：如果是客訴，分店與日期必填
-    if (isComplaint) {
+    // 額外驗證：如果是餐廳用餐相關，分店與日期必填
+    if (isStoreVisit) {
       if (!form.storeLocation.value) {
         setStatus({
           type: "error",
@@ -317,7 +346,7 @@ export default function ContactPage({ t, locale }) {
               <div className="field">
                 <label className="label">
                   {t.form.store}
-                  {isComplaint ? (
+                  {isStoreVisit ? (
                     <span className="required">*</span>
                   ) : (
                     <span className="optional">{t.form.optional}</span>
@@ -338,7 +367,7 @@ export default function ContactPage({ t, locale }) {
               </div>
 
               {/* 欄位6：消費日期 */}
-              {isComplaint && (
+              {isStoreVisit && (
                 <div className="field">
                   <label className="label">
                     {t.form.date}
@@ -389,16 +418,24 @@ export default function ContactPage({ t, locale }) {
                 </div>
               )}
 
-              {/* 送出按鈕 */}
-              <div className="actions">
-                <button
-                  type="submit"
-                className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300"
-                  disabled={loading}
-                >
-                  {loading ? t.form.submitting : t.form.submit}
-                </button>
-                <p className="note">{t.form.note}</p>
+              {/* 送出按鈕與額外提示 */}
+              <div className="actions mt-4 items-start sm:items-center">
+                <div className="flex flex-col">
+                  <button
+                    type="submit"
+                    className="inline-block bg-stone-800 text-stone-50 px-5 py-2 rounded-[3px] hover:scale-105 scale-100 tracking-widest duration-300 w-fit"
+                    disabled={loading}
+                  >
+                    {loading ? t.form.submitting : t.form.submit}
+                  </button>
+                  {/* 新增的回覆時間小字 */}
+                  <p className="mt-3 text-sm text-[#64748b]">
+                    {t.form.reply_time}
+                  </p>
+                </div>
+                <p className="note self-start sm:self-auto mt-2 sm:mt-0">
+                  {t.form.note}
+                </p>
               </div>
             </form>
           </section>
@@ -476,7 +513,9 @@ export default function ContactPage({ t, locale }) {
             padding: 10px 12px;
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.18s ease, box-shadow 0.18s ease,
+            transition:
+              border-color 0.18s ease,
+              box-shadow 0.18s ease,
               background-color 0.18s ease;
             background-color: #f8fafc;
           }
@@ -505,14 +544,15 @@ export default function ContactPage({ t, locale }) {
 
           .select {
             appearance: none;
-            background-image: linear-gradient(
-                45deg,
-                transparent 50%,
-                #9ca3af 50%
-              ),
+            background-image:
+              linear-gradient(45deg, transparent 50%, #9ca3af 50%),
               linear-gradient(135deg, #9ca3af 50%, transparent 50%);
-            background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%;
-            background-size: 5px 5px, 5px 5px;
+            background-position:
+              calc(100% - 16px) 55%,
+              calc(100% - 11px) 55%;
+            background-size:
+              5px 5px,
+              5px 5px;
             background-repeat: no-repeat;
           }
 
@@ -531,14 +571,12 @@ export default function ContactPage({ t, locale }) {
             margin-top: 8px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
             gap: 8px;
           }
 
           @media (min-width: 640px) {
             .actions {
               flex-direction: row;
-              align-items: center;
               justify-content: space-between;
             }
           }
@@ -553,7 +591,9 @@ export default function ContactPage({ t, locale }) {
             background: linear-gradient(135deg, #d4a373, #f3d5b5);
             color: #ffffff;
             box-shadow: 0 12px 25px rgba(212, 163, 115, 0.35);
-            transition: transform 0.08s ease, box-shadow 0.08s ease;
+            transition:
+              transform 0.08s ease,
+              box-shadow 0.08s ease;
           }
 
           .button:hover:not(:disabled) {
