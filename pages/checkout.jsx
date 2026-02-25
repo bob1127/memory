@@ -267,8 +267,6 @@ const CHECKOUT_TRANSLATIONS = {
     payment_methods: {
       cod: "貨到付款/現場付款",
       credit: "信用卡",
-      transfer: "銀行轉帳",
-      linepay: "LINE Pay",
     },
     currency: "CA$",
   },
