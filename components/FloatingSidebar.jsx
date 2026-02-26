@@ -210,16 +210,6 @@ export default function FloatingSidebar() {
       src: "/images/sidebar/浮動選單-啤酒訂購.png",
       href: "/beer",
     },
-    {
-      label: "來店自取",
-      src: "/images/Store-Pickup.png",
-      href: "/checkout",
-    },
-    {
-      label: "宅配到家",
-      src: "/images/Scheduled-Delivery.png",
-      href: "/checkout",
-    },
   ];
 
   /* ---------------- 原本最穩定的 Inline Styles ---------------- */
