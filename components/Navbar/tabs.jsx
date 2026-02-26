@@ -460,150 +460,132 @@ export const SlideTabsExample = () => {
 
   const totalCartCount = generalCount + beerCount;
 
-  // 🛒 獨立區塊渲染函式
-  const renderCartSection = (isBeerSection) => {
-    const targetCart = isBeerSection ? beerCart : generalCart;
-    const targetCount = isBeerSection ? beerCount : generalCount;
-    const targetSubtotal = isBeerSection ? beerSubtotal : generalSubtotal;
-    const sectionTitle = isBeerSection
-      ? ui.beer_items || "啤酒專區"
-      : ui.general_items || "一般商品";
+  // ================= 🛒 UI Helper: 渲染商品清單 =================
+  const renderCartItemsList = (targetCart) => {
+    if (targetCart.length === 0) return <EmptyCart t={t} />;
+    return (
+      <ul className="space-y-3 pb-4">
+        <AnimatePresence initial={false}>
+          {targetCart.map((it, i) => (
+            <motion.li
+              key={it.id}
+              custom={i}
+              variants={listItem}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="rounded-xl border border-black/10 bg-white p-3 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center gap-3">
+                <img
+                  src={it.img}
+                  alt={it.name}
+                  className="h-20 w-20 shrink-0 rounded-lg bg-gray-50 object-contain ring-1 ring-black/5"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="line-clamp-2 text-sm font-medium">
+                    {getCartName(it, locale)}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5"
+                      onClick={() =>
+                        cartStore.setQty?.(
+                          it.id,
+                          Math.max(1, (it.qty || 1) - 1),
+                        )
+                      }
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <input
+                      className="h-7 w-12 rounded-lg border border-black/10 text-center text-sm"
+                      value={it.qty}
+                      onChange={(e) =>
+                        cartStore.setQty?.(
+                          it.id,
+                          Math.max(1, parseInt(e.target.value || "1", 10)),
+                        )
+                      }
+                    />
+                    <button
+                      className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5"
+                      onClick={() =>
+                        cartStore.setQty?.(it.id, (it.qty || 1) + 1)
+                      }
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="text-sm font-semibold whitespace-nowrap">
+                    CA${" "}
+                    {Number(
+                      Number(it.price || 0) * Number(it.qty || 0),
+                    ).toLocaleString()}
+                  </div>
+                  <button
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 whitespace-nowrap"
+                    onClick={() => cartStore.remove?.(it.id)}
+                  >
+                    <Trash2 size={14} /> {ui.remove || "刪除"}
+                  </button>
+                </div>
+              </div>
+            </motion.li>
+          ))}
+        </AnimatePresence>
+      </ul>
+    );
+  };
+
+  // ================= 🛒 UI Helper: 渲染結帳摘要 =================
+  const renderCartSummary = (
+    targetCart,
+    targetCount,
+    targetSubtotal,
+    isBeerSection,
+  ) => {
     const checkoutLabel = isBeerSection
       ? ui.checkout_beer || "啤酒結帳"
       : ui.checkout_general || "一般結帳";
     const checkoutRoute = isBeerSection ? "/checkout-beer" : "/checkout";
-
     return (
-      <div className="flex flex-col h-auto lg:h-full bg-white relative">
-        <div className="px-5 py-3 border-b border-black/10 bg-gray-50/80 flex justify-between items-center">
-          <h3 className="font-bold text-lg text-[#3c2514] flex items-center gap-2">
-            {sectionTitle}
-          </h3>
-          {targetCount > 0 && (
-            <span className="text-sm font-medium text-black/60">
-              {targetCount} {ui.item_unit}
-            </span>
-          )}
+      <div className="flex flex-col w-full">
+        <div className="flex justify-between text-sm mb-2 text-black/70">
+          <span>{ui.subtotal}</span>
+          <span className="font-medium text-black">
+            CA$ {targetSubtotal.toLocaleString()}
+          </span>
         </div>
-
-        <div className="flex-1 px-5 py-4 lg:overflow-y-auto">
-          {targetCart.length === 0 ? (
-            <EmptyCart t={t} />
-          ) : (
-            <ul className="space-y-3">
-              <AnimatePresence initial={false}>
-                {targetCart.map((it, i) => (
-                  <motion.li
-                    key={it.id}
-                    custom={i}
-                    variants={listItem}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    className="rounded-xl border border-black/10 bg-white p-3 shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={it.img}
-                        alt={it.name}
-                        className="h-20 w-20 shrink-0 rounded-lg bg-gray-50 object-contain ring-1 ring-black/5"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="line-clamp-2 text-sm font-medium">
-                          {getCartName(it, locale)}
-                        </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <button
-                            className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5"
-                            onClick={() =>
-                              cartStore.setQty?.(
-                                it.id,
-                                Math.max(1, (it.qty || 1) - 1),
-                              )
-                            }
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <input
-                            className="h-7 w-12 rounded-lg border border-black/10 text-center text-sm"
-                            value={it.qty}
-                            onChange={(e) =>
-                              cartStore.setQty?.(
-                                it.id,
-                                Math.max(
-                                  1,
-                                  parseInt(e.target.value || "1", 10),
-                                ),
-                              )
-                            }
-                          />
-                          <button
-                            className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5"
-                            onClick={() =>
-                              cartStore.setQty?.(it.id, (it.qty || 1) + 1)
-                            }
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="text-sm font-semibold whitespace-nowrap">
-                          CA${" "}
-                          {Number(
-                            Number(it.price || 0) * Number(it.qty || 0),
-                          ).toLocaleString()}
-                        </div>
-                        <button
-                          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 whitespace-nowrap"
-                          onClick={() => cartStore.remove?.(it.id)}
-                        >
-                          <Trash2 size={14} /> {ui.remove || "刪除"}
-                        </button>
-                      </div>
-                    </div>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ul>
-          )}
+        <div className="flex justify-between text-sm mb-3 text-black/70">
+          <span>{ui.shipping}</span>
+          <span className="text-black/60">{ui.shipping_calc}</span>
         </div>
-
-        <div className="border-t border-black/10 px-5 py-4 bg-gray-50/50">
-          <div className="flex justify-between text-sm mb-2 text-black/70">
-            <span>{ui.subtotal}</span>
-            <span className="font-medium text-black">
-              CA$ {targetSubtotal.toLocaleString()}
-            </span>
-          </div>
-          <div className="flex justify-between text-sm mb-3 text-black/70">
-            <span>{ui.shipping}</span>
-            <span className="text-black/60">{ui.shipping_calc}</span>
-          </div>
-          <div className="flex justify-between items-center border-t border-dashed border-black/10 pt-3 mb-4">
-            <span className="font-bold">{ui.total}</span>
-            <span className="text-lg font-bold text-[#9c2121]">
-              CA$ {targetSubtotal.toLocaleString()}
-            </span>
-          </div>
-          <div className="grid gap-2">
-            <button
-              className="w-full rounded-xl bg-black px-4 py-3 text-white shadow-sm hover:opacity-90 disabled:opacity-50 whitespace-nowrap"
-              onClick={() => {
-                setCartOpen(false);
-                router.push(checkoutRoute);
-              }}
-              disabled={targetCart.length === 0}
-            >
-              {checkoutLabel} ({targetCount})
-            </button>
-            <button
-              className="w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-black hover:bg-black/5 whitespace-nowrap"
-              onClick={() => setCartOpen(false)}
-            >
-              {ui.continue || "繼續逛逛"}
-            </button>
-          </div>
+        <div className="flex justify-between items-center border-t border-dashed border-black/10 pt-3 mb-4">
+          <span className="font-bold">{ui.total}</span>
+          <span className="text-lg font-bold text-[#9c2121]">
+            CA$ {targetSubtotal.toLocaleString()}
+          </span>
+        </div>
+        <div className="grid gap-2">
+          <button
+            className="w-full rounded-xl bg-black px-4 py-3 text-white shadow-sm hover:opacity-90 disabled:opacity-50 whitespace-nowrap transition-transform active:scale-[0.98]"
+            onClick={() => {
+              setCartOpen(false);
+              router.push(checkoutRoute);
+            }}
+            disabled={targetCart.length === 0}
+          >
+            {checkoutLabel} ({targetCount})
+          </button>
+          <button
+            className="w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-black hover:bg-black/5 whitespace-nowrap transition-transform active:scale-[0.98]"
+            onClick={() => setCartOpen(false)}
+          >
+            {ui.continue || "繼續逛逛"}
+          </button>
         </div>
       </div>
     );
@@ -951,7 +933,7 @@ export const SlideTabsExample = () => {
         </div>
       </OrderPopup>
 
-      {/* Cart Drawer (核心修改區) */}
+      {/* Cart Drawer (🔥 徹底解決滾動與按鈕擠壓問題 🔥) */}
       <AnimatePresence>
         {cartOpen && (
           <>
@@ -967,8 +949,8 @@ export const SlideTabsExample = () => {
               exit="exit"
               className="fixed flex flex-col h-[95vh] right-4 ml-4 top-4 z-[999999999999] w-[min(920px,92vw)] rounded-2xl border border-black/10 bg-white shadow-2xl overflow-hidden"
             >
-              {/* Drawer Header */}
-              <div className="flex-shrink-0 flex items-center justify-between gap-3 border-b border-black/10 px-5 py-3 bg-white z-10">
+              {/* Drawer 最上方 Header */}
+              <div className="shrink-0 flex items-center justify-between gap-3 border-b border-black/10 px-5 py-3 bg-white z-10">
                 <div className="flex items-center gap-2 text-lg font-semibold">
                   <ShoppingCart size={18} /> {t.cart}{" "}
                   {totalCartCount > 0 && (
@@ -985,26 +967,85 @@ export const SlideTabsExample = () => {
                 </button>
               </div>
 
-              {/* Drawer Body: 判斷是否有啤酒，如果有就開啟「雙拼模式」 */}
-              <div className="flex-1 overflow-y-auto lg:overflow-hidden bg-gray-100">
+              {/* Drawer Body Area：利用 absolute inset-0 確保嚴格的空間限制 */}
+              <div className="flex-1 relative min-h-0 bg-gray-100">
                 {beerCart.length > 0 ? (
-                  <div className="min-h-full grid grid-cols-1 lg:grid-cols-2 lg:h-full divide-y lg:divide-y-0 lg:divide-x border-black/10 bg-white">
-                    {/* 左側：一般商品區 */}
-                    {renderCartSection(false)}
-                    {/* 右側：啤酒專區 */}
-                    {renderCartSection(true)}
+                  // ================== 🍺 雙拼模式 ==================
+                  <div className="absolute inset-0 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x border-black/10 bg-white">
+                    {/* 左半邊：一般商品 */}
+                    <div className="flex-1 flex flex-col min-h-0 min-w-0">
+                      <div className="shrink-0 px-5 py-3 border-b border-black/10 bg-gray-50/80 flex justify-between items-center">
+                        <h3 className="font-bold text-lg text-[#3c2514]">
+                          {ui.general_items || "一般商品"}
+                        </h3>
+                        {generalCount > 0 && (
+                          <span className="text-sm font-medium text-black/60">
+                            {generalCount} {ui.item_unit}
+                          </span>
+                        )}
+                      </div>
+                      {/* 🔥 核心關鍵：flex-1 + min-h-0 + overflow-y-auto */}
+                      <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+                        {renderCartItemsList(generalCart)}
+                      </div>
+                      <div className="shrink-0 border-t border-black/10 px-5 py-4 bg-gray-50/50">
+                        {renderCartSummary(
+                          generalCart,
+                          generalCount,
+                          generalSubtotal,
+                          false,
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 右半邊：啤酒專區 */}
+                    <div className="flex-1 flex flex-col min-h-0 min-w-0">
+                      <div className="shrink-0 px-5 py-3 border-b border-black/10 bg-gray-50/80 flex justify-between items-center">
+                        <h3 className="font-bold text-lg text-[#3c2514]">
+                          {ui.beer_items || "🍺 啤酒專區"}
+                        </h3>
+                        {beerCount > 0 && (
+                          <span className="text-sm font-medium text-black/60">
+                            {beerCount} {ui.item_unit}
+                          </span>
+                        )}
+                      </div>
+                      {/* 🔥 核心關鍵：flex-1 + min-h-0 + overflow-y-auto */}
+                      <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+                        {renderCartItemsList(beerCart)}
+                      </div>
+                      <div className="shrink-0 border-t border-black/10 px-5 py-4 bg-gray-50/50">
+                        {renderCartSummary(
+                          beerCart,
+                          beerCount,
+                          beerSubtotal,
+                          true,
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  // 退回原始模式（當完全沒有啤酒時，套用舊的寬版佈局設計）
-                  <div className="h-full grid grid-cols-1 lg:grid-cols-3 bg-white">
-                    <div className="lg:col-span-2 overflow-y-auto px-5 py-4">
-                      {
-                        renderCartSection(false).props.children[1].props
-                          .children
-                      }
+                  // ================== 🍔 單一模式 (無啤酒) ==================
+                  <div className="absolute inset-0 flex flex-col lg:flex-row bg-white">
+                    {/* 左側清單區 */}
+                    <div className="lg:w-2/3 flex-1 flex flex-col min-h-0">
+                      <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+                        {renderCartItemsList(generalCart)}
+                      </div>
                     </div>
-                    <div className="border-t border-black/10 lg:border-l lg:border-t-0 bg-gray-50 overflow-y-auto">
-                      {renderCartSection(false).props.children[2]}
+                    {/* 右側結帳區 */}
+                    <div className="lg:w-1/3 shrink-0 lg:flex lg:flex-col border-t border-black/10 lg:border-l lg:border-t-0 bg-gray-50/80">
+                      <div className="p-5 flex flex-col h-full overflow-y-auto">
+                        <div className="font-bold text-lg mb-4 text-[#3c2514]">
+                          {ui.summary || "訂單摘要"}
+                        </div>
+                        {renderCartSummary(
+                          generalCart,
+                          generalCount,
+                          generalSubtotal,
+                          false,
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}

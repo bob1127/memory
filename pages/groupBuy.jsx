@@ -345,15 +345,29 @@ export default function GroupBuyPage({
     );
   }, [products, activeCat]);
 
+  // 切換分類時，把頁碼歸零回到第 1 頁
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCat]);
 
+  // 分頁邏輯：計算總頁數，並切割出當前頁面要顯示的 12 個商品
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      requestAnimationFrame(() =>
+        listTopRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        }),
+      );
+    }
+  };
 
   return (
     <Layout>
@@ -429,91 +443,127 @@ export default function GroupBuyPage({
                 {currentProducts.length === 0 ? (
                   <p className="text-center mt-10 text-gray-500">{t.empty}</p>
                 ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                    {currentProducts.map((p) => {
-                      const q = qtyMap[p.id] ?? 0;
-                      const { original, final, hasDiscount } =
-                        getDiscountedPrice(p);
-                      const displayName = isEn
-                        ? p.name_en || p.name
-                        : p.name_zh || p.name;
-                      return (
-                        <motion.article
-                          key={p.id}
-                          className="flex flex-col bg-white rounded-xl p-2.5 sm:p-3 shadow-sm ring-1 ring-black/5 hover:shadow-md transition group"
-                        >
-                          <Link
-                            href={`/product/${p.slug}?from=groupBuy`}
-                            className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden"
+                  <>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                      {currentProducts.map((p) => {
+                        const q = qtyMap[p.id] ?? 0;
+                        const { original, final, hasDiscount } =
+                          getDiscountedPrice(p);
+                        const displayName = isEn
+                          ? p.name_en || p.name
+                          : p.name_zh || p.name;
+                        return (
+                          <motion.article
+                            key={p.id}
+                            className="flex flex-col bg-white rounded-xl p-2.5 sm:p-3 shadow-sm ring-1 ring-black/5 hover:shadow-md transition group"
                           >
-                            {/* 🖼️ 極強防護：若無圖片，使用預設圖，絕對不會崩潰 */}
-                            <Image
-                              src={p.img || "/images/placeholder.png"}
-                              alt={displayName}
-                              fill
-                              className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.05]"
-                              sizes="(max-width: 768px) 50vw, 25vw"
-                            />
-                          </Link>
-                          <div className="text-center px-1 mt-2 flex-grow flex flex-col">
-                            <h3
-                              className="text-[13px] sm:text-[14px] font-bold leading-tight line-clamp-2 min-h-[2.4em] text-gray-800"
-                              title={displayName}
+                            <Link
+                              href={`/product/${p.slug}?from=groupBuy`}
+                              className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden"
                             >
-                              {displayName}
-                            </h3>
-                            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2">
-                              {hasDiscount ? (
-                                <>
-                                  <span className="text-gray-400 line-through text-xs scale-90">
-                                    CA${original.toFixed(2)}
-                                  </span>
-                                  <span className="text-red-700 font-bold text-sm">
+                              <Image
+                                src={p.img || "/images/placeholder.png"}
+                                alt={displayName}
+                                fill
+                                className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.05]"
+                                sizes="(max-width: 768px) 50vw, 25vw"
+                              />
+                            </Link>
+                            <div className="text-center px-1 mt-2 flex-grow flex flex-col">
+                              <h3
+                                className="text-[13px] sm:text-[14px] font-bold leading-tight line-clamp-2 min-h-[2.4em] text-gray-800"
+                                title={displayName}
+                              >
+                                {displayName}
+                              </h3>
+                              <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2">
+                                {hasDiscount ? (
+                                  <>
+                                    <span className="text-gray-400 line-through text-xs scale-90">
+                                      CA${original.toFixed(2)}
+                                    </span>
+                                    <span className="text-red-700 font-bold text-sm">
+                                      CA${final.toFixed(2)}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-black/80 font-medium text-sm">
                                     CA${final.toFixed(2)}
                                   </span>
-                                </>
-                              ) : (
-                                <span className="text-black/80 font-medium text-sm">
-                                  CA${final.toFixed(2)}
-                                </span>
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <div className="mt-2.5">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="mt-2.5">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => setQty(p.id, q - 1)}
+                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+                                  disabled={q <= 0}
+                                >
+                                  −
+                                </button>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={q}
+                                  onChange={(e) => setQty(p.id, e.target.value)}
+                                  className="w-12 text-center text-sm rounded-lg border border-gray-200 py-1.5 focus:outline-none focus:border-amber-400"
+                                />
+                                <button
+                                  onClick={() => setQty(p.id, q + 1)}
+                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+                                >
+                                  +
+                                </button>
+                              </div>
                               <button
-                                onClick={() => setQty(p.id, q - 1)}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+                                onClick={() => addToCart(p)}
                                 disabled={q <= 0}
+                                className={`mt-2 w-full rounded-lg py-1.5 text-sm font-medium text-white transition-all shadow-sm ${q > 0 ? "bg-[#e7a042] hover:bg-[#d69035] active:scale-[0.98]" : "bg-gray-300 cursor-not-allowed"}`}
                               >
-                                −
-                              </button>
-                              <input
-                                type="number"
-                                min={0}
-                                value={q}
-                                onChange={(e) => setQty(p.id, e.target.value)}
-                                className="w-12 text-center text-sm rounded-lg border border-gray-200 py-1.5 focus:outline-none focus:border-amber-400"
-                              />
-                              <button
-                                onClick={() => setQty(p.id, q + 1)}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
-                              >
-                                +
+                                {t.add_to_cart}
                               </button>
                             </div>
-                            <button
-                              onClick={() => addToCart(p)}
-                              disabled={q <= 0}
-                              className={`mt-2 w-full rounded-lg py-1.5 text-sm font-medium text-white transition-all shadow-sm ${q > 0 ? "bg-[#e7a042] hover:bg-[#d69035] active:scale-[0.98]" : "bg-gray-300 cursor-not-allowed"}`}
-                            >
-                              {t.add_to_cart}
-                            </button>
-                          </div>
-                        </motion.article>
-                      );
-                    })}
-                  </div>
+                          </motion.article>
+                        );
+                      })}
+                    </div>
+                    {/* 👇 渲染分頁按鈕 (如果總頁數大於 1 才會顯示) */}
+                    {totalPages > 1 && (
+                      <div className="mt-12 flex justify-center items-center gap-2">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1.5 rounded-md border bg-white text-sm hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {t.prev_page}
+                        </button>
+                        {Array.from(
+                          { length: totalPages },
+                          (_, i) => i + 1,
+                        ).map((pageNum) => (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`w-8 h-8 rounded-md text-sm font-medium transition ${
+                              currentPage === pageNum
+                                ? "bg-[#e7a042] text-white shadow-md scale-110"
+                                : "bg-white border hover:bg-gray-50 text-gray-600"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1.5 rounded-md border bg-white text-sm hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {t.next_page}
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </motion.div>
             </AnimatePresence>
@@ -524,7 +574,7 @@ export default function GroupBuyPage({
   );
 }
 
-// 🟢 [極客最終完美版] 完整抓取對應語系實體，徹底解決分類大亂鬥與重複問題！
+// 🟢 [最終完美版] 無限制數量！自動迴圈抓取所有分頁商品，不再被 100 筆限制卡住！
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
@@ -542,22 +592,44 @@ export async function getStaticProps({ locale }) {
   };
 
   try {
-    const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
-    storeURL.searchParams.set("per_page", "100");
-    storeURL.searchParams.set("status", "publish");
-    storeURL.searchParams.set("lang", wpLang);
+    const rawProducts = [];
+    let currentPageFetch = 1;
+    let hasMoreProducts = true;
 
-    const r = await fetch(storeURL.toString(), {
-      headers: { Accept: "application/json", Authorization: basicAuth(ck, cs) },
-    });
+    // ★ 關鍵突破：使用 while 迴圈抓取所有分頁商品，打破 100 筆的限制！
+    while (hasMoreProducts) {
+      const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
+      storeURL.searchParams.set("per_page", "100");
+      storeURL.searchParams.set("page", currentPageFetch.toString());
+      storeURL.searchParams.set("status", "publish");
+      storeURL.searchParams.set("lang", wpLang);
 
-    if (!r.ok)
-      return {
-        props: { initialItems: [], periods: [], debugLogs },
-        revalidate: 10,
-      };
+      const r = await fetch(storeURL.toString(), {
+        headers: {
+          Accept: "application/json",
+          Authorization: basicAuth(ck, cs),
+        },
+      });
 
-    const rawProducts = await r.json();
+      if (!r.ok) break; // 若發生錯誤則跳出迴圈
+
+      const chunk = await r.json();
+
+      // 將這一批抓到的商品塞進總陣列裡
+      if (Array.isArray(chunk) && chunk.length > 0) {
+        rawProducts.push(...chunk);
+      }
+
+      // 如果抓回來的商品不到 100 個，代表已經到最後一頁了，停止迴圈
+      if (!Array.isArray(chunk) || chunk.length < 100) {
+        hasMoreProducts = false;
+      } else {
+        // 如果抓滿 100 個，代表後面還有，繼續抓下一頁！
+        currentPageFetch++;
+      }
+    }
+
+    log(1, `成功抓回無數量限制的所有商品，共 ${rawProducts.length} 筆`);
 
     // 1. 找出缺少對應語系的商品 ID
     const missingIds = new Set();
@@ -572,7 +644,7 @@ export async function getStaticProps({ locale }) {
         missingIds.add(enId);
     });
 
-    // 2. 批次補抓「完整」的翻譯商品資料 (解決分類英文與重複的關鍵)
+    // 2. 批次補抓「完整」的翻譯商品資料
     if (missingIds.size > 0) {
       const idsArray = Array.from(missingIds);
       const chunkSize = 50;
@@ -582,14 +654,12 @@ export async function getStaticProps({ locale }) {
           const transUrl = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
           transUrl.searchParams.set("include", chunk.join(","));
           transUrl.searchParams.set("per_page", "100");
-          // ⚠️ 關鍵修正：我把限制拿掉了！現在它會把包含「分類」、「圖片」的完整中文商品抓回來
 
           const tRes = await fetch(transUrl.toString(), {
             headers: { Authorization: basicAuth(ck, cs) },
           });
           if (tRes.ok) {
             const tData = await tRes.json();
-            // 直接把完整的中文商品塞回我們的商品池裡！
             rawProducts.push(...tData);
           }
         } catch (e) {}
@@ -603,7 +673,6 @@ export async function getStaticProps({ locale }) {
     rawProducts.forEach((p) => {
       const trans = p.translations || {};
       const pLang = (p.lang || "").toLowerCase();
-      // 增加防護：判斷是否為中文商品
       const isZhProduct =
         pLang.includes("zh") || pLang.includes("hant") || pLang.includes("tw");
       const isEnProduct = pLang.includes("en");
@@ -617,7 +686,6 @@ export async function getStaticProps({ locale }) {
       if (processedGroups.has(groupId)) return;
       processedGroups.add(groupId);
 
-      // 由於我們剛剛把完整的翻譯商品塞進池子裡了，現在絕對找得到本尊！
       const zhObj =
         rawProducts.find((rp) => rp.id === zhId) || (isZhProduct ? p : null);
       const enObj =
@@ -625,7 +693,6 @@ export async function getStaticProps({ locale }) {
 
       const isZhLocale = locale === "zh-TW";
 
-      // ★ 鎖定正確的本尊：如果是中文版，絕對優先使用 zhObj
       const baseObj = isZhLocale ? zhObj || enObj || p : enObj || zhObj || p;
 
       const displayProduct = { ...baseObj };
@@ -639,13 +706,11 @@ export async function getStaticProps({ locale }) {
       displayProduct.name_en = finalEnName;
       displayProduct.linkedChineseId = zhId || baseObj.id;
 
-      // 圖片與分類，直接完美繼承本尊！
       let imgSrc = baseObj.images?.[0]?.src;
       if (imgSrc && !imgSrc.startsWith("http"))
         imgSrc = `${ensureURL(base)}${imgSrc}`;
       displayProduct.img = imgSrc || "/images/placeholder.png";
 
-      // 🏷️ 由於 baseObj 已經是正確的語系，這裡拿到的絕對是 100% 純正的中文分類！
       displayProduct.categories = baseObj.categories || [];
 
       finalProducts.push(displayProduct);
