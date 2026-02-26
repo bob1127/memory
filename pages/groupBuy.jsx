@@ -225,12 +225,17 @@ function GroupNoticeModal({ open, onClose, nextPeriod }) {
 /* =========================================================
    3. MAIN COMPONENT
    ========================================================= */
-export default function GroupBuyPage({ initialItems = [], periods = [] }) {
+export default function GroupBuyPage({
+  initialItems = [],
+  periods = [],
+  debugLogs = [],
+}) {
   const router = useRouter();
   const { locale } = router;
   const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
   const isEn = locale === "en";
   const products = initialItems;
+
   const [activeCat, setActiveCat] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [activePeriod, setActivePeriod] = useState(null);
@@ -254,6 +259,7 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     });
     return m;
   });
+
   useEffect(() => {
     if (!products?.length) return;
     setQtyMap((prev) => {
@@ -273,17 +279,13 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     setToast({ id: Date.now(), text });
     toastTimerRef.current = setTimeout(() => setToast(null), 2000);
   };
-  useEffect(
-    () => () => toastTimerRef.current && clearTimeout(toastTimerRef.current),
-    [],
-  );
+
   const setQty = (id, next) =>
     setQtyMap((m) => ({
       ...m,
       [id]: Math.max(0, Number.isFinite(+next) ? +next : 0),
     }));
 
-  // 🟢 [修正] 加入購物車時，使用後端準備好的雙語名稱
   const addToCart = (product) => {
     if (!activePeriod) {
       setShowGroupModal(true);
@@ -294,7 +296,6 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
     const safeQty = Math.max(1, raw);
     const { final } = getDiscountedPrice(product);
 
-    // 顯示用的名稱 (依當前語系)
     const displayName = isEn
       ? product.name_en || product.name
       : product.name_zh || product.name;
@@ -304,10 +305,9 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
         id: product.linkedChineseId || product.id,
         productId: product.id,
         name: displayName,
-        // ✅ 這裡寫入正確的中文與英文名稱 (從 props 來)
         name_zh: product.name_zh || displayName,
         name_en: product.name_en || displayName,
-        img: product.img,
+        img: product.img || "/images/placeholder.png", // 防護
         price: Number(final.toFixed(2)),
         store_type: "group_buy",
       },
@@ -344,31 +344,21 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
       (p.categories || []).some((c) => String(c.id) === String(activeCat)),
     );
   }, [products, activeCat]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCat]);
+
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      requestAnimationFrame(() =>
-        listTopRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        }),
-      );
-    }
-  };
 
   return (
     <Layout>
       <Head>
         <title key="title">{t.seo.title}</title>
-        <meta name="description" content={t.seo.description} />
       </Head>
       <main className="bg-[#f9f6f3] min-h-screen">
         <section className="pt-20 md:pt-0 max-h-screen overflow-hidden">
@@ -381,11 +371,13 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
             className="w-full h-full object-cover"
           />
         </section>
+
         <GroupNoticeModal
           open={showGroupModal}
           onClose={() => setShowGroupModal(false)}
           nextPeriod={nextPeriod}
         />
+
         <div className="pointer-events-none fixed inset-0 z-[200] flex items-end justify-center">
           <AnimatePresence mode="wait">
             {toast && (
@@ -400,7 +392,8 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
             )}
           </AnimatePresence>
         </div>
-        <section className="pt-28 pb-6">
+
+        <section className="pt-10 pb-6">
           <div className="max-w-[1600px] mx-auto w-[86%]">
             <h1 className="text-[20px] sm:text-[22px] md:text-[26px] font-bold tracking-wider">
               {t.title}
@@ -411,15 +404,7 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
                   {tabs.map((c) => (
                     <button
                       key={c.id}
-                      onClick={() => {
-                        setActiveCat(c.id);
-                        requestAnimationFrame(() =>
-                          listTopRef.current?.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start",
-                          }),
-                        );
-                      }}
+                      onClick={() => setActiveCat(c.id)}
                       className={`shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition text-[13px] sm:text-[14px] whitespace-nowrap ${String(c.id) === String(activeCat) ? "bg-[#e7a042] text-white border-[#e7a042]" : "bg-white text-black hover:bg-gray-50"}`}
                     >
                       {c.name}
@@ -430,6 +415,7 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
             </div>
           </div>
         </section>
+
         <section className="pb-24 min-h-[600px]">
           <div className="max-w-[1600px] mx-auto w-[86%]">
             <div ref={listTopRef} />
@@ -443,122 +429,91 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
                 {currentProducts.length === 0 ? (
                   <p className="text-center mt-10 text-gray-500">{t.empty}</p>
                 ) : (
-                  <>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                      {currentProducts.map((p) => {
-                        const q = qtyMap[p.id] ?? 0;
-                        const { original, final, hasDiscount } =
-                          getDiscountedPrice(p);
-                        const displayName = isEn
-                          ? p.name_en || p.name
-                          : p.name_zh || p.name;
-                        return (
-                          <motion.article
-                            key={p.id}
-                            className="flex flex-col bg-white rounded-xl p-2.5 sm:p-3 shadow-sm ring-1 ring-black/5 hover:shadow-md transition group"
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                    {currentProducts.map((p) => {
+                      const q = qtyMap[p.id] ?? 0;
+                      const { original, final, hasDiscount } =
+                        getDiscountedPrice(p);
+                      const displayName = isEn
+                        ? p.name_en || p.name
+                        : p.name_zh || p.name;
+                      return (
+                        <motion.article
+                          key={p.id}
+                          className="flex flex-col bg-white rounded-xl p-2.5 sm:p-3 shadow-sm ring-1 ring-black/5 hover:shadow-md transition group"
+                        >
+                          <Link
+                            href={`/product/${p.slug}?from=groupBuy`}
+                            className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden"
                           >
-                            <Link
-                              href={`/product/${p.slug}?from=groupBuy`}
-                              className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden"
+                            {/* 🖼️ 極強防護：若無圖片，使用預設圖，絕對不會崩潰 */}
+                            <Image
+                              src={p.img || "/images/placeholder.png"}
+                              alt={displayName}
+                              fill
+                              className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.05]"
+                              sizes="(max-width: 768px) 50vw, 25vw"
+                            />
+                          </Link>
+                          <div className="text-center px-1 mt-2 flex-grow flex flex-col">
+                            <h3
+                              className="text-[13px] sm:text-[14px] font-bold leading-tight line-clamp-2 min-h-[2.4em] text-gray-800"
+                              title={displayName}
                             >
-                              <Image
-                                src={p.img}
-                                alt={displayName}
-                                fill
-                                className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.05]"
-                                sizes="(max-width: 768px) 50vw, 25vw"
-                              />
-                            </Link>
-                            <div className="text-center px-1 mt-2 flex-grow flex flex-col">
-                              <h3
-                                className="text-[13px] sm:text-[14px] font-bold leading-tight line-clamp-2 min-h-[2.4em] text-gray-800"
-                                title={displayName}
-                              >
-                                {displayName}
-                              </h3>
-                              <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2">
-                                {hasDiscount ? (
-                                  <>
-                                    <span className="text-gray-400 line-through text-xs scale-90">
-                                      CA${original.toFixed(2)}
-                                    </span>
-                                    <span className="text-red-700 font-bold text-sm">
-                                      CA${final.toFixed(2)}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-black/80 font-medium text-sm">
+                              {displayName}
+                            </h3>
+                            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2">
+                              {hasDiscount ? (
+                                <>
+                                  <span className="text-gray-400 line-through text-xs scale-90">
+                                    CA${original.toFixed(2)}
+                                  </span>
+                                  <span className="text-red-700 font-bold text-sm">
                                     CA${final.toFixed(2)}
                                   </span>
-                                )}
-                              </div>
+                                </>
+                              ) : (
+                                <span className="text-black/80 font-medium text-sm">
+                                  CA${final.toFixed(2)}
+                                </span>
+                              )}
                             </div>
-                            <div className="mt-2.5">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => setQty(p.id, q - 1)}
-                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
-                                  disabled={q <= 0}
-                                >
-                                  −
-                                </button>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  value={q}
-                                  onChange={(e) => setQty(p.id, e.target.value)}
-                                  className="w-12 text-center text-sm rounded-lg border border-gray-200 py-1.5 focus:outline-none focus:border-amber-400"
-                                />
-                                <button
-                                  onClick={() => setQty(p.id, q + 1)}
-                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
-                                >
-                                  +
-                                </button>
-                              </div>
+                          </div>
+                          <div className="mt-2.5">
+                            <div className="flex items-center justify-center gap-2">
                               <button
-                                onClick={() => addToCart(p)}
+                                onClick={() => setQty(p.id, q - 1)}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
                                 disabled={q <= 0}
-                                className={`mt-2 w-full rounded-lg py-1.5 text-sm font-medium text-white transition-all shadow-sm ${q > 0 ? "bg-[#e7a042] hover:bg-[#d69035] active:scale-[0.98]" : "bg-gray-300 cursor-not-allowed"}`}
                               >
-                                {t.add_to_cart}
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                min={0}
+                                value={q}
+                                onChange={(e) => setQty(p.id, e.target.value)}
+                                className="w-12 text-center text-sm rounded-lg border border-gray-200 py-1.5 focus:outline-none focus:border-amber-400"
+                              />
+                              <button
+                                onClick={() => setQty(p.id, q + 1)}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+                              >
+                                +
                               </button>
                             </div>
-                          </motion.article>
-                        );
-                      })}
-                    </div>
-                    {totalPages > 1 && (
-                      <div className="mt-12 flex justify-center items-center gap-2">
-                        <button
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                          className="px-3 py-1.5 rounded-md border bg-white text-sm hover:bg-gray-50 disabled:opacity-50"
-                        >
-                          {t.prev_page}
-                        </button>
-                        {Array.from(
-                          { length: totalPages },
-                          (_, i) => i + 1,
-                        ).map((pageNum) => (
-                          <button
-                            key={pageNum}
-                            onClick={() => handlePageChange(pageNum)}
-                            className={`w-8 h-8 rounded-md text-sm font-medium transition ${currentPage === pageNum ? "bg-[#e7a042] text-white shadow-md scale-110" : "bg-white border hover:bg-gray-50 text-gray-600"}`}
-                          >
-                            {pageNum}
-                          </button>
-                        ))}
-                        <button
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                          className="px-3 py-1.5 rounded-md border bg-white text-sm hover:bg-gray-50 disabled:opacity-50"
-                        >
-                          {t.next_page}
-                        </button>
-                      </div>
-                    )}
-                  </>
+                            <button
+                              onClick={() => addToCart(p)}
+                              disabled={q <= 0}
+                              className={`mt-2 w-full rounded-lg py-1.5 text-sm font-medium text-white transition-all shadow-sm ${q > 0 ? "bg-[#e7a042] hover:bg-[#d69035] active:scale-[0.98]" : "bg-gray-300 cursor-not-allowed"}`}
+                            >
+                              {t.add_to_cart}
+                            </button>
+                          </div>
+                        </motion.article>
+                      );
+                    })}
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>
@@ -569,62 +524,60 @@ export default function GroupBuyPage({ initialItems = [], periods = [] }) {
   );
 }
 
-// 🟢 [修正] 後端邏輯：批次抓取翻譯名稱
+// 🟢 [極客最終完美版] 精準抓取對應語系實體，解決破圖與分類大亂鬥
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
   const cs = process.env.WC_CS;
-  const langMap = { "zh-TW": "zh_TW", en: "en" };
-  const wpLang = langMap[locale] || "zh_TW";
+
+  const langMap = { "zh-TW": "zh", en: "en" };
+  const wpLang = langMap[locale] || "zh";
+
   let initialItems = [];
   let periods = [];
+  let debugLogs = [];
+  const log = (step, msg) => {
+    console.log(`[DEBUG ${step}] ${msg}`);
+    debugLogs.push({ step, msg });
+  };
 
   try {
-    const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/store/products`);
+    const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
     storeURL.searchParams.set("per_page", "100");
+    storeURL.searchParams.set("status", "publish");
+    // 依然帶上 lang，但準備好處理混合資料
     storeURL.searchParams.set("lang", wpLang);
 
     const r = await fetch(storeURL.toString(), {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", Authorization: basicAuth(ck, cs) },
     });
+
     if (!r.ok)
-      return { props: { initialItems: [], periods: [] }, revalidate: 10 };
+      return {
+        props: { initialItems: [], periods: [], debugLogs },
+        revalidate: 10,
+      };
 
-    const list = await r.json();
-    const ids = list.map((p) => p.id).slice(0, 200);
-    const metaMap = new Map();
+    const rawProducts = await r.json();
 
-    if (ids.length && ck && cs) {
-      const v3 = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
-      v3.searchParams.set("include", ids.join(","));
-      v3.searchParams.set("per_page", String(ids.length));
-      v3.searchParams.set(
-        "_fields",
-        "id,name,short_description,sku,translations,meta_data,categories,lang",
-      );
-      v3.searchParams.set("lang", wpLang);
-      const vr = await fetch(v3.toString(), {
-        headers: { Authorization: basicAuth(ck, cs) },
-      });
-      if (vr.ok) {
-        const v3data = await vr.json();
-        v3data.forEach((it) => metaMap.set(it.id, it));
-      }
-    }
+    const missingIds = new Set();
+    rawProducts.forEach((p) => {
+      const trans = p.translations || {};
+      const zhId =
+        trans.zh || trans["zh-hant"] || trans["zh-TW"] || trans.zh_TW;
+      const enId = trans.en;
+      if (zhId && !rawProducts.some((rp) => rp.id === zhId))
+        missingIds.add(zhId);
+      if (enId && !rawProducts.some((rp) => rp.id === enId))
+        missingIds.add(enId);
+    });
 
-    // 🟢 批次抓取「另一種語言」的名稱
-    const translationIdsToFetch = [];
-    for (const item of metaMap.values()) {
-      const trans = item.translations || {};
-      const targetId =
-        locale === "en" ? trans.zh || trans.zh_TW || trans.zh_Hant : trans.en;
-      if (targetId) translationIdsToFetch.push(targetId);
-    }
-    const translatedNamesMap = new Map();
-    if (translationIdsToFetch.length > 0) {
+    const fetchedTranslations = new Map();
+    if (missingIds.size > 0) {
+      const idsArray = Array.from(missingIds);
       const chunkSize = 50;
-      for (let i = 0; i < translationIdsToFetch.length; i += chunkSize) {
-        const chunk = translationIdsToFetch.slice(i, i + chunkSize);
+      for (let i = 0; i < idsArray.length; i += chunkSize) {
+        const chunk = idsArray.slice(i, i + chunkSize);
         try {
           const transUrl = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
           transUrl.searchParams.set("include", chunk.join(","));
@@ -635,56 +588,78 @@ export async function getStaticProps({ locale }) {
           });
           if (tRes.ok) {
             const tData = await tRes.json();
-            tData.forEach((p) => translatedNamesMap.set(p.id, p.name));
+            tData.forEach((t) => fetchedTranslations.set(t.id, t.name));
           }
         } catch (e) {}
       }
     }
 
-    const mergedList = list.map((p) => {
-      const detail = metaMap.get(p.id) || {};
-      if (detail.categories && detail.categories.length > 0)
-        p.categories = detail.categories;
-      p.lang = detail.lang || "";
+    // ★ 完美變形核心：精準找尋對應實體
+    const processedGroups = new Set();
+    const finalProducts = [];
 
-      // 決定 ID 關聯
-      let linkedChineseId = p.id;
-      let otherLangId = null;
-      if (locale === "en") {
-        const zhId =
-          detail.translations?.zh ||
-          detail.translations?.zh_TW ||
-          detail.translations?.zh_Hant;
-        if (zhId) {
-          linkedChineseId = zhId;
-          otherLangId = zhId;
-        }
-      } else {
-        otherLangId = detail.translations?.en;
-      }
-      p.linkedChineseId = linkedChineseId;
+    rawProducts.forEach((p) => {
+      const trans = p.translations || {};
+      const pLang = (p.lang || "").toLowerCase();
+      const isZhProduct = pLang.includes("zh");
+      const isEnProduct = pLang.includes("en");
 
-      // 🟢 注入雙語名稱
-      const currentName = p.name;
-      const otherName = otherLangId
-        ? translatedNamesMap.get(otherLangId)
-        : currentName;
-      p.name_zh = locale === "zh-TW" ? currentName : otherName || currentName;
-      p.name_en = locale === "en" ? currentName : otherName || currentName;
+      // 找出這個商品家族的中英文 ID
+      const zhId = isZhProduct
+        ? p.id
+        : trans.zh || trans["zh-hant"] || trans["zh-TW"] || trans.zh_TW;
+      const enId = isEnProduct ? p.id : trans.en;
 
-      let imgSrc = p.images?.[0]?.src;
-      if (imgSrc && !imgSrc.startsWith("http"))
+      // 家族唯一識別碼
+      const groupId = zhId || enId || p.id;
+      if (processedGroups.has(groupId)) return;
+      processedGroups.add(groupId);
+
+      // ★ 魔法開始：嘗試從 rawProducts 找出「真正的中文實體」與「真正的英文實體」
+      const zhObj =
+        rawProducts.find((rp) => rp.id === zhId) || (isZhProduct ? p : null);
+      const enObj =
+        rawProducts.find((rp) => rp.id === enId) || (isEnProduct ? p : null);
+
+      const isZhLocale = locale === "zh-TW";
+
+      // ★ 關鍵：如果是中文版網頁，就強制拿「中文實體」當基底；沒有才拿英文墊背
+      // 這樣分類、圖片就會 100% 統一為正確語系！
+      const baseObj = isZhLocale ? zhObj || enObj || p : enObj || zhObj || p;
+
+      const displayProduct = { ...baseObj };
+
+      const fetchedZhName = fetchedTranslations.get(zhId);
+      const fetchedEnName = fetchedTranslations.get(enId);
+
+      const finalZhName = zhObj ? zhObj.name : fetchedZhName || baseObj.name;
+      const finalEnName = enObj ? enObj.name : fetchedEnName || baseObj.name;
+
+      displayProduct.id = isZhLocale ? zhId || baseObj.id : enId || baseObj.id;
+      displayProduct.name = isZhLocale ? finalZhName : finalEnName;
+      displayProduct.name_zh = finalZhName;
+      displayProduct.name_en = finalEnName;
+      displayProduct.linkedChineseId = zhId || baseObj.id;
+
+      // 🖼️ 完美修復：從基底物件抓出圖片網址
+      let imgSrc = baseObj.images?.[0]?.src || p.images?.[0]?.src;
+      if (imgSrc && !imgSrc.startsWith("http")) {
         imgSrc = `${ensureURL(base)}${imgSrc}`;
-      p.img = imgSrc || "/images/placeholder.png";
-      return p;
+      }
+      displayProduct.img = imgSrc || "/images/placeholder.png";
+
+      // 🏷️ 完美修復：強制使用基底物件的分類，徹底解決中英分類混雜與重複！
+      displayProduct.categories = baseObj.categories || [];
+
+      finalProducts.push(displayProduct);
     });
 
-    initialItems = mergedList.filter((p) => {
+    initialItems = finalProducts.filter((p) => {
       const cats = p.categories || [];
       const productName = (p.name || "").toLowerCase();
       const productSlug = (p.slug || "").toLowerCase();
 
-      // 🛑 嚴格篩選：檢查分類名稱、產品名稱、產品網址代稱 是否包含「啤酒」或「beer」
+      // 依然排除啤酒類商品
       const isBeer =
         cats.some(
           (c) =>
@@ -696,13 +671,7 @@ export async function getStaticProps({ locale }) {
         productSlug.includes("beer") ||
         productSlug.includes("啤酒");
 
-      if (isBeer) return false;
-
-      if (p.lang) {
-        if (locale === "en" && !p.lang.startsWith("en")) return false;
-        if (locale === "zh-TW" && p.lang.startsWith("en")) return false;
-      }
-      return true;
+      return !isBeer;
     });
 
     try {
@@ -712,8 +681,8 @@ export async function getStaticProps({ locale }) {
       if (timeRes.ok) periods = await timeRes.json();
     } catch (err) {}
   } catch (e) {
-    console.log(e);
+    log(99, `❌ 發生嚴重錯誤: ${e.message}`);
   }
 
-  return { props: { initialItems, periods }, revalidate: 10 };
+  return { props: { initialItems, periods, debugLogs }, revalidate: 10 };
 }
