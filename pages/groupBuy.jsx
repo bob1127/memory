@@ -41,12 +41,21 @@ const getDiscountedPrice = (p) => {
   let final = original;
   let label = "";
   const cats = p.categories || [];
+
+  // 📦 常溫判斷：只認中文「常溫」或英文「normal」
   const isRoomTemp = cats.some(
     (c) =>
-      c.name === "常溫" || c.slug?.includes("room") || c.slug === "ambient",
+      c.name === "常溫" ||
+      c.slug?.toLowerCase() === "normal" ||
+      c.name?.toLowerCase() === "normal",
   );
+
+  // ❄️ 冷凍判斷：只認中文「冷凍」或英文「freezing」
   const isFrozen = cats.some(
-    (c) => c.name === "冷凍" || c.slug?.includes("frozen"),
+    (c) =>
+      c.name === "冷凍" ||
+      c.slug?.toLowerCase() === "freezing" ||
+      c.name?.toLowerCase() === "freezing",
   );
 
   if (isRoomTemp) {

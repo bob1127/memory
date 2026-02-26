@@ -41,10 +41,12 @@ const isBeerProduct = (item) => {
     str.includes("啤酒") ||
     str.includes("台啤") ||
     str.includes("生啤") ||
-    str.includes("draft");
+    str.includes("draft") ||
+    str.includes("金牌") || // 🍺 新增：匹配「金牌 ONE」
+    str.includes("heineken") || // 🍺 預防性新增：海尼根
+    str.includes("kirin"); // 🍺 預防性新增：麒麟
   return check(n1) || check(n2) || check(n3);
 };
-
 /* =================== 1. 導覽列與購物車翻譯資料庫 =================== */
 const NAV_TRANSLATIONS = {
   "zh-TW": {
