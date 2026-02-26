@@ -524,7 +524,7 @@ export default function GroupBuyPage({
   );
 }
 
-// 🟢 [極客最終完美版] 精準抓取對應語系實體，解決破圖與分類大亂鬥
+// 🟢 [極客最終完美版] 完整抓取對應語系實體，徹底解決分類大亂鬥與重複問題！
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
@@ -545,7 +545,6 @@ export async function getStaticProps({ locale }) {
     const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
     storeURL.searchParams.set("per_page", "100");
     storeURL.searchParams.set("status", "publish");
-    // 依然帶上 lang，但準備好處理混合資料
     storeURL.searchParams.set("lang", wpLang);
 
     const r = await fetch(storeURL.toString(), {
@@ -560,6 +559,7 @@ export async function getStaticProps({ locale }) {
 
     const rawProducts = await r.json();
 
+    // 1. 找出缺少對應語系的商品 ID
     const missingIds = new Set();
     rawProducts.forEach((p) => {
       const trans = p.translations || {};
@@ -572,7 +572,7 @@ export async function getStaticProps({ locale }) {
         missingIds.add(enId);
     });
 
-    const fetchedTranslations = new Map();
+    // 2. 批次補抓「完整」的翻譯商品資料 (解決分類英文與重複的關鍵)
     if (missingIds.size > 0) {
       const idsArray = Array.from(missingIds);
       const chunkSize = 50;
@@ -581,41 +581,43 @@ export async function getStaticProps({ locale }) {
         try {
           const transUrl = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
           transUrl.searchParams.set("include", chunk.join(","));
-          transUrl.searchParams.set("_fields", "id,name");
           transUrl.searchParams.set("per_page", "100");
+          // ⚠️ 關鍵修正：我把限制拿掉了！現在它會把包含「分類」、「圖片」的完整中文商品抓回來
+
           const tRes = await fetch(transUrl.toString(), {
             headers: { Authorization: basicAuth(ck, cs) },
           });
           if (tRes.ok) {
             const tData = await tRes.json();
-            tData.forEach((t) => fetchedTranslations.set(t.id, t.name));
+            // 直接把完整的中文商品塞回我們的商品池裡！
+            rawProducts.push(...tData);
           }
         } catch (e) {}
       }
     }
 
-    // ★ 完美變形核心：精準找尋對應實體
+    // 3. 合併與變形
     const processedGroups = new Set();
     const finalProducts = [];
 
     rawProducts.forEach((p) => {
       const trans = p.translations || {};
       const pLang = (p.lang || "").toLowerCase();
-      const isZhProduct = pLang.includes("zh");
+      // 增加防護：判斷是否為中文商品
+      const isZhProduct =
+        pLang.includes("zh") || pLang.includes("hant") || pLang.includes("tw");
       const isEnProduct = pLang.includes("en");
 
-      // 找出這個商品家族的中英文 ID
       const zhId = isZhProduct
         ? p.id
         : trans.zh || trans["zh-hant"] || trans["zh-TW"] || trans.zh_TW;
       const enId = isEnProduct ? p.id : trans.en;
 
-      // 家族唯一識別碼
       const groupId = zhId || enId || p.id;
       if (processedGroups.has(groupId)) return;
       processedGroups.add(groupId);
 
-      // ★ 魔法開始：嘗試從 rawProducts 找出「真正的中文實體」與「真正的英文實體」
+      // 由於我們剛剛把完整的翻譯商品塞進池子裡了，現在絕對找得到本尊！
       const zhObj =
         rawProducts.find((rp) => rp.id === zhId) || (isZhProduct ? p : null);
       const enObj =
@@ -623,17 +625,13 @@ export async function getStaticProps({ locale }) {
 
       const isZhLocale = locale === "zh-TW";
 
-      // ★ 關鍵：如果是中文版網頁，就強制拿「中文實體」當基底；沒有才拿英文墊背
-      // 這樣分類、圖片就會 100% 統一為正確語系！
+      // ★ 鎖定正確的本尊：如果是中文版，絕對優先使用 zhObj
       const baseObj = isZhLocale ? zhObj || enObj || p : enObj || zhObj || p;
 
       const displayProduct = { ...baseObj };
 
-      const fetchedZhName = fetchedTranslations.get(zhId);
-      const fetchedEnName = fetchedTranslations.get(enId);
-
-      const finalZhName = zhObj ? zhObj.name : fetchedZhName || baseObj.name;
-      const finalEnName = enObj ? enObj.name : fetchedEnName || baseObj.name;
+      const finalZhName = zhObj ? zhObj.name : baseObj.name;
+      const finalEnName = enObj ? enObj.name : baseObj.name;
 
       displayProduct.id = isZhLocale ? zhId || baseObj.id : enId || baseObj.id;
       displayProduct.name = isZhLocale ? finalZhName : finalEnName;
@@ -641,25 +639,24 @@ export async function getStaticProps({ locale }) {
       displayProduct.name_en = finalEnName;
       displayProduct.linkedChineseId = zhId || baseObj.id;
 
-      // 🖼️ 完美修復：從基底物件抓出圖片網址
-      let imgSrc = baseObj.images?.[0]?.src || p.images?.[0]?.src;
-      if (imgSrc && !imgSrc.startsWith("http")) {
+      // 圖片與分類，直接完美繼承本尊！
+      let imgSrc = baseObj.images?.[0]?.src;
+      if (imgSrc && !imgSrc.startsWith("http"))
         imgSrc = `${ensureURL(base)}${imgSrc}`;
-      }
       displayProduct.img = imgSrc || "/images/placeholder.png";
 
-      // 🏷️ 完美修復：強制使用基底物件的分類，徹底解決中英分類混雜與重複！
+      // 🏷️ 由於 baseObj 已經是正確的語系，這裡拿到的絕對是 100% 純正的中文分類！
       displayProduct.categories = baseObj.categories || [];
 
       finalProducts.push(displayProduct);
     });
 
+    // 4. 過濾無關商品
     initialItems = finalProducts.filter((p) => {
       const cats = p.categories || [];
       const productName = (p.name || "").toLowerCase();
       const productSlug = (p.slug || "").toLowerCase();
 
-      // 依然排除啤酒類商品
       const isBeer =
         cats.some(
           (c) =>
