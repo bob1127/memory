@@ -10,11 +10,12 @@ import {
   Minus,
   Plus,
   Trash2,
-  Store,
-  Truck,
   Calendar,
   ChevronLeft,
   Lock,
+  Store,
+  MapPin,
+  MessageCircle,
 } from "lucide-react";
 import { cartStore } from "@/lib/cartStore";
 import { authStore } from "@/lib/authStore";
@@ -116,6 +117,21 @@ function getNextPeriod(periods = []) {
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
   return upcoming[0] || null;
 }
+
+// 🍺 判斷是否為啤酒商品 (一般結帳過濾用)
+const isBeerProduct = (item) => {
+  if (!item) return false;
+  const n1 = String(item.name || "").toLowerCase();
+  const n2 = String(item.name_zh || "").toLowerCase();
+  const n3 = String(item.name_en || "").toLowerCase();
+  const check = (str) =>
+    str.includes("beer") ||
+    str.includes("啤酒") ||
+    str.includes("台啤") ||
+    str.includes("生啤") ||
+    str.includes("draft");
+  return check(n1) || check(n2) || check(n3);
+};
 
 /* =================== Modal =================== */
 function GroupNoticeModal({ open, onClose, nextPeriod }) {
@@ -224,7 +240,7 @@ const AREAS = [
 const CHECKOUT_TRANSLATIONS = {
   "zh-TW": {
     title_contact: "聯絡資訊",
-    title_recipient: "收件人",
+    title_recipient: "收件人 / 訂購人",
     title_area: "外送地區",
     title_pickup_date: "自取日期",
     title_payment: "付款方式",
@@ -253,6 +269,10 @@ const CHECKOUT_TRANSLATIONS = {
     change_method: "更改取貨方式",
     delivery_closed: "非配送時段",
     delivery_closed_desc: "目前暫停配送",
+    pickup_location_title: "📍 團購專屬自取點",
+    pickup_store: "有香ㄟ灶腳 (Old Memory Kitchen)",
+    pickup_address: "8080 Leslie Rd Unit 150, Richmond, BC V6X 4A8",
+    delivery_payment_notice: "下單後客服會聯繫，並提供 e-transfer 的 email",
     alerts: {
       empty_cart: "購物車為空",
       email_required: "Email 必填",
@@ -265,14 +285,13 @@ const CHECKOUT_TRANSLATIONS = {
       error: "下單發生錯誤：",
     },
     payment_methods: {
-      cod: "貨到付款/現場付款",
-      credit: "信用卡",
+      cod: "貨到付款 / 現場付款",
     },
     currency: "CA$",
   },
   en: {
     title_contact: "Contact Info",
-    title_recipient: "Recipient",
+    title_recipient: "Recipient / Customer",
     title_area: "Delivery Area",
     title_pickup_date: "Pickup Date",
     title_payment: "Payment Method",
@@ -301,6 +320,11 @@ const CHECKOUT_TRANSLATIONS = {
     change_method: "Change Method",
     delivery_closed: "Delivery Closed",
     delivery_closed_desc: "Currently unavailable",
+    pickup_location_title: "📍 Group Buy Pickup Location",
+    pickup_store: "Old Memory Kitchen",
+    pickup_address: "8080 Leslie Rd Unit 150, Richmond, BC V6X 4A8",
+    delivery_payment_notice:
+      "After placing order, our service team will contact you and provide the e-transfer email.",
     alerts: {
       empty_cart: "Cart is empty",
       email_required: "Email is required",
@@ -314,9 +338,6 @@ const CHECKOUT_TRANSLATIONS = {
     },
     payment_methods: {
       cod: "Cash on Delivery / Pay at Store",
-      credit: "Credit Card",
-      transfer: "Bank Transfer",
-      linepay: "LINE Pay",
     },
     currency: "CA$",
   },
@@ -353,17 +374,17 @@ export default function CheckoutPage() {
 
   /* ------------------ Init ------------------ */
   useEffect(() => {
-    // 1. 初始化 Cart Store
     cartStore.init();
-
-    // 2. 訂閱 Store 變更 (這是關鍵！當 Store 變更時，這裡會收到最新資料)
-    const unsubCart = cartStore.subscribe((c) => setCart([...c]));
+    // 關鍵修改：過濾掉「啤酒」商品
+    const unsubCart = cartStore.subscribe((c) => {
+      setCart(c.filter((item) => !isBeerProduct(item)));
+    });
 
     authStore.init?.();
     const unsubAuth = authStore.subscribe((s) => setAuth({ ...s }));
     setAvailableDates(getNext7DaysCanada(locale));
 
-    // 3. 抓取排程
+    // 抓取排程
     const fetchPeriods = async () => {
       try {
         let baseUrl = WORDPRESS_URL;
@@ -397,44 +418,45 @@ export default function CheckoutPage() {
     return () => clearInterval(interval);
   }, [periods]);
 
-  // Auth 同步
+  // Auth & 付款方式自動同步
   useEffect(() => {
-    if (!auth?.user) return;
+    const defaultPayment = (
+      CHECKOUT_TRANSLATIONS[locale] || CHECKOUT_TRANSLATIONS["zh-TW"]
+    ).payment_methods.cod;
+
+    if (!auth?.user) {
+      setForm((prev) => ({ ...prev, payment: defaultPayment }));
+      return;
+    }
     const u = auth.user;
     const b = u.billing || {};
     const firstName =
       b.first_name || u.first_name || u.displayName || u.name || "";
     const lastName = b.last_name || u.last_name || "";
     const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
     setForm((prev) => ({
       ...prev,
       name: prev.name || fullName,
       phone: prev.phone || b.phone || u.phone || "",
       email: prev.email || u.email || u.user_email || "",
       deliveryAddress: prev.deliveryAddress || b.address_1 || "",
+      payment: defaultPayment,
     }));
-  }, [auth?.user]);
+  }, [auth?.user, locale]);
 
-  /* ------------------ [修正] Logic: 使用 Store 方法直接操作 ------------------ */
-
-  // 修正：刪除本地 setCart 操作，改為呼叫 cartStore.setQty
-  // Store 更新後會觸發上方的 useEffect，自動更新頁面上的 cart 狀態
+  /* ------------------ Store Methods ------------------ */
   const handleUpdateQty = (itemId, change) => {
     const item = cart.find((i) => i.id === itemId);
     if (!item) return;
     const newQty = Math.max(1, (item.qty || 1) + change);
-
-    // 呼叫 Store 的方法 (會同步到 localStorage 和 Navbar)
     if (cartStore.setQty) {
       cartStore.setQty(itemId, newQty);
     }
   };
 
-  // 修正：刪除本地 setCart 操作，改為呼叫 cartStore.remove
   const handleRemoveItem = (itemId) => {
     if (!confirm("Are you sure?")) return;
-
-    // 呼叫 Store 的方法 (會同步到 localStorage 和 Navbar)
     if (cartStore.remove) {
       cartStore.remove(itemId);
     }
@@ -479,7 +501,8 @@ export default function CheckoutPage() {
           : form.email;
       if (!emailToUse) return alert(t.alerts.email_required);
       if (!form.name || !form.phone) return alert(t.alerts.info_required);
-      if (!form.payment) return alert(t.alerts.payment_required);
+
+      // 根據方式檢查必填
       if (fulfillmentMethod === "delivery") {
         if (!form.deliveryArea) return alert(t.alerts.area_required);
         if (!form.deliveryAddress.trim())
@@ -487,12 +510,22 @@ export default function CheckoutPage() {
         if (orderSummary.subtotal < 80) return alert(t.alerts.min_order);
       } else if (fulfillmentMethod === "pickup") {
         if (!form.pickupDate) return alert(t.alerts.date_required);
+        if (!form.payment) return alert(t.alerts.payment_required);
       }
+
       setPlacing(true);
-      let fullAddress =
-        fulfillmentMethod === "delivery"
-          ? `${orderSummary.selectedArea?.label || form.deliveryArea} ${form.deliveryAddress}`.trim()
-          : `[Store Pickup] Date: ${form.pickupDate}`;
+
+      let fullAddress = "";
+      let finalPaymentMethod = form.payment;
+
+      if (fulfillmentMethod === "delivery") {
+        fullAddress =
+          `${orderSummary.selectedArea?.label || form.deliveryArea} ${form.deliveryAddress}`.trim();
+        // 外送強制標記付款方式為客服聯繫
+        finalPaymentMethod = "客服後續聯繫 (e-transfer)";
+      } else {
+        fullAddress = `[Store Pickup] Old Memory Kitchen 有香ㄟ灶腳 | Date: ${form.pickupDate}`;
+      }
 
       const payload = {
         cart,
@@ -500,9 +533,15 @@ export default function CheckoutPage() {
         tax: orderSummary.taxAmount,
         fulfillment_method: fulfillmentMethod,
         pickup_date: form.pickupDate,
-        form: { ...form, email: emailToUse, deliveryAddress: fullAddress },
+        form: {
+          ...form,
+          email: emailToUse,
+          deliveryAddress: fullAddress,
+          payment: finalPaymentMethod,
+        },
         customerId: auth?.user?.id || 0,
       };
+
       const resp = await fetch("/api/wc/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -514,8 +553,11 @@ export default function CheckoutPage() {
           data?.detail?.message || data?.message || "Order Failed",
         );
 
-      // 清空購物車
-      cartStore.clear?.();
+      // 清除一般商品購物車
+      if (cartStore.remove) {
+        cart.forEach((item) => cartStore.remove(item.id));
+      }
+
       router.push(`/thank-you?id=${data.order?.id}`);
     } catch (err) {
       console.error(err);
@@ -534,8 +576,7 @@ export default function CheckoutPage() {
     fulfillmentMethod,
   ]);
 
-  /* ------------------ Render ------------------ */
-
+  /* ------------------ Render 第一步：選擇取貨方式 ------------------ */
   if (!fulfillmentMethod) {
     const isDeliveryAvailable = !!activePeriod;
 
@@ -550,19 +591,18 @@ export default function CheckoutPage() {
           nextPeriod={nextPeriod}
         />
 
-        <main className="min-h-screen py-20 bg-gray-50 flex items-center justify-center">
+        <main className="min-h-screen py-20 bg-gray-50 flex items-center justify-center pt-[100px]">
           <div className="w-full max-w-4xl px-4">
             <h1 className="text-3xl font-bold text-center mb-10 text-gray-900">
               {t.title_method}
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              {/* === 來店自取 圖片卡片 === */}
               <button
                 onClick={() => setFulfillmentMethod("pickup")}
-                className="group relative rounded-2xl   transition-all duration-300 w-full"
+                className="group relative rounded-2xl transition-all duration-300 w-full shadow-md hover:shadow-xl"
               >
-                <div className="w-full aspect-[4/4] relative">
+                <div className="w-full aspect-[4/4] relative rounded-2xl overflow-hidden">
                   <Image
                     src="/images/Store-Pickup.png"
                     alt={t.method_pickup}
@@ -572,7 +612,6 @@ export default function CheckoutPage() {
                 </div>
               </button>
 
-              {/* === 宅配 圖片卡片 === */}
               <button
                 onClick={() => {
                   if (isDeliveryAvailable) {
@@ -581,15 +620,11 @@ export default function CheckoutPage() {
                     setShowGroupModal(true);
                   }
                 }}
-                className={`group relative rounded-2xl  transition-all duration-300 w-full
-                  ${
-                    isDeliveryAvailable
-                      ? " cursor-pointer"
-                      : "opacity-60 cursor-pointer grayscale-[50%]"
-                  }
+                className={`group relative rounded-2xl transition-all duration-300 w-full shadow-md hover:shadow-xl
+                  ${isDeliveryAvailable ? " cursor-pointer" : "opacity-60 cursor-pointer grayscale-[50%]"}
                 `}
               >
-                <div className="w-full aspect-[4/4] relative">
+                <div className="w-full aspect-[4/4] relative rounded-2xl overflow-hidden">
                   <Image
                     src="/images/Scheduled-Delivery.png"
                     alt={t.method_delivery}
@@ -598,9 +633,8 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                {/* 若暫停配送，顯示半透明遮罩與提示 */}
                 {!isDeliveryAvailable && (
-                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white backdrop-blur-[2px]">
+                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white backdrop-blur-[2px] rounded-2xl">
                     <Lock size={40} className="mb-3" />
                     <span className="text-xl font-bold tracking-wider">
                       {t.delivery_closed}
@@ -614,6 +648,8 @@ export default function CheckoutPage() {
       </Layout>
     );
   }
+
+  /* ------------------ Render 第二步：結帳表單 ------------------ */
   return (
     <Layout>
       <Head>
@@ -623,6 +659,7 @@ export default function CheckoutPage() {
 
       <main className="min-h-screen py-10 bg-gray-50 pt-[100px]">
         <div className="mx-auto w-[min(1200px,95vw)] grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 左側：表單區 */}
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="mb-6 pb-6 border-b border-gray-100">
               <button
@@ -696,6 +733,7 @@ export default function CheckoutPage() {
               </div>
             </section>
 
+            {/* ==== 選擇：外送 ==== */}
             {fulfillmentMethod === "delivery" ? (
               <section className="mb-8 animate-in fade-in zoom-in duration-300">
                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
@@ -757,7 +795,7 @@ export default function CheckoutPage() {
                       className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black/10 transition-all"
                     />
 
-                    {/* ====== 新增：宅配提醒區塊 ====== */}
+                    {/* 宅配提醒區塊 */}
                     <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
                       <div className="text-amber-600 mt-0.5">
                         <svg
@@ -776,7 +814,6 @@ export default function CheckoutPage() {
                         </svg>
                       </div>
                       <div className="text-sm font-medium text-amber-800 leading-relaxed w-full">
-                        {/* 這裡動態抓取後台的配送說明 */}
                         {activePeriod &&
                           (activePeriod.delivery_zh ||
                             activePeriod.delivery_en) && (
@@ -798,7 +835,6 @@ export default function CheckoutPage() {
                               </div>
                             </div>
                           )}
-
                         <p>＊訂單送出後，將由專人致電與您聯繫安排配送日</p>
                         <p className="mt-1">
                           ＊After your order is placed, we will call you to
@@ -806,89 +842,134 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </div>
-                    {/* ================================= */}
                   </div>
                 )}
+
+                {/* 📍 外送專屬付款提示（隱藏選項，直接寫死文字） */}
+                <div className="mt-8 animate-in fade-in zoom-in duration-300">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <span className="w-1 h-6 bg-black rounded-full"></span>
+                    {t.title_payment}
+                  </h3>
+                  <div className="p-5 rounded-xl border border-blue-200 bg-blue-50/50 flex items-center gap-4">
+                    <div className="bg-blue-100 text-blue-600 p-3 rounded-full shrink-0">
+                      <MessageCircle size={24} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-blue-900 text-lg mb-1">
+                        {t.delivery_payment_notice}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </section>
             ) : (
-              <section className="mb-8 animate-in fade-in zoom-in duration-300">
-                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-black rounded-full"></span>
-                  {t.title_pickup_date}
-                </h3>
-                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                  {availableDates.map((d) => {
-                    const isSelected = form.pickupDate === d.value;
-                    return (
-                      <button
-                        key={d.value}
-                        onClick={() =>
-                          setForm((prev) => ({ ...prev, pickupDate: d.value }))
-                        }
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 ${isSelected ? "bg-black text-white border-black shadow-md scale-105" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
-                      >
-                        <span className="text-xs opacity-70 mb-1">
-                          {d.labelDay}
-                        </span>
-                        <span className="font-bold text-lg">
-                          {d.labelDate.split(" ")[0]}
-                        </span>
-                        {isSelected && (
-                          <div className="w-1 h-1 bg-white rounded-full mt-1"></div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                {form.pickupDate && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 flex items-center gap-2">
-                    <Calendar size={16} />
-                    {t.desc_pickup} :{" "}
-                    <span className="font-semibold text-gray-900 ml-1">
-                      {form.pickupDate}
-                    </span>
+              /* ==== 選擇：自取 ==== */
+              <>
+                <section className="mb-8 animate-in fade-in zoom-in duration-300">
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <span className="w-1 h-6 bg-black rounded-full"></span>
+                    {t.title_pickup_date}
+                  </h3>
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                    {availableDates.map((d) => {
+                      const isSelected = form.pickupDate === d.value;
+                      return (
+                        <button
+                          key={d.value}
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              pickupDate: d.value,
+                            }))
+                          }
+                          className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 ${isSelected ? "bg-black text-white border-black shadow-md scale-105" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                        >
+                          <span className="text-xs opacity-70 mb-1">
+                            {d.labelDay}
+                          </span>
+                          <span className="font-bold text-lg">
+                            {d.labelDate.split(" ")[0]}
+                          </span>
+                          {isSelected && (
+                            <div className="w-1 h-1 bg-white rounded-full mt-1"></div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-              </section>
-            )}
-            <section>
-              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-black rounded-full"></span>
-                {t.title_payment}
-              </h3>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {Object.keys(t.payment_methods).map((key) => {
-                  const label = t.payment_methods[key];
-                  const isSelected = form.payment === label;
-                  return (
-                    <label
-                      key={key}
-                      className={`relative flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition-all ${isSelected ? "border-black bg-gray-900 text-white shadow-md" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
-                    >
-                      <input
-                        type="radio"
-                        name="payment"
-                        className="hidden"
-                        checked={isSelected}
-                        onChange={() =>
-                          setForm((v) => ({ ...v, payment: label }))
-                        }
-                      />
-                      <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? "border-white" : "border-gray-400"}`}
-                      >
-                        {isSelected && (
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        )}
+
+                  {/* 📍 自取專屬：有香ㄟ灶腳 門店資訊 */}
+                  <div className="mt-6 p-5 bg-gray-50 border border-gray-200 rounded-xl animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex items-center gap-2 font-bold text-gray-900 mb-2">
+                      <Store size={20} className="text-black" />
+                      {t.pickup_location_title}
+                    </div>
+                    <div className="text-black font-bold text-lg mb-1">
+                      {t.pickup_store}
+                    </div>
+                    <div className="flex items-start gap-2 text-gray-600 text-sm mb-3">
+                      <MapPin size={16} className="mt-0.5 shrink-0" />
+                      <span className="leading-relaxed">
+                        {t.pickup_address}
+                      </span>
+                    </div>
+                    {form.pickupDate && (
+                      <div className="pt-3 border-t border-gray-200 text-gray-800 text-sm flex items-center gap-2">
+                        <Calendar size={16} className="shrink-0" />
+                        <div>
+                          {t.desc_pickup}
+                          <span className="font-bold ml-1 text-black bg-gray-200/80 px-2 py-0.5 rounded">
+                            {form.pickupDate}
+                          </span>
+                        </div>
                       </div>
-                      <span className="font-medium">{label}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </section>
+                    )}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <span className="w-1 h-6 bg-black rounded-full"></span>
+                    {t.title_payment}
+                  </h3>
+                  <div className="grid sm:grid-cols-1 gap-4">
+                    {/* 自取專屬：只有現場付款選項 */}
+                    {Object.keys(t.payment_methods).map((key) => {
+                      const label = t.payment_methods[key];
+                      const isSelected = form.payment === label;
+                      return (
+                        <label
+                          key={key}
+                          className={`relative flex items-center gap-3 border rounded-xl p-4 cursor-pointer transition-all ${isSelected ? "border-black bg-gray-900 text-white shadow-md" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                        >
+                          <input
+                            type="radio"
+                            name="payment"
+                            className="hidden"
+                            checked={isSelected}
+                            onChange={() =>
+                              setForm((v) => ({ ...v, payment: label }))
+                            }
+                          />
+                          <div
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? "border-white" : "border-gray-400"}`}
+                          >
+                            {isSelected && (
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            )}
+                          </div>
+                          <span className="font-bold text-lg">{label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </section>
+              </>
+            )}
           </div>
 
+          {/* 右側：訂單摘要 */}
           <aside className="h-fit lg:sticky lg:top-24 space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="font-semibold text-lg mb-6 pb-4 border-b">
@@ -954,6 +1035,7 @@ export default function CheckoutPage() {
                   ))}
                 </ul>
               )}
+
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <div className="flex justify-between text-gray-600">
                   <span>{t.subtotal}</span>
@@ -995,10 +1077,15 @@ export default function CheckoutPage() {
                   </span>
                 </div>
               </div>
+
               <button
                 onClick={handlePlaceOrder}
-                disabled={placing}
-                className={`mt-8 w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg shadow-black/10 flex justify-center items-center gap-2 ${placing ? "bg-gray-800 cursor-wait opacity-80" : "bg-black hover:bg-gray-800 hover:shadow-xl active:transform active:scale-[0.98]"}`}
+                disabled={placing || cart.length === 0}
+                className={`mt-8 w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg flex justify-center items-center gap-2 ${
+                  placing || cart.length === 0
+                    ? "bg-gray-400 cursor-not-allowed opacity-80"
+                    : "bg-black hover:bg-gray-800 hover:shadow-xl active:scale-[0.98]"
+                }`}
               >
                 {placing && (
                   <svg
@@ -1022,9 +1109,6 @@ export default function CheckoutPage() {
                 )}
                 {placing ? t.placing_order : t.place_order}
               </button>
-            </div>
-            <div className="text-center text-xs text-gray-400 px-4">
-              Secure Checkout powered by SSL encryption
             </div>
           </aside>
         </div>
