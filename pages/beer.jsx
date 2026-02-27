@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -243,7 +245,7 @@ export default function BeerOrderPage({
         offers: {
           "@type": "Offer",
           price: priceFromItem(p),
-          priceCurrency: "TWD",
+          priceCurrency: "CAD",
           availability: "https://schema.org/InStock",
           url: `${SITE_URL}/beer/${p.slug}`,
         },
@@ -564,13 +566,21 @@ export default function BeerOrderPage({
   );
 }
 
-// Helper
+// =================================================================
+// 🟢 後端邏輯 Helper
+// =================================================================
 function ensureURL(u = "") {
   return String(u).replace(/\/+$/, "");
 }
 
+function basicAuth(ck, cs) {
+  return "Basic " + Buffer.from(`${ck}:${cs}`).toString("base64");
+}
+
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
+  const ck = process.env.WC_CK;
+  const cs = process.env.WC_CS;
   const wpLang = locale === "en" ? "en" : "zh_TW";
 
   // 依照語言設定尋找對應的父分類 Slug
@@ -583,11 +593,20 @@ export async function getStaticProps({ locale }) {
   let categoryTabs = [];
 
   try {
+    // 🚀 關鍵修改 1：改用 V3 API 抓分類，並強制顯示空分類
     const catUrl = new URL(
-      `${ensureURL(base)}/wp-json/wc/store/products/categories`,
+      `${ensureURL(base)}/wp-json/wc/v3/products/categories`,
     );
     catUrl.searchParams.set("per_page", "100");
-    const catRes = await fetch(catUrl.toString());
+    catUrl.searchParams.set("hide_empty", "false"); // 🔥 秘密參數：不隱藏空分類！
+    catUrl.searchParams.set("lang", wpLang); // 對應語言
+
+    const catRes = await fetch(catUrl.toString(), {
+      headers: {
+        Accept: "application/json",
+        Authorization: basicAuth(ck, cs), // V3 API 需要金鑰
+      },
+    });
     const categories = await catRes.json();
 
     // 尋找目標的父分類 (啤酒主分類)
@@ -608,11 +627,20 @@ export async function getStaticProps({ locale }) {
         categoryTabs.push({ id: c.id, name: c.name });
       });
 
-      const storeUrl = new URL(`${ensureURL(base)}/wp-json/wc/store/products`);
+      // 🚀 關鍵修改 2：抓取商品也一併升級為 V3 API (穩定度較高)
+      const storeUrl = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
       storeUrl.searchParams.set("per_page", "100");
-      storeUrl.searchParams.set("category", categoryId); // WooCommerce 抓取父分類會自動包含子分類商品
+      storeUrl.searchParams.set("category", categoryId.toString());
+      storeUrl.searchParams.set("status", "publish");
+      storeUrl.searchParams.set("lang", wpLang); // 對應語言
 
-      const res = await fetch(storeUrl.toString());
+      const res = await fetch(storeUrl.toString(), {
+        headers: {
+          Accept: "application/json",
+          Authorization: basicAuth(ck, cs),
+        },
+      });
+
       const rawList = await res.json();
       const list = Array.isArray(rawList) ? rawList : [];
 
@@ -627,9 +655,11 @@ export async function getStaticProps({ locale }) {
           sku: p.sku || "",
           img: imgSrc || "/images/placeholder.png",
           linkedChineseId: p.id,
-          prices: p.prices,
+          regular_price: p.regular_price || "", // V3 原生屬性
+          sale_price: p.sale_price || "", // V3 原生屬性
+          price: p.price || "", // V3 原生屬性
           short_description: p.short_description || "",
-          categories: p.categories?.map((c) => c.id) || [], // 記錄商品所屬的分類 IDs (供前端過濾使用)
+          categories: p.categories?.map((c) => c.id) || [],
         };
       });
     }
