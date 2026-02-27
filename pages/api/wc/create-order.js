@@ -39,8 +39,8 @@ async function sendLineNotification(order, cartItems = []) {
   else if (hasGroupBuy) typeLabel = "團購網";
 
   // 2. 商品明細格式化
-  const itemsList = order.line_items.map(item => {
-    return `- ${item.name} x ${item.quantity} ($${item.total})`;
+const itemsList = order.line_items.map(item => {
+    return `- ${item.name} x ${item.quantity} (CA$${item.total})`;  
   }).join('\n');
 
   // 3. 金額計算 (轉成數字以防出錯)
@@ -50,8 +50,7 @@ async function sendLineNotification(order, cartItems = []) {
   // 反推小計 (WooCommerce API 通常不直接給小計)
   const subtotal = total - shipping - tax;
 
-  // 4. 組合訊息 (純文字風格)
-  const messageText = `[新訂單] ${typeLabel} #${order.id}
+ const messageText = `[新訂單] ${typeLabel} #${order.id}
 
 建立日期: ${order.date_created.replace('T', ' ').substring(0, 16)}
 付款狀態: ${order.status === 'on-hold' ? '等待付款中' : order.status}
@@ -70,11 +69,11 @@ Email: ${order.billing.email}
 ${itemsList}
 
 ------------------------------
-項目小計: $${subtotal.toFixed(2)}
-運送方式: $${shipping.toFixed(2)}
-費用(稅): $${tax.toFixed(2)}
+項目小計: CA$${subtotal.toFixed(2)}  
+運送方式: CA$${shipping.toFixed(2)}  
+費用(稅): CA$${tax.toFixed(2)}      
 ------------------------------
-訂單總額: $${total.toFixed(2)} ${order.currency}
+訂單總額: CA$${total.toFixed(2)} ${order.currency}  
 
 請至網站後台查看詳細資訊。`;
 
@@ -210,6 +209,7 @@ export default async function handler(req, res) {
       line_items,
       shipping_lines, // 這裡會把設定好的運送方式傳給 Woo
       fee_lines,
+      currency: "CAD",
     };
 
     if (customerId) {
