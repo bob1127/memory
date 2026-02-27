@@ -583,7 +583,7 @@ export default function GroupBuyPage({
   );
 }
 
-// 🟢 [最終完美版] 無限制數量！自動迴圈抓取所有分頁商品，不再被 100 筆限制卡住！
+// 🟢 [最終完美版] 無限制數量！自動迴圈抓取 + 強制中英文價格同步鎖！
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
@@ -605,7 +605,7 @@ export async function getStaticProps({ locale }) {
     let currentPageFetch = 1;
     let hasMoreProducts = true;
 
-    // ★ 關鍵突破：使用 while 迴圈抓取所有分頁商品，打破 100 筆的限制！
+    // 自動迴圈抓取所有分頁商品
     while (hasMoreProducts) {
       const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
       storeURL.searchParams.set("per_page", "100");
@@ -620,20 +620,17 @@ export async function getStaticProps({ locale }) {
         },
       });
 
-      if (!r.ok) break; // 若發生錯誤則跳出迴圈
+      if (!r.ok) break;
 
       const chunk = await r.json();
 
-      // 將這一批抓到的商品塞進總陣列裡
       if (Array.isArray(chunk) && chunk.length > 0) {
         rawProducts.push(...chunk);
       }
 
-      // 如果抓回來的商品不到 100 個，代表已經到最後一頁了，停止迴圈
       if (!Array.isArray(chunk) || chunk.length < 100) {
         hasMoreProducts = false;
       } else {
-        // 如果抓滿 100 個，代表後面還有，繼續抓下一頁！
         currentPageFetch++;
       }
     }
@@ -714,6 +711,14 @@ export async function getStaticProps({ locale }) {
       displayProduct.name_zh = finalZhName;
       displayProduct.name_en = finalEnName;
       displayProduct.linkedChineseId = zhId || baseObj.id;
+
+      // 🌟 [防折上折神盾]：強制價格同步鎖
+      // 無論切換到什麼語言，價格一律「優先抓取英文原版物件(enObj)」。
+      // 這樣就能保證計算折扣的基準(Base Price)永遠統一，絕對不會再被中文版錯誤的後台數字干擾！
+      const priceSource = enObj || zhObj || p;
+      displayProduct.regular_price = priceSource.regular_price;
+      displayProduct.price = priceSource.price;
+      displayProduct.sale_price = priceSource.sale_price;
 
       let imgSrc = baseObj.images?.[0]?.src;
       if (imgSrc && !imgSrc.startsWith("http"))
