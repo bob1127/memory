@@ -445,11 +445,13 @@ export default function CheckoutPage() {
     }));
   }, [auth?.user, locale]);
 
-  /* ------------------ Store Methods ------------------ */
-  const handleUpdateQty = (itemId, change) => {
+  /* ------------------ Store Methods (已加入庫存防呆) ------------------ */
+  const handleUpdateQty = (itemId, change, maxStock = Infinity) => {
     const item = cart.find((i) => i.id === itemId);
     if (!item) return;
-    const newQty = Math.max(1, (item.qty || 1) + change);
+    let newQty = (item.qty || 1) + change;
+    newQty = Math.max(1, newQty);
+    newQty = Math.min(maxStock, newQty); // 防呆限制
     if (cartStore.setQty) {
       cartStore.setQty(itemId, newQty);
     }
@@ -655,6 +657,17 @@ export default function CheckoutPage() {
       <Head>
         <title>{t.place_order} | Checkout</title>
         <meta name="robots" content="noindex, nofollow" />
+        {/* 🌟 隱藏購物車內數字輸入框預設箭頭 */}
+        <style>{`
+          input[type="number"]::-webkit-outer-spin-button,
+          input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+          input[type="number"] {
+            -moz-appearance: textfield;
+          }
+        `}</style>
       </Head>
 
       <main className="min-h-screen py-10 bg-gray-50 pt-[100px]">
@@ -981,58 +994,101 @@ export default function CheckoutPage() {
                 </div>
               ) : (
                 <ul className="space-y-6 mb-6 pr-2 custom-scrollbar">
-                  {cart.map((it) => (
-                    <li key={it.id} className="flex gap-4 group relative">
-                      <div className="block relative w-[100px] h-[100px] aspect-square flex-shrink-0 rounded-lg hover:opacity-90 transition-opacity">
-                        <Image
-                          src={it.img}
-                          alt={it.name || "Product"}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <div className="flex-1 flex flex-col justify-between py-1">
-                        <div className="flex justify-between items-start gap-2">
-                          <Link
-                            href={`/product/${it.slug || it.id}`}
-                            className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug hover:text-gray-600 transition-colors"
-                          >
-                            {getCartName(it, locale)}
-                          </Link>
-                          <button
-                            onClick={() => handleRemoveItem(it.id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors p-1 -mt-1 -mr-1"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                  {cart.map((it) => {
+                    // 🌟 1. 動態計算該商品在購物車內的最高庫存限制
+                    const maxStock =
+                      it.manage_stock &&
+                      it.stock_quantity !== null &&
+                      it.stock_quantity !== undefined
+                        ? Number(it.stock_quantity)
+                        : Infinity;
+
+                    return (
+                      <li key={it.id} className="flex gap-4 group relative">
+                        <div className="block relative w-[100px] h-[100px] aspect-square flex-shrink-0 rounded-lg hover:opacity-90 transition-opacity">
+                          <Image
+                            src={it.img}
+                            alt={it.name || "Product"}
+                            fill
+                            className="object-contain"
+                          />
                         </div>
-                        <div className="flex justify-between items-end mt-2">
-                          <div className="flex items-center border border-gray-200 rounded-md bg-gray-50">
-                            <button
-                              onClick={() => handleUpdateQty(it.id, -1)}
-                              disabled={it.qty <= 1}
-                              className="p-1 px-2 text-gray-600 hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition"
+                        <div className="flex-1 flex flex-col justify-between py-1">
+                          <div className="flex justify-between items-start gap-2">
+                            <Link
+                              href={`/product/${it.slug || it.id}`}
+                              className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug hover:text-gray-600 transition-colors"
                             >
-                              <Minus size={12} />
-                            </button>
-                            <span className="text-xs font-semibold px-2 min-w-[20px] text-center">
-                              {it.qty}
-                            </span>
+                              {getCartName(it, locale)}
+                            </Link>
                             <button
-                              onClick={() => handleUpdateQty(it.id, 1)}
-                              className="p-1 px-2 text-gray-600 hover:bg-gray-200 transition"
+                              onClick={() => handleRemoveItem(it.id)}
+                              className="text-gray-400 hover:text-red-500 transition-colors p-1 -mt-1 -mr-1"
                             >
-                              <Plus size={12} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {t.currency}
-                            {formatPrice(Number(it.price || 0) * (it.qty || 0))}
+
+                          <div className="flex justify-between items-end mt-2">
+                            <div className="flex flex-col items-start gap-1">
+                              {/* 🌟 2. 無箭頭的輸入框數量控制器 */}
+                              <div className="flex items-center border border-gray-200 rounded-md bg-gray-50 h-7 overflow-hidden">
+                                <button
+                                  onClick={() =>
+                                    handleUpdateQty(it.id, -1, maxStock)
+                                  }
+                                  disabled={it.qty <= 1}
+                                  className="h-full px-2 text-gray-600 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center"
+                                >
+                                  <Minus size={12} />
+                                </button>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={
+                                    maxStock !== Infinity ? maxStock : undefined
+                                  }
+                                  value={it.qty === 0 ? "" : it.qty}
+                                  onChange={(e) => {
+                                    let val = parseInt(e.target.value, 10);
+                                    if (isNaN(val)) val = 1;
+                                    val = Math.max(1, val);
+                                    if (maxStock !== Infinity)
+                                      val = Math.min(val, maxStock);
+                                    cartStore.setQty?.(it.id, val);
+                                  }}
+                                  className="h-full w-10 bg-transparent text-center text-xs font-semibold focus:outline-none p-0 border-none ring-0"
+                                />
+                                <button
+                                  onClick={() =>
+                                    handleUpdateQty(it.id, 1, maxStock)
+                                  }
+                                  disabled={it.qty >= maxStock}
+                                  className="h-full px-2 text-gray-600 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center justify-center"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+
+                              {/* 🌟 3. 顯示已達上限提示 */}
+                              {it.qty >= maxStock && maxStock !== Infinity && (
+                                <div className="text-[10px] text-red-500 font-bold leading-none tracking-wide mt-1">
+                                  庫存已達上限
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="text-sm font-medium text-gray-900">
+                              {t.currency}
+                              {formatPrice(
+                                Number(it.price || 0) * (it.qty || 0),
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
 

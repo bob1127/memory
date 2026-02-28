@@ -42,7 +42,7 @@ const getDiscountedPrice = (p) => {
   let label = "";
   const cats = p.categories || [];
 
-  // 📦 常溫判斷：只認中文「常溫」或英文「normal」
+  // 📦 常溫判斷
   const isRoomTemp = cats.some(
     (c) =>
       c.name === "常溫" ||
@@ -50,7 +50,7 @@ const getDiscountedPrice = (p) => {
       c.name?.toLowerCase() === "normal",
   );
 
-  // ❄️ 冷凍判斷：只認中文「冷凍」或英文「freezing」
+  // ❄️ 冷凍判斷
   const isFrozen = cats.some(
     (c) =>
       c.name === "冷凍" ||
@@ -251,6 +251,14 @@ export default function GroupBuyPage({
   const [nextPeriod, setNextPeriod] = useState(null);
   const [showGroupModal, setShowGroupModal] = useState(false);
 
+  // 🌟 1. 完美同步：訂閱全域購物車狀態
+  const [cart, setCart] = useState([]);
+  useEffect(() => {
+    cartStore.init?.();
+    const unsub = cartStore.subscribe?.((c) => setCart([...(c || [])]));
+    return typeof unsub === "function" ? unsub : undefined;
+  }, []);
+
   useEffect(() => {
     const checkTime = () => {
       setActivePeriod(getActivePeriod(periods));
@@ -264,7 +272,7 @@ export default function GroupBuyPage({
   const [qtyMap, setQtyMap] = useState(() => {
     const m = {};
     (initialItems || []).forEach((p) => {
-      if (p?.id != null) m[p.id] = 1;
+      if (p?.id != null) m[p.id] = 1; // 預設加車數量為 1
     });
     return m;
   });
@@ -289,22 +297,33 @@ export default function GroupBuyPage({
     toastTimerRef.current = setTimeout(() => setToast(null), 2000);
   };
 
-  const setQty = (id, next) =>
-    setQtyMap((m) => ({
-      ...m,
-      [id]: Math.max(0, Number.isFinite(+next) ? +next : 0),
-    }));
+  // 🌟 動態庫存版的數量檢查機制 (不再需要手動維護 dynamicStock)
+  const handleQtyChange = (product, nextVal, maxStock) => {
+    if (nextVal === "") {
+      setQtyMap((m) => ({ ...m, [product.id]: 0 }));
+      return;
+    }
+
+    let val = parseInt(nextVal, 10);
+    if (isNaN(val)) val = 0;
+    val = Math.max(0, val);
+
+    if (product.manage_stock && maxStock !== Infinity) {
+      val = Math.min(val, Math.max(0, maxStock));
+    }
+
+    setQtyMap((m) => ({ ...m, [product.id]: val }));
+  };
 
   const addToCart = (product) => {
     if (!activePeriod) {
       setShowGroupModal(true);
       return;
     }
-    const raw = qtyMap[product.id] ?? 0;
-    if (raw <= 0) return;
-    const safeQty = Math.max(1, raw);
-    const { final } = getDiscountedPrice(product);
+    const safeQty = Math.max(1, qtyMap[product.id] ?? 0);
+    if (safeQty <= 0) return;
 
+    const { final } = getDiscountedPrice(product);
     const displayName = isEn
       ? product.name_en || product.name
       : product.name_zh || product.name;
@@ -316,20 +335,26 @@ export default function GroupBuyPage({
         name: displayName,
         name_zh: product.name_zh || displayName,
         name_en: product.name_en || displayName,
-        img: product.img || "/images/placeholder.png", // 防護
+        img: product.img || "/images/placeholder.png",
         price: Number(final.toFixed(2)),
         store_type: "group_buy",
+        // 👇 將庫存資訊傳給 Navbar 的購物車做防呆
+        manage_stock: product.manage_stock,
+        stock_quantity: product.stock_quantity,
       },
       safeQty,
     );
 
     if (typeof window !== "undefined")
       window.dispatchEvent(new Event("open-cart"));
+
     const msg = isEn
       ? `${t.add_success_prefix}${displayName}${t.add_success_suffix} (${safeQty} ${t.unit})`
       : `${t.add_success_prefix}${displayName}${t.add_success_suffix}（${safeQty} ${t.unit}）`;
     showToast(msg);
-    setQty(product.id, 0);
+
+    // 加入購物車後，數量框歸零 (防呆)
+    setQtyMap((m) => ({ ...m, [product.id]: 0 }));
   };
 
   const tabs = useMemo(() => {
@@ -354,12 +379,10 @@ export default function GroupBuyPage({
     );
   }, [products, activeCat]);
 
-  // 切換分類時，把頁碼歸零回到第 1 頁
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCat]);
 
-  // 分頁邏輯：計算總頁數，並切割出當前頁面要顯示的 12 個商品
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -382,6 +405,17 @@ export default function GroupBuyPage({
     <Layout>
       <Head>
         <title key="title">{t.seo.title}</title>
+        <style>{`
+          /* 隱藏數字輸入框預設上下箭頭 */
+          input[type="number"]::-webkit-outer-spin-button,
+          input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+          input[type="number"] {
+            -moz-appearance: textfield;
+          }
+        `}</style>
       </Head>
       <main className="bg-[#f9f6f3] min-h-screen">
         <section className="pt-20 md:pt-0 max-h-screen overflow-hidden">
@@ -461,6 +495,24 @@ export default function GroupBuyPage({
                         const displayName = isEn
                           ? p.name_en || p.name
                           : p.name_zh || p.name;
+
+                        // 🌟 2. 完美同步庫存公式：後台真實庫存 - 購物車內已選數量
+                        const cartItem = cart.find(
+                          (c) =>
+                            c.productId === p.id || c.id === (p.sku || p.id),
+                        );
+                        const inCartQty = cartItem ? cartItem.qty || 0 : 0;
+
+                        const maxStock =
+                          p.manage_stock && p.stock_quantity !== null
+                            ? Math.max(0, p.stock_quantity - inCartQty)
+                            : Infinity;
+
+                        // 判斷是否缺貨
+                        const isOutOfStock =
+                          p.stock_status === "outofstock" ||
+                          (p.manage_stock && maxStock <= 0);
+
                         return (
                           <motion.article
                             key={p.id}
@@ -502,42 +554,86 @@ export default function GroupBuyPage({
                                 )}
                               </div>
                             </div>
+
                             <div className="mt-2.5">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => setQty(p.id, q - 1)}
-                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
-                                  disabled={q <= 0}
-                                >
-                                  −
-                                </button>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  value={q}
-                                  onChange={(e) => setQty(p.id, e.target.value)}
-                                  className="w-12 text-center text-sm rounded-lg border border-gray-200 py-1.5 focus:outline-none focus:border-amber-400"
-                                />
-                                <button
-                                  onClick={() => setQty(p.id, q + 1)}
-                                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
-                                >
-                                  +
-                                </button>
-                              </div>
+                              {/* 🌟 3. 商品庫存即時顯示 */}
+                              {p.manage_stock &&
+                                maxStock !== Infinity &&
+                                !isOutOfStock && (
+                                  <div className="text-[12px] sm:text-[13px] text-gray-500 text-center mb-1.5 font-bold tracking-wide">
+                                    {isEn
+                                      ? `Stock: ${maxStock}`
+                                      : `目前庫存: ${maxStock}`}
+                                  </div>
+                                )}
+
+                              {isOutOfStock ? (
+                                <div className="py-1.5 text-center text-sm font-bold text-red-600 bg-red-50 rounded-lg mb-2">
+                                  {isEn ? "Sold Out" : "已售完 / 補貨中"}
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() =>
+                                      handleQtyChange(p, q - 1, maxStock)
+                                    }
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    disabled={q <= 0}
+                                  >
+                                    −
+                                  </button>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={
+                                      maxStock !== Infinity
+                                        ? maxStock
+                                        : undefined
+                                    }
+                                    value={q === 0 ? "" : q}
+                                    placeholder="0"
+                                    onChange={(e) =>
+                                      handleQtyChange(
+                                        p,
+                                        e.target.value,
+                                        maxStock,
+                                      )
+                                    }
+                                    className="w-12 text-center text-sm rounded-lg border border-gray-200 py-1.5 focus:outline-none focus:border-amber-400"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      handleQtyChange(p, q + 1, maxStock)
+                                    }
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    disabled={q >= maxStock}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
+
                               <button
                                 onClick={() => addToCart(p)}
-                                disabled={q <= 0}
-                                className={`mt-2 w-full rounded-lg py-1.5 text-sm font-medium text-white transition-all shadow-sm ${q > 0 ? "bg-[#e7a042] hover:bg-[#d69035] active:scale-[0.98]" : "bg-gray-300 cursor-not-allowed"}`}
+                                disabled={q <= 0 || isOutOfStock}
+                                className={`mt-2 w-full rounded-lg py-1.5 text-sm font-medium text-white transition-all shadow-sm ${
+                                  q > 0 && !isOutOfStock
+                                    ? "bg-[#e7a042] hover:bg-[#d69035] active:scale-[0.98]"
+                                    : "bg-gray-300 cursor-not-allowed"
+                                }`}
                               >
-                                {t.add_to_cart}
+                                {isOutOfStock
+                                  ? isEn
+                                    ? "Sold Out"
+                                    : "已售完"
+                                  : t.add_to_cart}
                               </button>
                             </div>
                           </motion.article>
                         );
                       })}
                     </div>
-                    {/* 👇 渲染分頁按鈕 (如果總頁數大於 1 才會顯示) */}
+                    {/* 👇 分頁按鈕 */}
                     {totalPages > 1 && (
                       <div className="mt-12 flex justify-center items-center gap-2">
                         <button
@@ -583,7 +679,7 @@ export default function GroupBuyPage({
   );
 }
 
-// 🟢 [最終完美版] 無限制數量！自動迴圈抓取 + 強制中英文價格同步鎖！
+// 🟢 [最終完美版] 無限制數量！自動迴圈抓取 + 強制中英文價格同步鎖 + 智慧庫存雷達防呆！
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
@@ -713,12 +809,21 @@ export async function getStaticProps({ locale }) {
       displayProduct.linkedChineseId = zhId || baseObj.id;
 
       // 🌟 [防折上折神盾]：強制價格同步鎖
-      // 無論切換到什麼語言，價格一律「優先抓取英文原版物件(enObj)」。
-      // 這樣就能保證計算折扣的基準(Base Price)永遠統一，絕對不會再被中文版錯誤的後台數字干擾！
       const priceSource = enObj || zhObj || p;
       displayProduct.regular_price = priceSource.regular_price;
       displayProduct.price = priceSource.price;
       displayProduct.sale_price = priceSource.sale_price;
+
+      // 🌟 [庫存智能雷達 - 終極防彈版]：
+      const stockSource =
+        [zhObj, enObj, p].find((obj) => obj && obj.manage_stock) || priceSource;
+
+      displayProduct.manage_stock = stockSource.manage_stock || false;
+      displayProduct.stock_quantity =
+        stockSource.stock_quantity !== null
+          ? Number(stockSource.stock_quantity)
+          : null;
+      displayProduct.stock_status = stockSource.stock_status;
 
       let imgSrc = baseObj.images?.[0]?.src;
       if (imgSrc && !imgSrc.startsWith("http"))

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "../Layout";
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cartStore } from "@/lib/cartStore";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Thumbs } from "swiper/modules";
+import { ChevronRight, Minus, Plus, ShoppingCart, Globe } from "lucide-react";
 import "swiper/css";
 import "swiper/css/thumbs";
 
@@ -61,6 +62,7 @@ const PAGE_TRANSLATIONS = {
     breadcrumb_home: "首頁",
     breadcrumb_groupbuy: "團購商品",
     unit: "份",
+    switch_lang: "Switch to English",
   },
   en: {
     add_to_cart: "Add to Cart",
@@ -69,6 +71,7 @@ const PAGE_TRANSLATIONS = {
     breadcrumb_home: "Home",
     breadcrumb_groupbuy: "Group Buy",
     unit: "item(s)",
+    switch_lang: "切換至中文",
   },
 };
 
@@ -158,15 +161,35 @@ export default function ProductInner({
   zhSlug,
   enSlug,
 }) {
-  const { locale, asPath, replace, isReady } = useRouter();
+  const router = useRouter();
+  const { locale, asPath, replace, isReady } = router;
   const isEn = locale === "en";
   const t = isEn ? PAGE_TRANSLATIONS.en : PAGE_TRANSLATIONS["zh-TW"];
   const [activePeriod, setActivePeriod] = useState(null);
   const [nextPeriod, setNextPeriod] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
-  const [qty, setQty] = useState(1);
   const [toast, setToast] = useState(false);
+
+  // 🟢 狀態管理
+  const [selectedImage, setSelectedImage] = useState(product?.img);
+  const [qty, setQty] = useState(1);
+
+  // 🌟 1. 完美同步：訂閱全域購物車狀態
+  const [cart, setCart] = useState([]);
+  useEffect(() => {
+    cartStore.init?.();
+    const unsub = cartStore.subscribe?.((c) => setCart([...(c || [])]));
+    return typeof unsub === "function" ? unsub : undefined;
+  }, []);
+
+  // 當切換產品或語言時，重置主圖與數量
+  useEffect(() => {
+    if (product) {
+      setSelectedImage(product.img);
+      setQty(1);
+    }
+  }, [product]);
 
   useEffect(() => {
     const check = () => {
@@ -187,6 +210,46 @@ export default function ProductInner({
 
   if (!product) return null;
 
+  const targetLocalePrefix = isEn ? "" : "/en";
+  const customSwitchHref =
+    enSlug && zhSlug
+      ? `${targetLocalePrefix}/product/${isEn ? zhSlug : enSlug}`
+      : `${targetLocalePrefix}/groupBuy`;
+
+  // 🌟 2. 完美同步庫存公式：後台真實庫存 - 購物車內已選數量
+  // 尋找主商品在購物車內的數量
+  const cartItem = cart.find(
+    (c) => c.productId === product.id || c.id === (product.sku || product.id),
+  );
+  const inCartQty = cartItem ? cartItem.qty || 0 : 0;
+
+  // 動態計算最新剩餘數量 (供畫面顯示與輸入框限制)
+  const maxStock =
+    product.manage_stock && product.stock_quantity !== null
+      ? Math.max(0, product.stock_quantity - inCartQty)
+      : Infinity;
+
+  // 缺貨判定
+  const isOutOfStock =
+    product.stock_status === "outofstock" ||
+    (product.manage_stock && maxStock <= 0);
+
+  // 數量變更防呆
+  const handleQtyChange = (nextVal) => {
+    if (nextVal === "") {
+      setQty("");
+      return;
+    }
+    let val = parseInt(nextVal, 10);
+    if (isNaN(val)) val = 1;
+    val = Math.max(1, val);
+
+    if (product.manage_stock && maxStock !== Infinity) {
+      val = Math.min(val, Math.max(1, maxStock));
+    }
+    setQty(val);
+  };
+
   // 顯示用的名稱與描述
   const displayName = isEn
     ? product.name_en || product.name
@@ -196,6 +259,7 @@ export default function ProductInner({
   let finalPrice = originalPrice;
   let discountLabel = "";
   const cats = product.categories || [];
+
   const isRoomTemp = cats.some(
     (c) =>
       c.name === "常溫" || c.slug?.includes("room") || c.slug === "ambient",
@@ -203,6 +267,7 @@ export default function ProductInner({
   const isFrozen = cats.some(
     (c) => c.name === "冷凍" || c.slug?.includes("frozen"),
   );
+
   if (isRoomTemp) {
     finalPrice = originalPrice * 0.88;
     discountLabel = isEn ? "12% OFF" : "常溫 88折";
@@ -211,6 +276,7 @@ export default function ProductInner({
     discountLabel = isEn ? "10% OFF" : "冷凍 9折";
   }
   const hasDiscount = finalPrice < originalPrice;
+
   const imageList = (
     product.images?.length ? product.images : ["/images/placeholder.png"]
   ).map((s) =>
@@ -222,32 +288,40 @@ export default function ProductInner({
     ? `${SITE_URL}/en/product/${enSlug}`
     : `${SITE_URL}/en/`;
 
-  // 🟢 [修正] 加入購物車邏輯
+  // 🟢 3. 加入購物車邏輯
   const addToCart = () => {
     if (!activePeriod) {
       setShowModal(true);
       return;
     }
 
+    const cartId = product.sku && product.sku !== "" ? product.sku : product.id;
+    const safeQty = Math.max(1, Number(qty) || 1);
+
     cartStore.add(
       {
-        id: product.linkedChineseId || product.id,
+        id: cartId,
         productId: product.id,
-        name: displayName, // 用來做基礎顯示
-        // ✅ 這裡寫入正確的中文與英文名稱 (從 props 來)
+        name: displayName,
         name_zh: product.name_zh || displayName,
         name_en: product.name_en || displayName,
         img: mainImage,
         price: Number(finalPrice.toFixed(2)),
         store_type: "group_buy",
+        sku: product.sku,
+        // 👇 將庫存資訊傳給 Navbar 的購物車做防呆
+        manage_stock: product.manage_stock,
+        stock_quantity: product.stock_quantity,
       },
-      qty,
+      safeQty,
     );
 
-    if (typeof window !== "undefined")
+    if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("open-cart"));
+    }
+
     setToast(true);
-    setQty(1);
+    setQty(1); // 加完後恢復為 1
     setTimeout(() => setToast(false), 2000);
   };
 
@@ -264,21 +338,45 @@ export default function ProductInner({
         <link rel="alternate" hrefLang="en" href={hrefLangEn} />
         <meta property="og:title" content={displayName} />
         <meta property="og:image" content={mainImage} />
+
+        {/* 🌟 隱藏數字輸入框預設箭頭的 CSS */}
+        <style>{`
+          input[type="number"]::-webkit-outer-spin-button,
+          input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+          input[type="number"] {
+            -moz-appearance: textfield;
+          }
+          .scrollbar-hide::-webkit-scrollbar { display: none; }
+          .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
       </Head>
       <section className="w-full bg-white mx-auto px-4 sm:px-6 lg:px-8 py-[100px]">
-        <nav className="max-w-[1200px] mx-auto mb-6 text-sm text-gray-500">
-          <Link href={isEn ? "/en" : "/"} className="hover:text-black">
-            {t.breadcrumb_home}
-          </Link>{" "}
-          <span className="mx-2">/</span>
+        <nav className="max-w-[1200px] mx-auto mb-6 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-500">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+            <Link href={isEn ? "/en" : "/"} className="hover:text-black">
+              {t.breadcrumb_home}
+            </Link>{" "}
+            <span className="mx-2">/</span>
+            <Link
+              href={isEn ? "/en/groupBuy" : "/groupBuy"}
+              className="hover:text-black"
+            >
+              {t.breadcrumb_groupbuy}
+            </Link>{" "}
+            <span className="mx-2">/</span>
+            <span className="text-black font-medium">{displayName}</span>
+          </div>
+
           <Link
-            href={isEn ? "/en/groupBuy" : "/groupBuy"}
-            className="hover:text-black"
+            href={customSwitchHref}
+            className="flex items-center gap-1 text-[#e7a042] hover:text-[#c5853d] font-medium transition-colors whitespace-nowrap"
           >
-            {t.breadcrumb_groupbuy}
-          </Link>{" "}
-          <span className="mx-2">/</span>
-          <span className="text-black">{displayName}</span>
+            <Globe size={16} />
+            {t.switch_lang}
+          </Link>
         </nav>
         <GroupNoticeModal
           open={showModal}
@@ -293,7 +391,7 @@ export default function ProductInner({
                 swiper:
                   thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
               }}
-              className="aspect-square rounded-xl border border-gray-100 mb-4 bg-gray-50"
+              className="aspect-square rounded-xl border border-gray-100 mb-4 bg-gray-50 group"
             >
               {imageList.map((img, i) => (
                 <SwiperSlide key={i}>
@@ -302,7 +400,7 @@ export default function ProductInner({
                       src={img}
                       alt={displayName}
                       fill
-                      className="object-contain p-4"
+                      className="object-contain p-4 transition-transform duration-700 group-hover:scale-105"
                       priority={i === 0}
                     />
                   </div>
@@ -319,7 +417,7 @@ export default function ProductInner({
               >
                 {imageList.map((img, i) => (
                   <SwiperSlide key={i}>
-                    <div className="relative aspect-square w-full rounded-lg border overflow-hidden cursor-pointer">
+                    <div className="relative aspect-square w-full rounded-lg border overflow-hidden cursor-pointer transition-all hover:opacity-100 opacity-60">
                       <Image
                         src={img}
                         alt="thumb"
@@ -333,7 +431,9 @@ export default function ProductInner({
             )}
           </div>
           <div className="flex flex-col gap-6">
-            <h1 className="text-3xl font-bold text-gray-900">{displayName}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+              {displayName}
+            </h1>
             <div className="flex flex-col items-start gap-1">
               {hasDiscount ? (
                 <>
@@ -355,34 +455,64 @@ export default function ProductInner({
                 </div>
               )}
             </div>
+
             <div
               className="prose max-w-none text-gray-600"
               dangerouslySetInnerHTML={{ __html: displayDesc }}
             />
-            <div className="flex items-center gap-4 mt-6">
-              <div className="flex items-center border border-gray-300 rounded-full h-12">
-                <button
-                  onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="px-4 h-full hover:bg-gray-100 rounded-l-full text-lg"
-                >
-                  -
-                </button>
-                <span className="px-2 font-medium min-w-[2rem] text-center">
-                  {qty}
-                </span>
-                <button
-                  onClick={() => setQty(qty + 1)}
-                  className="px-4 h-full hover:bg-gray-100 rounded-r-full text-lg"
-                >
-                  +
-                </button>
-              </div>
-              <button
-                onClick={addToCart}
-                className="bg-[#e7a042] text-white px-8 h-12 rounded-full hover:opacity-90 transition shadow-lg font-medium tracking-wide"
-              >
-                {t.add_to_cart}
-              </button>
+
+            <div className="mt-4 pt-6 border-t border-gray-100">
+              {/* 🌟 5. 新增：庫存即時顯示 */}
+              {product.manage_stock &&
+                maxStock !== Infinity &&
+                !isOutOfStock && (
+                  <div className="text-[14px] text-gray-500 font-bold tracking-wide mb-3">
+                    {isEn ? `Stock: ${maxStock}` : `目前庫存: ${maxStock}`}
+                  </div>
+                )}
+
+              {/* 🌟 6. 缺貨判定與數量選取器 */}
+              {isOutOfStock ? (
+                <div className="py-4 text-center text-lg font-bold text-red-600 bg-red-50 rounded-xl w-full mb-8">
+                  {isEn ? "Sold Out" : "已售完 / 補貨中"}
+                </div>
+              ) : (
+                <div className="mb-8 flex flex-col gap-4 sm:flex-row">
+                  <div className="flex h-14 items-center rounded-2xl border border-gray-300 bg-white px-2 shadow-sm focus-within:border-[#e7a042] focus-within:ring-1 focus-within:ring-[#e7a042] transition-all w-[140px] shrink-0">
+                    <button
+                      onClick={() => handleQtyChange(qty - 1)}
+                      disabled={qty <= 1}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Minus size={18} />
+                    </button>
+
+                    <input
+                      type="number"
+                      value={qty === 0 ? "" : qty}
+                      placeholder="1"
+                      onChange={(e) => handleQtyChange(e.target.value)}
+                      className="flex-1 w-full bg-transparent text-center text-lg font-medium outline-none border-none ring-0 p-0"
+                    />
+
+                    <button
+                      onClick={() => handleQtyChange(qty + 1)}
+                      disabled={qty >= maxStock}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Plus size={18} />
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={addToCart}
+                    disabled={qty <= 0 || isOutOfStock}
+                    className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#e7a042] px-8 text-lg font-bold text-white transition-all active:scale-95 hover:bg-[#d69035] shadow-md hover:shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    <ShoppingCart size={20} /> {t.add_to_cart}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -406,18 +536,16 @@ export default function ProductInner({
 }
 
 /* =========================================================
-   3. SERVER SIDE (✅ 補上 getStaticPaths)
+   3. SERVER SIDE
    ========================================================= */
 
-// 🟢 [修復] 必須加入這個 function，才能在 SSG 使用動態路由
 export async function getStaticPaths() {
   return {
-    paths: [], // 不預先渲染任何頁面，加快構建速度
-    fallback: "blocking", // 遇到新頁面時在 Server 端生成後回傳 (有利 SEO)
+    paths: [],
+    fallback: "blocking",
   };
 }
 
-// 🟢 [修正] 後端邏輯：抓取單一商品的另一語言名稱
 export async function getStaticProps({ params, locale }) {
   const paramVal = params?.slug;
   const WC_URL = process.env.WC_URL;
@@ -488,26 +616,35 @@ export async function getStaticProps({ params, locale }) {
       }
     }
 
-    // 🟢 抓取翻譯語言的名稱
+    // 🟢 抓取翻譯語言的「完整資料」(為了同步庫存與價格)
     const translations = p.translations || {};
     const otherLangId =
       locale === "en"
         ? translations.zh || translations.zh_TW || translations.zh_Hant
         : translations.en;
-    let otherLangName = "";
+
+    let otherP = null;
     if (otherLangId) {
       try {
         const otherRes = await fetch(
-          buildAuthUrl(`/wp-json/wc/v3/products/${otherLangId}`, {
-            _fields: "name",
-          }),
+          buildAuthUrl(`/wp-json/wc/v3/products/${otherLangId}`),
         );
         if (otherRes.ok) {
-          const otherData = await otherRes.json();
-          otherLangName = otherData.name;
+          otherP = await otherRes.json();
         }
       } catch (e) {}
     }
+
+    // 🌟 [核心同步雷達] 定義中文與英文物件
+    const isZhLocale = locale === "zh-TW";
+    const zhObj = isZhLocale ? p : otherP;
+    const enObj = isZhLocale ? otherP : p;
+
+    // 確保價格與列表頁統一 (優先抓英文版)
+    const priceSource = enObj || zhObj || p;
+    // 確保庫存永遠抓取「有開管理庫存」的那一方 (通常是中文版)
+    const stockSource =
+      [zhObj, enObj, p].find((obj) => obj && obj.manage_stock) || priceSource;
 
     // 整合名稱
     const zhId =
@@ -516,19 +653,28 @@ export async function getStaticProps({ params, locale }) {
       (p.lang === "zh-TW" ? p.id : null);
     const linkedChineseId = locale === "en" ? zhId : p.id;
     const currentName = p.name;
-    const finalNameZh =
-      locale === "zh-TW" ? currentName : otherLangName || currentName;
-    const finalNameEn =
-      locale === "en" ? currentName : otherLangName || currentName;
+    const finalNameZh = zhObj ? zhObj.name : currentName;
+    const finalNameEn = enObj ? enObj.name : currentName;
 
+    // 封裝最終傳給前端的資料
     const productData = {
       id: p.id,
       linkedChineseId: linkedChineseId || p.id,
       name: p.name,
       name_zh: finalNameZh,
-      name_en: finalNameEn, // ✅ 雙語名稱
+      name_en: finalNameEn,
       description: p.description || "",
-      price: p.price || p.regular_price || "0",
+      // 套用同步鎖的資料
+      price: priceSource.price || priceSource.regular_price || "0",
+      regular_price: priceSource.regular_price || null,
+      sale_price: priceSource.sale_price || null,
+      manage_stock: stockSource.manage_stock || false,
+      stock_quantity:
+        stockSource.stock_quantity !== null
+          ? Number(stockSource.stock_quantity)
+          : null,
+      stock_status: stockSource.stock_status || "instock",
+
       images: p.images?.map((i) => i.src) || [],
       sku: p.sku || "",
       categories: p.categories || [],

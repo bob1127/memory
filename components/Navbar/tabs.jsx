@@ -468,75 +468,106 @@ export const SlideTabsExample = () => {
     return (
       <ul className="space-y-3 pb-4">
         <AnimatePresence initial={false}>
-          {targetCart.map((it, i) => (
-            <motion.li
-              key={it.id}
-              custom={i}
-              variants={listItem}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="rounded-xl border border-black/10 bg-white p-3 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-3">
-                <img
-                  src={it.img}
-                  alt={it.name}
-                  className="h-20 w-20 shrink-0 rounded-lg bg-gray-50 object-contain ring-1 ring-black/5"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="line-clamp-2 text-sm font-medium">
-                    {getCartName(it, locale)}
+          {targetCart.map((it, i) => {
+            // 🌟 1. 動態計算該商品在購物車內的最高庫存限制
+            const maxStock =
+              it.manage_stock &&
+              it.stock_quantity !== null &&
+              it.stock_quantity !== undefined
+                ? Number(it.stock_quantity)
+                : Infinity;
+
+            return (
+              <motion.li
+                key={it.id}
+                custom={i}
+                variants={listItem}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="rounded-xl border border-black/10 bg-white p-3 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={it.img}
+                    alt={it.name}
+                    className="h-20 w-20 shrink-0 rounded-lg bg-gray-50 object-contain ring-1 ring-black/5"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="line-clamp-2 text-sm font-medium">
+                      {getCartName(it, locale)}
+                    </div>
+                    <div className="mt-2 flex flex-col items-start gap-1">
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          disabled={it.qty <= 1}
+                          onClick={() =>
+                            cartStore.setQty?.(
+                              it.id,
+                              Math.max(1, (it.qty || 1) - 1),
+                            )
+                          }
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <input
+                          type="number"
+                          className="h-7 w-12 rounded-lg border border-black/10 text-center text-sm font-medium focus:outline-none focus:border-[#b57a3c]"
+                          value={it.qty}
+                          max={maxStock !== Infinity ? maxStock : undefined}
+                          onChange={(e) => {
+                            let val = parseInt(e.target.value, 10);
+                            if (isNaN(val)) val = 1;
+                            val = Math.max(1, val);
+                            if (maxStock !== Infinity)
+                              val = Math.min(val, maxStock);
+                            cartStore.setQty?.(it.id, val);
+                          }}
+                        />
+                        <button
+                          className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          disabled={it.qty >= maxStock}
+                          onClick={() =>
+                            cartStore.setQty?.(
+                              it.id,
+                              Math.min(maxStock, (it.qty || 1) + 1),
+                            )
+                          }
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+
+                      {/* 🌟 2. 顯示已達上限提示 */}
+                      {it.qty >= maxStock && maxStock !== Infinity && (
+                        <div className="text-[11px] text-red-500 font-bold mt-1 tracking-wide">
+                          庫存已達上限
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="text-sm font-semibold whitespace-nowrap">
+                      CA${" "}
+                      {Number(
+                        Number(it.price || 0) * Number(it.qty || 0),
+                      ).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </div>
                     <button
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5"
-                      onClick={() =>
-                        cartStore.setQty?.(
-                          it.id,
-                          Math.max(1, (it.qty || 1) - 1),
-                        )
-                      }
+                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 whitespace-nowrap transition-colors"
+                      onClick={() => cartStore.remove?.(it.id)}
                     >
-                      <Minus size={14} />
-                    </button>
-                    <input
-                      className="h-7 w-12 rounded-lg border border-black/10 text-center text-sm"
-                      value={it.qty}
-                      onChange={(e) =>
-                        cartStore.setQty?.(
-                          it.id,
-                          Math.max(1, parseInt(e.target.value || "1", 10)),
-                        )
-                      }
-                    />
-                    <button
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-black/10 hover:bg-black/5"
-                      onClick={() =>
-                        cartStore.setQty?.(it.id, (it.qty || 1) + 1)
-                      }
-                    >
-                      <Plus size={14} />
+                      <Trash2 size={14} /> {ui.remove || "刪除"}
                     </button>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <div className="text-sm font-semibold whitespace-nowrap">
-                    CA${" "}
-                    {Number(
-                      Number(it.price || 0) * Number(it.qty || 0),
-                    ).toLocaleString()}
-                  </div>
-                  <button
-                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-gray-500 hover:bg-red-50 hover:text-red-600 whitespace-nowrap"
-                    onClick={() => cartStore.remove?.(it.id)}
-                  >
-                    <Trash2 size={14} /> {ui.remove || "刪除"}
-                  </button>
-                </div>
-              </div>
-            </motion.li>
-          ))}
+              </motion.li>
+            );
+          })}
         </AnimatePresence>
       </ul>
     );
@@ -558,7 +589,11 @@ export const SlideTabsExample = () => {
         <div className="flex justify-between text-sm mb-2 text-black/70">
           <span>{ui.subtotal}</span>
           <span className="font-medium text-black">
-            CA$ {targetSubtotal.toLocaleString()}
+            CA${" "}
+            {targetSubtotal.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </span>
         </div>
         <div className="flex justify-between text-sm mb-3 text-black/70">
@@ -568,7 +603,11 @@ export const SlideTabsExample = () => {
         <div className="flex justify-between items-center border-t border-dashed border-black/10 pt-3 mb-4">
           <span className="font-bold">{ui.total}</span>
           <span className="text-lg font-bold text-[#9c2121]">
-            CA$ {targetSubtotal.toLocaleString()}
+            CA${" "}
+            {targetSubtotal.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </span>
         </div>
         <div className="grid gap-2">
@@ -595,6 +634,18 @@ export const SlideTabsExample = () => {
 
   return (
     <div>
+      {/* 🌟 隱藏購物車內數字輸入框預設箭頭 */}
+      <style>{`
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type="number"] {
+          -moz-appearance: textfield;
+        }
+      `}</style>
+
       <motion.nav
         key="navbar"
         initial={{ opacity: 0, y: -10 }}
