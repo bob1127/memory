@@ -42,7 +42,6 @@ const getDiscountedPrice = (p) => {
   let label = "";
   const cats = p.categories || [];
 
-  // 📦 常溫判斷
   const isRoomTemp = cats.some(
     (c) =>
       c.name === "常溫" ||
@@ -50,7 +49,6 @@ const getDiscountedPrice = (p) => {
       c.name?.toLowerCase() === "normal",
   );
 
-  // ❄️ 冷凍判斷
   const isFrozen = cats.some(
     (c) =>
       c.name === "冷凍" ||
@@ -240,18 +238,52 @@ export default function GroupBuyPage({
   debugLogs = [],
 }) {
   const router = useRouter();
-  const { locale } = router;
+  const { locale, query, isReady } = router;
   const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
   const isEn = locale === "en";
   const products = initialItems;
 
+  // 🌟 核心修改 1：初始化時，優先從 URL Query 讀取分類與頁碼
   const [activeCat, setActiveCat] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // 🌟 核心修改 2：當 Next.js 路由準備好時，強制同步 URL 的參數到 State
+  useEffect(() => {
+    if (!isReady) return;
+
+    if (query.cat) {
+      setActiveCat(String(query.cat));
+    }
+
+    if (query.page) {
+      const pageNum = parseInt(query.page, 10);
+      if (!isNaN(pageNum) && pageNum > 0) {
+        setCurrentPage(pageNum);
+      }
+    }
+  }, [isReady, query.cat, query.page]);
+
+  // 🌟 核心修改 3：更新 URL 狀態的 Helper Function
+  const updateUrlState = (newCat, newPage) => {
+    setActiveCat(newCat);
+    setCurrentPage(newPage);
+
+    // 使用 shallow: true 可以改變網址但不觸發 getStaticProps，維持極速體驗
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, cat: newCat, page: newPage },
+      },
+      undefined,
+      { shallow: true },
+    );
+  };
+
   const [activePeriod, setActivePeriod] = useState(null);
   const [nextPeriod, setNextPeriod] = useState(null);
   const [showGroupModal, setShowGroupModal] = useState(false);
 
-  // 🌟 1. 完美同步：訂閱全域購物車狀態
+  // 完美同步：訂閱全域購物車狀態
   const [cart, setCart] = useState([]);
   useEffect(() => {
     cartStore.init?.();
@@ -272,7 +304,7 @@ export default function GroupBuyPage({
   const [qtyMap, setQtyMap] = useState(() => {
     const m = {};
     (initialItems || []).forEach((p) => {
-      if (p?.id != null) m[p.id] = 1; // 預設加車數量為 1
+      if (p?.id != null) m[p.id] = 1;
     });
     return m;
   });
@@ -297,7 +329,6 @@ export default function GroupBuyPage({
     toastTimerRef.current = setTimeout(() => setToast(null), 2000);
   };
 
-  // 🌟 動態庫存版的數量檢查機制 (不再需要手動維護 dynamicStock)
   const handleQtyChange = (product, nextVal, maxStock) => {
     if (nextVal === "") {
       setQtyMap((m) => ({ ...m, [product.id]: 0 }));
@@ -338,7 +369,7 @@ export default function GroupBuyPage({
         img: product.img || "/images/placeholder.png",
         price: Number(final.toFixed(2)),
         store_type: "group_buy",
-        // 👇 將庫存資訊傳給 Navbar 的購物車做防呆
+        sku: product.sku || "",
         manage_stock: product.manage_stock,
         stock_quantity: product.stock_quantity,
       },
@@ -353,7 +384,6 @@ export default function GroupBuyPage({
       : `${t.add_success_prefix}${displayName}${t.add_success_suffix}（${safeQty} ${t.unit}）`;
     showToast(msg);
 
-    // 加入購物車後，數量框歸零 (防呆)
     setQtyMap((m) => ({ ...m, [product.id]: 0 }));
   };
 
@@ -379,19 +409,16 @@ export default function GroupBuyPage({
     );
   }, [products, activeCat]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeCat]);
-
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
+  // 🌟 核心修改 4：分頁改變時觸發 URL 更新
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      updateUrlState(activeCat, page);
       requestAnimationFrame(() =>
         listTopRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -401,12 +428,16 @@ export default function GroupBuyPage({
     }
   };
 
+  // 🌟 核心修改 5：分類改變時觸發 URL 更新 (並把頁碼歸 1)
+  const handleCategoryChange = (catId) => {
+    updateUrlState(catId, 1);
+  };
+
   return (
     <Layout>
       <Head>
         <title key="title">{t.seo.title}</title>
         <style>{`
-          /* 隱藏數字輸入框預設上下箭頭 */
           input[type="number"]::-webkit-outer-spin-button,
           input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -461,7 +492,7 @@ export default function GroupBuyPage({
                   {tabs.map((c) => (
                     <button
                       key={c.id}
-                      onClick={() => setActiveCat(c.id)}
+                      onClick={() => handleCategoryChange(c.id)}
                       className={`shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition text-[13px] sm:text-[14px] whitespace-nowrap ${String(c.id) === String(activeCat) ? "bg-[#e7a042] text-white border-[#e7a042]" : "bg-white text-black hover:bg-gray-50"}`}
                     >
                       {c.name}
@@ -496,7 +527,6 @@ export default function GroupBuyPage({
                           ? p.name_en || p.name
                           : p.name_zh || p.name;
 
-                        // 🌟 2. 完美同步庫存公式：後台真實庫存 - 購物車內已選數量
                         const cartItem = cart.find(
                           (c) =>
                             c.productId === p.id || c.id === (p.sku || p.id),
@@ -508,7 +538,6 @@ export default function GroupBuyPage({
                             ? Math.max(0, p.stock_quantity - inCartQty)
                             : Infinity;
 
-                        // 判斷是否缺貨
                         const isOutOfStock =
                           p.stock_status === "outofstock" ||
                           (p.manage_stock && maxStock <= 0);
@@ -556,7 +585,6 @@ export default function GroupBuyPage({
                             </div>
 
                             <div className="mt-2.5">
-                              {/* 🌟 3. 商品庫存即時顯示 */}
                               {p.manage_stock &&
                                 maxStock !== Infinity &&
                                 !isOutOfStock && (
@@ -679,7 +707,7 @@ export default function GroupBuyPage({
   );
 }
 
-// 🟢 [最終完美版] 無限制數量！自動迴圈抓取 + 強制中英文價格同步鎖 + 智慧庫存雷達防呆！
+// 🟢 [最終完美版]
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;
@@ -701,7 +729,6 @@ export async function getStaticProps({ locale }) {
     let currentPageFetch = 1;
     let hasMoreProducts = true;
 
-    // 自動迴圈抓取所有分頁商品
     while (hasMoreProducts) {
       const storeURL = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
       storeURL.searchParams.set("per_page", "100");
@@ -733,7 +760,6 @@ export async function getStaticProps({ locale }) {
 
     log(1, `成功抓回無數量限制的所有商品，共 ${rawProducts.length} 筆`);
 
-    // 1. 找出缺少對應語系的商品 ID
     const missingIds = new Set();
     rawProducts.forEach((p) => {
       const trans = p.translations || {};
@@ -746,7 +772,6 @@ export async function getStaticProps({ locale }) {
         missingIds.add(enId);
     });
 
-    // 2. 批次補抓「完整」的翻譯商品資料
     if (missingIds.size > 0) {
       const idsArray = Array.from(missingIds);
       const chunkSize = 50;
@@ -768,7 +793,6 @@ export async function getStaticProps({ locale }) {
       }
     }
 
-    // 3. 合併與變形
     const processedGroups = new Set();
     const finalProducts = [];
 
@@ -807,14 +831,13 @@ export async function getStaticProps({ locale }) {
       displayProduct.name_zh = finalZhName;
       displayProduct.name_en = finalEnName;
       displayProduct.linkedChineseId = zhId || baseObj.id;
+      displayProduct.sku = baseObj.sku || "";
 
-      // 🌟 [防折上折神盾]：強制價格同步鎖
       const priceSource = enObj || zhObj || p;
       displayProduct.regular_price = priceSource.regular_price;
       displayProduct.price = priceSource.price;
       displayProduct.sale_price = priceSource.sale_price;
 
-      // 🌟 [庫存智能雷達 - 終極防彈版]：
       const stockSource =
         [zhObj, enObj, p].find((obj) => obj && obj.manage_stock) || priceSource;
 
@@ -835,7 +858,6 @@ export async function getStaticProps({ locale }) {
       finalProducts.push(displayProduct);
     });
 
-    // 4. 過濾無關商品
     initialItems = finalProducts.filter((p) => {
       const cats = p.categories || [];
       const productName = (p.name || "").toLowerCase();

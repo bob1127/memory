@@ -838,7 +838,7 @@ export default function Home({ t, locale }) {
           loop
           playsInline
           preload="metadata"
-          poster="/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg"
+          poster=" "
           aria-label="Memory Corner promotional video"
         >
           <source
