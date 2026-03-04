@@ -409,7 +409,34 @@ export const SlideTabsExample = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  // 👇 🔥 建議把除錯用的 useEffect 移到這裡 🔥 👇
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.location.search.includes("debug=theme")
+    ) {
+      setTimeout(() => {
+        const isSystemDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const htmlClasses = document.documentElement.className;
+        const bodyStyle = window.getComputedStyle(document.body);
+        const bodyBg = bodyStyle.backgroundColor;
+        const bodyColor = bodyStyle.color;
+        const userAgent = navigator.userAgent;
 
+        const debugMsg =
+          `[console log]` +
+          `1. 系統深色模式 (System Dark): ${isSystemDark}\n` +
+          `2. HTML Classes: ${htmlClasses}\n` +
+          `3. Body 背景色: ${bodyBg}\n` +
+          `4. Body 預設文字色: ${bodyColor}\n` +
+          `5. 裝置資訊: ${userAgent.substring(0, 80)}...`;
+
+        alert(debugMsg);
+      }, 1000);
+    }
+  }, []);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);

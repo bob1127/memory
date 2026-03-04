@@ -6,10 +6,10 @@ module.exports = {
   images: {
     domains: ['images.unsplash.com'], // Update the domain
   },
+  // 保留 class 模式，這樣除非手動在 HTML 加上 .dark，否則系統不會自動切換
   darkMode: ['class'],
   content: [
-     "./pages/**/*.{js,ts,jsx,tsx}",
-    
+    "./pages/**/*.{js,ts,jsx,tsx}",
     './pages/**/*.{js,ts,jsx,tsx}', // Update paths as needed
     './components/**/*.{js,ts,jsx,tsx}', // Keep components path
     './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}', // NextUI styles
@@ -48,7 +48,7 @@ module.exports = {
         },
       },
       colors: {
-         brand: '#4badf4',
+        brand: '#4badf4',
         't-color-1': '#bfbfbf',
         't-color-2': '#d9d9d9',
         't-color-3': '#FDF3C6',
@@ -179,8 +179,12 @@ module.exports = {
   plugins: [
     addVariablesForColors,
     require('@tailwindcss/forms'), // Forms plugin
-    nextui(), // NextUI plugin
     require("tailwindcss-animate"), // Animation plugin
+    // 🔥 核心修改：強制 NextUI 鎖死在 light 模式，阻斷系統深色模式的干擾
+    nextui({
+      defaultTheme: "light",
+      defaultExtendTheme: "light",
+    }), 
   ],
 };
 
