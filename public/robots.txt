@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://www.memorycorner8.com
+
+# Sitemaps
+Sitemap: https://www.memorycorner8.com/sitemap.xml

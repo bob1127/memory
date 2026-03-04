@@ -1,8 +1,7 @@
 // pages/_app.js
 import "../src/globals.css";
 import { useEffect } from "react"; // 保留 useEffect
-// ❌ 移除 import AOS from "aos";
-// ❌ 移除 import "aos/dist/aos.css";
+import Head from 'next/head';
 import { NavProvider } from "@/components/context/NavContext"; // 記得引入
 import { useRouter } from "next/router";
 import { NextUIProvider } from "@nextui-org/react";
@@ -24,12 +23,17 @@ function MyApp({ Component, pageProps }) {
   */
 
   return (
+    
     <NavProvider>
     <AuthProvider>
       <NextUIProvider>
         {/* ✅ 用 Portal 掛在 body，不受任何 transform 影響 */}
         <FloatingSidebar />
-
+<Head>
+     
+        {/* 設定標籤列小圖示 */}
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
         {/* 你的頁面內容 */}
         <div className="bg-[url('/images/mec_bg-tile.png')] bg-center">
           <CartProvider>
