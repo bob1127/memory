@@ -26,6 +26,14 @@ const BRAND_NAME = "Memory Corner Group";
 // ✅ 你指定的 OG image
 const OG_IMAGE_PATH = "/images/index/about/3-1.webp";
 
+// 影片輪播清單
+const PROMO_VIDEOS = [
+  "/video/A_溫馨用餐_web.mp4",
+  "/video/B_GrassJelly_web.mp4",
+  "/video/B_Toast_web.mp4",
+  "/video/C_五分鐘出好料理_web.mp4",
+];
+
 /* =================================================================
    1. 翻譯資料庫
    ================================================================= */
@@ -386,12 +394,23 @@ export default function Home({ t, locale }) {
   if (!t) return null;
 
   const [globalIsB, setGlobalIsB] = useState(false);
+  const [videoIndex, setVideoIndex] = useState(0); // 新增的影片輪播 State
   const dingingRef = useRef(null);
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
   useEffect(() => {
+    // 既有的 globalIsB 計時器
     const timer = setInterval(() => setGlobalIsB((prev) => !prev), 7000);
-    return () => clearInterval(timer);
+
+    // 影片 10 秒輪播計時器
+    const videoTimer = setInterval(() => {
+      setVideoIndex((prev) => (prev + 1) % PROMO_VIDEOS.length);
+    }, 10000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(videoTimer);
+    };
   }, []);
 
   const OPTIONS = { dragFree: true, loop: true };
@@ -829,23 +848,21 @@ export default function Home({ t, locale }) {
       </section>
 
       {/* Video */}
-      <section className="h-full w-full section-video relative">
-        <video
-          className="w-full h-full object-cover"
-          src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster=" "
-          aria-label="Memory Corner promotional video"
-        >
-          <source
-            src="/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4"
-            type="video/mp4"
+      <section className="h-screen w-full section-video relative overflow-hidden bg-black">
+        {PROMO_VIDEOS.map((src, idx) => (
+          <video
+            key={idx}
+            className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              videoIndex === idx ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
+            src={src}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
           />
-        </video>
+        ))}
       </section>
 
       {/* APP */}

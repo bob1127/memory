@@ -253,7 +253,8 @@ export default function CheckoutBeerPage() {
       0,
     );
     const subtotal = roundPrice(rawSubtotal);
-    const taxAmount = 0;
+    // 🍺 啤酒固定加收 15% 稅金
+    const taxAmount = roundPrice(subtotal * 0.15);
     const total = roundPrice(subtotal + taxAmount);
     return { subtotal, taxAmount, total };
   }, [cart]);
@@ -631,9 +632,15 @@ export default function CheckoutBeerPage() {
                   </div>
                   <span className="font-medium text-gray-900">Free</span>
                 </div>
+                {/* 稅率標示更新 */}
                 {orderSummary.taxAmount > 0 && (
-                  <div className="flex justify-between text-gray-600">
-                    <span>{t.tax}</span>
+                  <div className="flex justify-between text-gray-600 items-center">
+                    <div className="flex flex-col">
+                      <span>{t.tax}</span>
+                      <span className="text-xs text-gray-400 mt-0.5">
+                        ({locale === "en" ? "tax rate 15%" : "額外稅率15%"})
+                      </span>
+                    </div>
                     <span className="font-medium text-gray-900">
                       {t.currency}
                       {formatPrice(orderSummary.taxAmount)}

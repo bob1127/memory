@@ -42,9 +42,9 @@ const isBeerProduct = (item) => {
     str.includes("台啤") ||
     str.includes("生啤") ||
     str.includes("draft") ||
-    str.includes("金牌") || // 🍺 新增：匹配「金牌 ONE」
-    str.includes("heineken") || // 🍺 預防性新增：海尼根
-    str.includes("kirin"); // 🍺 預防性新增：麒麟
+    str.includes("金牌") || //  新增：匹配「金牌 ONE」
+    str.includes("heineken") || //  預防性新增：海尼根
+    str.includes("kirin"); //  預防性新增：麒麟
   return check(n1) || check(n2) || check(n3);
 };
 /* =================== 1. 導覽列與購物車翻譯資料庫 =================== */
@@ -79,7 +79,7 @@ const NAV_TRANSLATIONS = {
       total: "總計",
       remove: "刪除",
       general_items: "一般商品",
-      beer_items: "🍺 啤酒專區",
+      beer_items: " 啤酒專區",
     },
     sub_stores: [
       { t: "關於集團", href: "/brand-story?tab=group" },
@@ -123,7 +123,7 @@ const NAV_TRANSLATIONS = {
       total: "Total",
       remove: "Remove",
       general_items: "General Items",
-      beer_items: "🍺 Beer Selection",
+      beer_items: " Beer Selection",
     },
     sub_stores: [
       { t: "Our Group", href: "/brand-story?tab=group" },
@@ -409,7 +409,7 @@ export const SlideTabsExample = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  // 👇 🔥 建議把除錯用的 useEffect 移到這裡 🔥 👇
+
   useEffect(() => {
     if (
       typeof window !== "undefined" &&
@@ -1047,14 +1047,16 @@ export const SlideTabsExample = () => {
                 </button>
               </div>
 
-              {/* Drawer Body Area：利用 absolute inset-0 確保嚴格的空間限制 */}
+              {/* Drawer Body Area */}
               <div className="flex-1 relative min-h-0 bg-gray-100">
                 {beerCart.length > 0 ? (
-                  // ================== 🍺 雙拼模式 ==================
-                  <div className="absolute inset-0 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x border-black/10 bg-white">
+                  // ==================  雙拼模式 ==================
+                  /* 🔥 關鍵修正：手機版 overflow-y-auto 整體往下延伸滾動，電腦版 lg:overflow-hidden 截斷讓內部各別滾動 */
+                  <div className="absolute inset-0 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x border-black/10 bg-white overflow-y-auto lg:overflow-hidden">
                     {/* 左半邊：一般商品 */}
-                    <div className="flex-1 flex flex-col min-h-0 min-w-0">
-                      <div className="shrink-0 px-5 py-3 border-b border-black/10 bg-gray-50/80 flex justify-between items-center">
+                    <div className="flex-none lg:flex-1 flex flex-col lg:min-h-0 min-w-0">
+                      {/* 🔥 讓標題在手機版往下捲動時能吸頂 (sticky) */}
+                      <div className="shrink-0 px-5 py-3 border-b border-black/10 bg-gray-50/95 flex justify-between items-center sticky top-0 z-10 lg:static backdrop-blur-sm lg:backdrop-blur-none">
                         <h3 className="font-bold text-lg text-[#3c2514]">
                           {ui.general_items || "一般商品"}
                         </h3>
@@ -1064,10 +1066,12 @@ export const SlideTabsExample = () => {
                           </span>
                         )}
                       </div>
-                      {/* 🔥 核心關鍵：flex-1 + min-h-0 + overflow-y-auto */}
-                      <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+
+                      {/* 🔥 核心關鍵：flex-none 保證手機版會自然撐開高度；lg:flex-1 + lg:overflow-y-auto 讓電腦版獨立滾動 */}
+                      <div className="flex-none lg:flex-1 lg:min-h-0 lg:overflow-y-auto px-5 py-4">
                         {renderCartItemsList(generalCart)}
                       </div>
+
                       <div className="shrink-0 border-t border-black/10 px-5 py-4 bg-gray-50/50">
                         {renderCartSummary(
                           generalCart,
@@ -1079,10 +1083,10 @@ export const SlideTabsExample = () => {
                     </div>
 
                     {/* 右半邊：啤酒專區 */}
-                    <div className="flex-1 flex flex-col min-h-0 min-w-0">
-                      <div className="shrink-0 px-5 py-3 border-b border-black/10 bg-gray-50/80 flex justify-between items-center">
+                    <div className="flex-none lg:flex-1 flex flex-col lg:min-h-0 min-w-0">
+                      <div className="shrink-0 px-5 py-3 border-b border-black/10 bg-gray-50/95 flex justify-between items-center sticky top-0 z-10 lg:static backdrop-blur-sm lg:backdrop-blur-none">
                         <h3 className="font-bold text-lg text-[#3c2514]">
-                          {ui.beer_items || "🍺 啤酒專區"}
+                          {ui.beer_items || " 啤酒專區"}
                         </h3>
                         {beerCount > 0 && (
                           <span className="text-sm font-medium text-black/60">
@@ -1090,8 +1094,7 @@ export const SlideTabsExample = () => {
                           </span>
                         )}
                       </div>
-                      {/* 🔥 核心關鍵：flex-1 + min-h-0 + overflow-y-auto */}
-                      <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+                      <div className="flex-none lg:flex-1 lg:min-h-0 lg:overflow-y-auto px-5 py-4">
                         {renderCartItemsList(beerCart)}
                       </div>
                       <div className="shrink-0 border-t border-black/10 px-5 py-4 bg-gray-50/50">
@@ -1106,16 +1109,17 @@ export const SlideTabsExample = () => {
                   </div>
                 ) : (
                   // ================== 🍔 單一模式 (無啤酒) ==================
-                  <div className="absolute inset-0 flex flex-col lg:flex-row bg-white">
+                  /* 🔥 手機版同理，整體往下長，靠父層捲動；電腦端則是鎖住父層，由左側清單獨立捲動 */
+                  <div className="absolute inset-0 flex flex-col lg:flex-row bg-white overflow-y-auto lg:overflow-hidden">
                     {/* 左側清單區 */}
-                    <div className="lg:w-2/3 flex-1 flex flex-col min-h-0">
-                      <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+                    <div className="flex-none lg:w-2/3 lg:flex-1 flex flex-col lg:min-h-0">
+                      <div className="flex-none lg:flex-1 lg:min-h-0 lg:overflow-y-auto px-5 py-4">
                         {renderCartItemsList(generalCart)}
                       </div>
                     </div>
                     {/* 右側結帳區 */}
-                    <div className="lg:w-1/3 shrink-0 lg:flex lg:flex-col border-t border-black/10 lg:border-l lg:border-t-0 bg-gray-50/80">
-                      <div className="p-5 flex flex-col h-full overflow-y-auto">
+                    <div className="flex-none lg:w-1/3 shrink-0 lg:flex lg:flex-col border-t border-black/10 lg:border-l lg:border-t-0 bg-gray-50/80">
+                      <div className="p-5 flex flex-col h-full lg:overflow-y-auto">
                         <div className="font-bold text-lg mb-4 text-[#3c2514]">
                           {ui.summary || "訂單摘要"}
                         </div>

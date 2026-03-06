@@ -59,7 +59,7 @@ export default async function handler(req, res) {
       "bob112722761236tom@gmail.com", 
        "volon1019@gmail.com",
   "raymondxwu@hotmail.com",
-  "maxliao2020@gmail.com",// 主要收件人
+  "maxliao2020@gmail.com",
     ];
 
     const subject = `【聯絡我們】${reason || "新留言"} - ${
