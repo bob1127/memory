@@ -2,13 +2,18 @@ import { useState } from "react";
 import Head from "next/head";
 import Layout from "./Layout"; // 請確認 Layout 路徑
 
+// 🟢 設定正式上線網址 (解決 Google Search Console 收錄問題)
+const SITE_URL_RAW =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
+const SITE_URL = SITE_URL_RAW.replace(/\/+$/, "");
+
 /* ========== 1. i18n 資料 ========== */
 const TRANSLATIONS = {
   "zh-TW": {
     meta: {
-      title: "聯絡我們 | 有香 Memory Corner",
+      title: "聯絡我們 | Memory Corner 有香餐飲集團",
       description:
-        "有任何問題或建議？歡迎透過表單聯絡有香餐飲集團，我們將盡快回覆您。",
+        "有任何問題或建議？歡迎透過表單聯絡 Memory Corner 有香餐飲集團，我們將盡快回覆您。提供餐飲體驗、線上訂購、商業合作等諮詢服務。",
     },
     title: "聯絡我們 (Contact Us)",
     form: {
@@ -83,9 +88,9 @@ const TRANSLATIONS = {
   },
   en: {
     meta: {
-      title: "Contact Us | Memory Corner",
+      title: "Contact Us | Memory Corner Group",
       description:
-        "Have questions or suggestions? Contact Memory Dining Group through this form, and we will get back to you soon.",
+        "Have questions or suggestions? Contact Memory Dining Group through this form for dining experience, online orders, or business inquiries.",
     },
     title: "Contact Us",
     form: {
@@ -179,6 +184,7 @@ export default function ContactPage({ t, locale }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
   const [reason, setReason] = useState("");
+  const isEn = locale === "en";
 
   // 判斷是否與餐廳用餐體驗相關，藉此要求提供分店與日期資訊
   const isStoreVisit = reason === "Dining Experience";
@@ -241,21 +247,54 @@ export default function ContactPage({ t, locale }) {
     }
   }
 
-  /* 結構化資料：ContactPage */
+  /* =================================================================
+     ⭐ SEO 與結構化資料 (Structured Data)
+     ================================================================= */
+  const currentUrl = `${SITE_URL}${isEn ? "/en" : ""}/contact`;
+  const hrefLangZh = `${SITE_URL}/contact`;
+  const hrefLangEn = `${SITE_URL}/en/contact`;
+  const ogImageAbs = `${SITE_URL}/images/index/about/3-1.webp`;
+
   const contactPageSchema = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
     name: t.meta.title,
     description: t.meta.description,
-    url: `https://www.memorycorner8.com${
-      locale === "en" ? "/en/contact" : "/contact"
-    }`,
+    url: currentUrl,
     mainEntity: {
       "@type": "Organization",
       name: "Memory Corner Group",
-      email: "info@memorycorner8.com", // 請確認您的聯絡信箱
-      url: "https://www.memorycorner8.com",
+      url: SITE_URL,
+      logo: `${SITE_URL}/images/logo/有香餐飲集團-logo.png`,
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          email: "info@memorycorner8.com", // 請確認您的聯絡信箱
+          contactType: "customer service",
+          areaServed: "CA",
+          availableLanguage: ["English", "Chinese"],
+        },
+      ],
     },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: isEn ? "Home" : "首頁",
+        item: `${SITE_URL}${isEn ? "/en" : ""}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: isEn ? "Contact Us" : "聯絡我們",
+        item: currentUrl,
+      },
+    ],
   };
 
   return (
@@ -263,11 +302,40 @@ export default function ContactPage({ t, locale }) {
       <Head>
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
+
+        {/* Canonical 與多語系設定 */}
+        <link rel="canonical" href={currentUrl} />
+        <link rel="alternate" hrefLang="x-default" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="zh-Hant" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="en" href={hrefLangEn} />
+
+        {/* Open Graph (FB/IG) */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={t.meta.title} />
+        <meta property="og:description" content={t.meta.description} />
+        <meta property="og:image" content={ogImageAbs} />
+        <meta property="og:site_name" content="Memory Corner Group" />
+        <meta property="og:locale" content={isEn ? "en_CA" : "zh_TW"} />
+        <meta property="og:url" content={currentUrl} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={t.meta.title} />
+        <meta name="twitter:description" content={t.meta.description} />
+        <meta name="twitter:image" content={ogImageAbs} />
+
+        {/* JSON-LD 結構化資料 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(contactPageSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        />
       </Head>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
-      />
 
       <div className="page bg-[#EDE5D6]">
         <main className="container">
@@ -428,7 +496,6 @@ export default function ContactPage({ t, locale }) {
                   >
                     {loading ? t.form.submitting : t.form.submit}
                   </button>
-                  {/* 新增的回覆時間小字 */}
                   <p className="mt-3 text-sm text-[#64748b]">
                     {t.form.reply_time}
                   </p>
@@ -490,7 +557,7 @@ export default function ContactPage({ t, locale }) {
           .label {
             font-size: 0.95rem;
             font-weight: 600;
-            color: #3b2a1a; /* 配合 Layout 風格 */
+            color: #3b2a1a;
             margin-bottom: 6px;
           }
 

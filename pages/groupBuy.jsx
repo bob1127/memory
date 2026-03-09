@@ -16,6 +16,7 @@ import { cartStore } from "@/lib/cartStore";
 function ensureURL(u = "") {
   return String(u).replace(/\/+$/, "");
 }
+// 🟢 設定正式上線網址 (解決 Google Search Console 收錄問題)
 const SITE_URL_RAW =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
 const SITE_URL = ensureURL(SITE_URL_RAW);
@@ -114,7 +115,8 @@ const PAGE_TRANSLATIONS = {
   "zh-TW": {
     seo: {
       title: "團購商品 | 有香 Memory Corner",
-      description: "依分類瀏覽團購商品...",
+      description:
+        "線上訂購有香 Memory Corner 精選團購商品。各式經典台味料理、冷凍包、在地小吃與醬料，在家就能輕鬆享受台灣好滋味！",
     },
     title: "團購商品",
     loading: "商品載入中...",
@@ -122,17 +124,24 @@ const PAGE_TRANSLATIONS = {
     add_success_prefix: "「",
     add_success_suffix: "」已加入購物車",
     unit: "份",
-    currency: "NT$",
+    currency: "CA$",
     breadcrumb: "團購商品",
     empty: "此分類目前沒有商品",
     all: "全部",
     prev_page: "上一頁",
     next_page: "下一頁",
+    faq_q1: "團購商品何時可以下單？",
+    faq_a1:
+      "團購商品僅在特定的「開團期間」開放下單，非開團期間無法加入購物車。您可以查看網頁上的下次開團時間。",
+    faq_q2: "取貨方式有哪些？",
+    faq_a2:
+      "我們提供「來店自取」與「外送宅配」服務。自取請至『有香ㄟ灶腳』門市；宅配部分區域若滿額可享免運費優惠。",
   },
   en: {
     seo: {
-      title: "Group Buy | Memory Corner",
-      description: "Browse products...",
+      title: "Group Buy | Memory Corner Group",
+      description:
+        "Order selected group buy products online from Memory Corner. Enjoy authentic Taiwanese frozen meals, snacks, and sauces at home easily!",
     },
     title: "GROUP BUY",
     loading: "Loading products...",
@@ -140,12 +149,18 @@ const PAGE_TRANSLATIONS = {
     add_success_prefix: "",
     add_success_suffix: " has been added to cart",
     unit: "item(s)",
-    currency: "NT$",
+    currency: "CA$",
     breadcrumb: "Group Buy",
     empty: "No products in this category",
     all: "All",
     prev_page: "Prev",
     next_page: "Next",
+    faq_q1: "When can I order group buy items?",
+    faq_a1:
+      "Group buy items can only be ordered during specific 'Group Buy Periods'. You can check the next available time on the page.",
+    faq_q2: "What are the pickup/delivery options?",
+    faq_a2:
+      "We offer both 'Store Pickup' at Old Memory Kitchen and 'Delivery'. Free delivery is available for certain areas if the minimum order amount is met.",
   },
 };
 
@@ -238,16 +253,14 @@ export default function GroupBuyPage({
   debugLogs = [],
 }) {
   const router = useRouter();
-  const { locale, query, isReady } = router;
+  const { locale, query, isReady, asPath } = router;
   const t = PAGE_TRANSLATIONS[locale] || PAGE_TRANSLATIONS["zh-TW"];
   const isEn = locale === "en";
   const products = initialItems;
 
-  // 🌟 核心修改 1：初始化時，優先從 URL Query 讀取分類與頁碼
   const [activeCat, setActiveCat] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 🌟 核心修改 2：當 Next.js 路由準備好時，強制同步 URL 的參數到 State
   useEffect(() => {
     if (!isReady) return;
 
@@ -263,12 +276,10 @@ export default function GroupBuyPage({
     }
   }, [isReady, query.cat, query.page]);
 
-  // 🌟 核心修改 3：更新 URL 狀態的 Helper Function
   const updateUrlState = (newCat, newPage) => {
     setActiveCat(newCat);
     setCurrentPage(newPage);
 
-    // 使用 shallow: true 可以改變網址但不觸發 getStaticProps，維持極速體驗
     router.push(
       {
         pathname: router.pathname,
@@ -283,7 +294,6 @@ export default function GroupBuyPage({
   const [nextPeriod, setNextPeriod] = useState(null);
   const [showGroupModal, setShowGroupModal] = useState(false);
 
-  // 完美同步：訂閱全域購物車狀態
   const [cart, setCart] = useState([]);
   useEffect(() => {
     cartStore.init?.();
@@ -415,7 +425,6 @@ export default function GroupBuyPage({
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
-  // 🌟 核心修改 4：分頁改變時觸發 URL 更新
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       updateUrlState(activeCat, page);
@@ -428,15 +437,188 @@ export default function GroupBuyPage({
     }
   };
 
-  // 🌟 核心修改 5：分類改變時觸發 URL 更新 (並把頁碼歸 1)
   const handleCategoryChange = (catId) => {
     updateUrlState(catId, 1);
+  };
+
+  /* =================================================================
+     ⭐ SEO 與結構化資料 (Structured Data)
+     ================================================================= */
+
+  const currentPath = asPath.split("?")[0];
+  const currentUrl = `${SITE_URL}${currentPath}`;
+  const hrefLangZh = `${SITE_URL}/groupBuy`;
+  const hrefLangEn = `${SITE_URL}/en/groupBuy`;
+
+  // 1. 麵包屑導覽
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: isEn ? "Home" : "首頁",
+        item: `${SITE_URL}${isEn ? "/en" : ""}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: t.breadcrumb,
+        item: currentUrl,
+      },
+    ],
+  };
+
+  // 2. CollectionPage 宣告
+  const collectionPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: t.seo.title,
+    description: t.seo.description,
+    url: currentUrl,
+  };
+
+  // 3. ItemList (產品清單) - 動態對應當前頁面的商品
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: currentProducts.map((p, index) => {
+      const { final } = getDiscountedPrice(p);
+      const isOutOfStock =
+        p.stock_status === "outofstock" ||
+        (p.manage_stock && p.stock_quantity <= 0);
+      return {
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "Product",
+          name: isEn ? p.name_en || p.name : p.name_zh || p.name,
+          image: p.img || `${SITE_URL}/images/placeholder.png`,
+          sku: p.sku || `${p.id}`,
+          url: `${SITE_URL}${isEn ? "/en" : ""}/product/${p.slug}`,
+          offers: {
+            "@type": "Offer",
+            price: final.toFixed(2),
+            priceCurrency: "CAD",
+            availability: isOutOfStock
+              ? "https://schema.org/OutOfStock"
+              : "https://schema.org/InStock",
+            url: `${SITE_URL}${isEn ? "/en" : ""}/product/${p.slug}`,
+          },
+        },
+      };
+    }),
+  };
+
+  // 4. FAQ 常見問題
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: t.faq_q1,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t.faq_a1,
+        },
+      },
+      {
+        "@type": "Question",
+        name: t.faq_q2,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t.faq_a2,
+        },
+      },
+    ],
+  };
+
+  // 5. 實體門店宣告
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: "Old Memory Kitchen 有香ㄟ灶腳",
+    image: `${SITE_URL}/images/logo/有香餐飲集團-logo.png`,
+    "@id": `${SITE_URL}/#oldmemorykitchen`,
+    url: SITE_URL,
+    telephone: "+1-778-723-1685",
+    priceRange: "$$",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "8080 Leslie Rd #150",
+      addressLocality: "Richmond",
+      addressRegion: "BC",
+      postalCode: "V6X 4A8",
+      addressCountry: "CA",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 49.1837,
+      longitude: -123.1336,
+    },
+    servesCuisine: "Taiwanese, Taiwanese Groceries, Frozen Food",
   };
 
   return (
     <Layout>
       <Head>
         <title key="title">{t.seo.title}</title>
+        <meta name="description" content={t.seo.description} />
+
+        {/* Canonical 與多語系設定 */}
+        <link rel="canonical" href={currentUrl} />
+        <link rel="alternate" hrefLang="x-default" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="zh-Hant" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="en" href={hrefLangEn} />
+
+        {/* Open Graph (FB/IG) */}
+        <meta property="og:title" content={t.seo.title} />
+        <meta property="og:description" content={t.seo.description} />
+        <meta
+          property="og:image"
+          content={`${SITE_URL}/images/group-buy/2025-10--IG-1920x768px-01.webp`}
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={currentUrl} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={t.seo.title} />
+        <meta name="twitter:description" content={t.seo.description} />
+        <meta
+          name="twitter:image"
+          content={`${SITE_URL}/images/group-buy/2025-10--IG-1920x768px-01.webp`}
+        />
+
+        {/* JSON-LD 結構化資料 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(collectionPageSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(localBusinessSchema),
+          }}
+        />
+
+        {/* 隱藏數字輸入框預設箭頭的 CSS */}
         <style>{`
           input[type="number"]::-webkit-outer-spin-button,
           input[type="number"]::-webkit-inner-spin-button {
@@ -661,7 +843,7 @@ export default function GroupBuyPage({
                         );
                       })}
                     </div>
-                    {/* 👇 分頁按鈕 */}
+                    {/* 分頁按鈕 */}
                     {totalPages > 1 && (
                       <div className="mt-12 flex justify-center items-center gap-2">
                         <button
@@ -707,7 +889,7 @@ export default function GroupBuyPage({
   );
 }
 
-// 🟢 [最終完美版]
+// 🟢 [最終完美版] 伺服器端抓取邏輯不變
 export async function getStaticProps({ locale }) {
   const base = process.env.WC_URL;
   const ck = process.env.WC_CK;

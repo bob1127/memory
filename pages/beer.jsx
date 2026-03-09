@@ -10,11 +10,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import Marquee from "react-marquee-slider";
 import { cartStore } from "@/lib/cartStore";
 
+// 🟢 設定正式上線網址 (解決 Google Search Console 收錄問題)
+const SITE_URL_RAW =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
+const SITE_URL = ensureURL(SITE_URL_RAW);
+
 // 設定
 const REVALIDATE_TIME = 10;
 const APPEAR_DELAY_MS = 800;
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
 const ITEMS_PER_PAGE = 12; // 每頁 12 筆
 
 const MARQUEE_ITEMS = [
@@ -33,37 +36,48 @@ const PAGE_TRANSLATIONS = {
     seo: {
       title: "精釀啤酒訂購 | 有香 Memory Corner",
       description:
-        "線上訂購有香 Memory Corner 精選精釀啤酒。提供多種風味，適合搭配我們的經典台式料理。",
+        "線上訂購有香 Memory Corner 精選精釀啤酒。提供多種風味，適合搭配我們的經典台式料理。注意：因應法規，啤酒商品僅限來店自取。",
     },
     title: "精釀啤酒 ORDER",
     loading: "商品載入中...",
     add_to_cart: "加入購物車",
     unit: "箱",
-    currency: "NT$",
+    currency: "CA$",
     breadcrumb: "啤酒訂購",
     no_product: "此分類尚無產品。",
     add_success: "已加入購物車",
     prev_page: "上一頁",
     next_page: "下一頁",
     tab_all: "全部",
+    faq_q1: "啤酒可以宅配嗎？",
+    faq_a1: "不行。因應當地法規，所有啤酒類商品皆僅提供「來店自取」服務。",
+    faq_q2: "取貨地點在哪裡？",
+    faq_a2:
+      "請於營業時間內至「憶點點 Sweet Memory」門市取貨。地址：8080 Leslie Rd #130, Richmond, BC V6X 4A8。",
   },
   en: {
     seo: {
-      title: "Craft Beer Order | Memory Corner",
+      title: "Craft Beer Order | Memory Corner Group",
       description:
-        "Order selected craft beers online from Memory Corner. Various flavors available to pair with our authentic Taiwanese cuisine.",
+        "Order selected craft beers online from Memory Corner. Various flavors available to pair with our authentic Taiwanese cuisine. Note: Store pickup only.",
     },
     title: "Craft Beer ORDER",
     loading: "Loading products...",
     add_to_cart: "Add to Cart",
     unit: "box(es)",
-    currency: "NT$",
+    currency: "CA$",
     breadcrumb: "Beer Order",
     no_product: "No products found in this category.",
     add_success: "has been added to cart",
     prev_page: "Prev",
     next_page: "Next",
     tab_all: "All",
+    faq_q1: "Can I have beer delivered?",
+    faq_a1:
+      "No. Due to local regulations, all beer beverages are strictly available for Store Pickup only.",
+    faq_q2: "Where is the pickup location?",
+    faq_a2:
+      "Please pick up your order during business hours at 'Sweet Memory'. Address: 8080 Leslie Rd #130, Richmond, BC V6X 4A8.",
   },
 };
 
@@ -98,25 +112,19 @@ export default function BeerOrderPage({
   const [toast, setToast] = useState(null);
   const [showMarquee, setShowMarquee] = useState(false);
 
-  // 🌟 新增：動態庫存狀態 (用來記錄畫面上即時被扣除的數量)
+  // 動態庫存狀態
   const [dynamicStock, setDynamicStock] = useState({});
-
-  // 分類 Tabs 狀態
   const [activeTab, setActiveTab] = useState("all");
-
-  // 分頁狀態
   const [currentPage, setCurrentPage] = useState(1);
   const listTopRef = useRef(null);
   const toastTimerRef = useRef(null);
 
-  // 初始化與延遲顯示跑馬燈
+  // 初始化
   useEffect(() => {
     if (initialItems) {
       setProducts(initialItems);
-      // 初始化數量輸入框為 1
       setQtyMap(Object.fromEntries(initialItems.map((p) => [p.id, 1])));
 
-      // 🌟 初始化動態庫存
       const initialStockMap = {};
       initialItems.forEach((p) => {
         if (p.manage_stock && p.stock_quantity !== null) {
@@ -132,7 +140,6 @@ export default function BeerOrderPage({
     };
   }, [initialItems]);
 
-  // 🌟 動態庫存版的數量檢查機制
   const handleQtyChange = (product, nextVal) => {
     if (nextVal === "") {
       setQtyMap((m) => ({ ...m, [product.id]: 0 }));
@@ -143,7 +150,6 @@ export default function BeerOrderPage({
     if (isNaN(val)) val = 0;
     val = Math.max(0, val);
 
-    // 取得最新「剩餘庫存」
     const currentStock =
       product.manage_stock && product.stock_quantity !== null
         ? (dynamicStock[product.id] ?? product.stock_quantity)
@@ -156,7 +162,6 @@ export default function BeerOrderPage({
     setQtyMap((m) => ({ ...m, [product.id]: val }));
   };
 
-  // 加入購物車
   const addToCart = (product) => {
     const qty = Math.max(1, qtyMap[product.id] || 0);
 
@@ -186,7 +191,6 @@ export default function BeerOrderPage({
     setToast({ id: Date.now(), text: msg });
     toastTimerRef.current = setTimeout(() => setToast(null), 2000);
 
-    // 🌟 即時扣除畫面上的動態庫存！
     if (product.manage_stock && product.stock_quantity !== null) {
       setDynamicStock((prev) => ({
         ...prev,
@@ -197,12 +201,9 @@ export default function BeerOrderPage({
       }));
     }
 
-    // 加入後數量輸入框歸零
     handleQtyChange(product, 0);
   };
 
-  /* ----- 過濾與分頁邏輯 ----- */
-  // 1. 先依據 Tab 過濾商品
   const filteredProducts = useMemo(() => {
     if (activeTab === "all") return products;
     return products.filter(
@@ -210,7 +211,6 @@ export default function BeerOrderPage({
     );
   }, [products, activeTab]);
 
-  // 2. 再計算分頁
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -231,10 +231,9 @@ export default function BeerOrderPage({
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    setCurrentPage(1); // 切換分類時回到第一頁
+    setCurrentPage(1);
   };
 
-  /* ----- 動畫設定 ----- */
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -254,8 +253,14 @@ export default function BeerOrderPage({
     exit: { opacity: 0, y: -10 },
   };
 
-  /* ----- SEO JSON-LD ----- */
-  const currentUrl = `${SITE_URL}${asPath}`;
+  /* =================================================================
+     ⭐ SEO 與結構化資料 (Structured Data)
+     ================================================================= */
+  const targetLocalePrefix = isEn ? "/en" : "";
+  const currentUrl = `${SITE_URL}${targetLocalePrefix}/beer`;
+  const hrefLangZh = `${SITE_URL}/beer`;
+  const hrefLangEn = `${SITE_URL}/en/beer`;
+
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -281,22 +286,57 @@ export default function BeerOrderPage({
     itemListElement: products.map((p, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      item: {
-        "@type": "Product",
-        name: p.name,
-        image: p.img,
-        description: stripHtml(p.short_description),
-        sku: p.sku || `${p.id}`,
-        url: `${SITE_URL}/beer/${p.slug}`,
-        offers: {
-          "@type": "Offer",
-          price: priceFromItem(p),
-          priceCurrency: "CAD",
-          availability: "https://schema.org/InStock",
-          url: `${SITE_URL}/beer/${p.slug}`,
+      url: `${SITE_URL}${targetLocalePrefix}/beer/${p.slug}`,
+      name: p.name,
+    })),
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: t.faq_q1,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t.faq_a1,
         },
       },
-    })),
+      {
+        "@type": "Question",
+        name: t.faq_q2,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t.faq_a2,
+        },
+      },
+    ],
+  };
+
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: "Sweet Memory 憶點點",
+    image: `${SITE_URL}/images/logo/有香餐飲集團-logo.png`,
+    "@id": `${SITE_URL}/#sweetmemory`,
+    url: SITE_URL,
+    telephone: "+1-604-284-5434",
+    priceRange: "$$",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "8080 Leslie Rd #130",
+      addressLocality: "Richmond",
+      addressRegion: "BC",
+      postalCode: "V6X 4A8",
+      addressCountry: "CA",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 49.1837,
+      longitude: -123.1336,
+    },
+    servesCuisine: "Taiwanese, Dessert, Craft Beer",
   };
 
   return (
@@ -304,12 +344,44 @@ export default function BeerOrderPage({
       <Head>
         <title>{t.seo.title}</title>
         <meta name="description" content={t.seo.description} />
+
+        {/* Canonical 與多語系設定 */}
         <link rel="canonical" href={currentUrl} />
+        <link rel="alternate" hrefLang="x-default" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="zh-Hant" href={hrefLangZh} />
+        <link rel="alternate" hrefLang="en" href={hrefLangEn} />
+
+        {/* Open Graph (FB/IG) */}
         <meta property="og:title" content={t.seo.title} />
         <meta property="og:description" content={t.seo.description} />
         <meta
           property="og:image"
           content={products[0]?.img || `${SITE_URL}/images/logo-6.png`}
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={currentUrl} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={t.seo.title} />
+        <meta name="twitter:description" content={t.seo.description} />
+        <meta
+          name="twitter:image"
+          content={products[0]?.img || `${SITE_URL}/images/logo-6.png`}
+        />
+
+        {/* JSON-LD 結構化資料 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "http://schema.org",
+              "@type": "CollectionPage",
+              name: t.seo.title,
+              description: t.seo.description,
+              url: currentUrl,
+            }),
+          }}
         />
         <script
           type="application/ld+json"
@@ -319,6 +391,17 @@ export default function BeerOrderPage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(localBusinessSchema),
+          }}
+        />
+
         {/* 🌟 隱藏數字輸入框預設上下箭頭的 CSS */}
         <style>{`
           input[type="number"]::-webkit-outer-spin-button,
@@ -476,7 +559,6 @@ export default function BeerOrderPage({
                         const q = qtyMap[p.id] ?? 0;
                         const displayPrice = priceFromItem(p);
 
-                        // 🌟 2. 獲取最新即時動態庫存數字與缺貨判定
                         const maxStock =
                           p.manage_stock && p.stock_quantity !== null
                             ? (dynamicStock[p.id] ?? p.stock_quantity)
@@ -519,7 +601,6 @@ export default function BeerOrderPage({
                             </div>
 
                             <div className="mt-2.5">
-                              {/* 🌟 3. 商品庫存即時顯示 */}
                               {p.manage_stock &&
                                 maxStock !== Infinity &&
                                 !isOutOfStock && (
@@ -686,7 +767,6 @@ export async function getStaticProps({ locale }) {
   const cs = process.env.WC_CS;
   const wpLang = locale === "en" ? "en" : "zh_TW";
 
-  // 依照語言設定尋找對應的父分類 Slug
   const targetSlugs =
     wpLang === "en"
       ? ["beer-series", "beer-en", "beer"]
@@ -727,7 +807,6 @@ export async function getStaticProps({ locale }) {
         categoryTabs.push({ id: c.id, name: c.name });
       });
 
-      // 🌟 [新增多語系完整同步抓取邏輯]：先抓取當前語系商品
       const storeUrl = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
       storeUrl.searchParams.set("per_page", "100");
       storeUrl.searchParams.set("category", categoryId.toString());
@@ -743,7 +822,6 @@ export async function getStaticProps({ locale }) {
 
       const rawList = await res.json();
 
-      // 🌟 為了庫存同步，我們需要批量把「另一個語系」的商品也抓回來做雷達比對
       const missingIds = new Set();
       (Array.isArray(rawList) ? rawList : []).forEach((p) => {
         const trans = p.translations || {};
@@ -780,7 +858,6 @@ export async function getStaticProps({ locale }) {
       const list = Array.isArray(rawList) ? rawList : [];
 
       initialItems = list.map((p) => {
-        // 尋找對應語系的物件
         const trans = p.translations || {};
         const otherLangId =
           wpLang === "en" ? trans.zh || trans.zh_TW || trans.zh_Hant : trans.en;
@@ -789,10 +866,7 @@ export async function getStaticProps({ locale }) {
         const zhObj = wpLang === "zh_TW" ? p : otherObj;
         const enObj = wpLang === "en" ? p : otherObj;
 
-        // 🌟 強制價格同步 (優先抓英文版)
         const priceSource = enObj || zhObj || p;
-
-        // 🌟 智慧庫存雷達防呆
         const stockSource =
           [zhObj, enObj, p].find((obj) => obj && obj.manage_stock) ||
           priceSource;
@@ -809,7 +883,6 @@ export async function getStaticProps({ locale }) {
           img: imgSrc || "/images/placeholder.png",
           linkedChineseId: p.id,
 
-          // 替換為雷達抓到的統一價格與庫存
           regular_price: priceSource.regular_price || "",
           sale_price: priceSource.sale_price || "",
           price: priceSource.price || "",

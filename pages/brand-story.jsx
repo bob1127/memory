@@ -6,9 +6,10 @@ import Head from "next/head";
 import { motion, AnimatePresence } from "framer-motion";
 import Layout from "./Layout";
 
-/* ========== 設定網域 (使用環境變數) ========== */
-const SITE_DOMAIN =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
+/* ========== 設定網域 (解決 Google Search Console 收錄問題) ========== */
+const SITE_DOMAIN_RAW =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
+const SITE_DOMAIN = SITE_DOMAIN_RAW.replace(/\/+$/, ""); // 確保尾部沒有斜線
 
 /* ========== 1. 資料庫與翻譯內容 (i18n Data) ========== */
 const TRANSLATIONS = {
@@ -1087,11 +1088,11 @@ function StoreCard({ store }) {
 export default function BrandStoryPage({ t, locale }) {
   const router = useRouter();
 
+  // ⭐ SEO 處理：鎖定 Canonical，過濾掉 ?tab=xxx 的參數，避免 Google 收錄重複內容
   const currentPath = router.asPath.split("?")[0];
-  const canonicalUrl = `${SITE_DOMAIN}${
-    currentPath === "/" ? "" : currentPath
-  }`;
+  const canonicalUrl = `${SITE_DOMAIN}${currentPath}`;
 
+  // hreflang 也統一指向無參數的路徑
   const zhUrl = `${SITE_DOMAIN}/brand-story`;
   const enUrl = `${SITE_DOMAIN}/en/brand-story`;
 
@@ -1153,7 +1154,11 @@ export default function BrandStoryPage({ t, locale }) {
     ...(t.stores.corner || []),
   ].filter((s) => s.name);
 
-  // Schema Definitions
+  /* =================================================================
+     ⭐ SEO 與結構化資料 (Structured Data)
+     ================================================================= */
+
+  // 1. 麵包屑導覽
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -1162,7 +1167,7 @@ export default function BrandStoryPage({ t, locale }) {
         "@type": "ListItem",
         position: 1,
         name: t.ui.home,
-        item: `${SITE_DOMAIN}/${locale === "en" ? "en" : ""}`,
+        item: `${SITE_DOMAIN}${locale === "en" ? "/en" : ""}`,
       },
       {
         "@type": "ListItem",
@@ -1173,12 +1178,29 @@ export default function BrandStoryPage({ t, locale }) {
     ],
   };
 
+  // 2. 關於我們頁面 (AboutPage)
+  const aboutPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalUrl,
+    },
+    name: t.meta.title,
+    description: t.meta.description,
+    publisher: {
+      "@id": `${SITE_DOMAIN}/#organization`,
+    },
+  };
+
+  // 3. 企業組織 (Organization) 與旗下所有分店
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Memory Corner / 有香餐飲集團",
+    "@id": `${SITE_DOMAIN}/#organization`,
+    name: "Memory Corner Group / 有香餐飲集團",
     url: SITE_DOMAIN,
-    logo: `${SITE_DOMAIN}/logo.png`,
+    logo: `${SITE_DOMAIN}/images/品牌門店logo/有香LOGO.png`,
     foundingDate: "1975",
     description: t.meta.description,
     sameAs: [
@@ -1188,6 +1210,7 @@ export default function BrandStoryPage({ t, locale }) {
     subOrganization: allStores.map((store) => ({
       "@type": "Restaurant",
       name: store.name,
+      telephone: store.tel,
       address: {
         "@type": "PostalAddress",
         streetAddress: store.streetAddress,
@@ -1199,6 +1222,7 @@ export default function BrandStoryPage({ t, locale }) {
     })),
   };
 
+  // 4. 各個實體店面的獨立宣告 (LocalBusiness / Restaurant)
   const storesSchemas = allStores.map((store) => ({
     "@context": "https://schema.org",
     "@type": "Restaurant",
@@ -1219,7 +1243,12 @@ export default function BrandStoryPage({ t, locale }) {
     openingHours: store.hours.replace(/\n/g, " "),
   }));
 
-  const jsonLdList = [breadcrumbSchema, organizationSchema, ...storesSchemas];
+  const jsonLdList = [
+    breadcrumbSchema,
+    aboutPageSchema,
+    organizationSchema,
+    ...storesSchemas,
+  ];
   const isGroup = activeTab === "group";
 
   return (
@@ -1228,10 +1257,14 @@ export default function BrandStoryPage({ t, locale }) {
         <title>{t.meta.title}</title>
         <meta name="description" content={t.meta.description} />
         <meta name="keywords" content={t.meta.keywords} />
+
+        {/* Canonical 與多語系設定 */}
         <link rel="canonical" href={canonicalUrl} />
         <link rel="alternate" hreflang="x-default" href={zhUrl} />
         <link rel="alternate" hreflang="zh-TW" href={zhUrl} />
         <link rel="alternate" hreflang="en" href={enUrl} />
+
+        {/* Open Graph (FB/IG) */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={t.meta.title} />
         <meta property="og:description" content={t.meta.description} />
@@ -1239,6 +1272,8 @@ export default function BrandStoryPage({ t, locale }) {
         <meta property="og:site_name" content={t.meta.siteName} />
         <meta property="og:locale" content={t.meta.ogLocale} />
         <meta property="og:url" content={canonicalUrl} />
+
+        {/* JSON-LD 結構化資料 */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdList) }}
@@ -1315,7 +1350,6 @@ export default function BrandStoryPage({ t, locale }) {
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           transition={{ duration: 0.3 }}
-                          // 👇 新增 flex 讓文字可以置中排在 Logo 下方
                           className="flex flex-col items-center justify-center"
                         >
                           <Image
@@ -1325,7 +1359,6 @@ export default function BrandStoryPage({ t, locale }) {
                             height={80}
                             className="object-contain h-auto w-auto max-h-[80px]"
                           />
-                          {/* 👇 新增這行：動態顯示各分頁對應的公司名稱 */}
                           <span className="mt-3 text-sm font-bold tracking-[0.15em] text-[#4b2c1d]">
                             {t.brandNames?.[activeTab]}
                           </span>

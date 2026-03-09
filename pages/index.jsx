@@ -15,15 +15,15 @@ import {
 import Layout from "../pages/Layout";
 import Carousel from "../components/EmblaCarouselBeer/index";
 
-// 網址設定
+// 🟢 設定正式上線網址 (解決 Google Search Console 收錄問題)
 const SITE_URL_RAW =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
 const SITE_URL = ensureURL(SITE_URL_RAW);
 
-const SITE_NAME = "Memory Corner";
+const SITE_NAME = "Memory Corner 有香餐飲集團";
 const BRAND_NAME = "Memory Corner Group";
 
-// ✅ 你指定的 OG image
+// ✅ 首頁 OG image 絕對路徑
 const OG_IMAGE_PATH = "/images/index/about/3-1.webp";
 
 // 影片輪播清單
@@ -44,7 +44,7 @@ const TRANSLATIONS = {
       description:
         "始於1975年，有香餐飲集團在溫哥華呈現最正宗的台灣味。旗下擁有 Memory Corner 有香、Sweet Memory 憶點點，提供台式鍋物、羊肉爐、鹽酥雞、傳統小吃、甜點與特色精釀啤酒，帶您重溫家的溫度。",
       keywords:
-        "溫哥華台灣菜, 溫哥華台式料理, 羊肉爐, 鹽酥雞, 台灣啤酒, 有香, 憶點點, Vancouver Taiwanese Food",
+        "溫哥華台灣菜, 溫哥華台式料理, 羊肉爐, 鹽酥雞, 台灣啤酒, 有香, 憶點點, Vancouver Taiwanese Food, 溫哥華美食",
     },
     beer: {
       honey: {
@@ -73,7 +73,7 @@ const TRANSLATIONS = {
       desc2: "門市選購或線上購物，讓台灣的好滋味，成為你每天的日常。",
 
       online_shop: "線上購物",
-      store_info: "門店資訊", // 新增
+      store_info: "門店資訊",
     },
     about: {
       title: "ABOUT US",
@@ -128,7 +128,7 @@ const TRANSLATIONS = {
       desc2: "great flavors made easy — ready whenever you are.",
       desc3: "In-store or online.",
       online_shop: "Online-Shop",
-      store_info: "Store Info", // 新增
+      store_info: "Store Info",
     },
     about: {
       title: "ABOUT US",
@@ -148,9 +148,6 @@ const TRANSLATIONS = {
   },
 };
 
-/* =================================================================
-   2. SSG：這頁沒打後端，SSG 就足夠（不需要 ISR）
-   ================================================================= */
 export async function getStaticProps({ locale }) {
   const t = TRANSLATIONS[locale] || TRANSLATIONS["zh-TW"];
   return {
@@ -164,7 +161,6 @@ export async function getStaticProps({ locale }) {
 /* =================================================================
    3. 動畫與輔助元件
    ================================================================= */
-
 function FadeUp({
   children,
   className = "",
@@ -206,7 +202,7 @@ function AutoSwapImage({
   rotateDuration = 16,
   priority = false,
   forceShowB,
-  slide = "none", // "left" | "right" | "none"
+  slide = "none",
 }) {
   const prefersReduced = useReducedMotion?.();
   const [internalShowB, setInternalShowB] = useState(false);
@@ -394,15 +390,12 @@ export default function Home({ t, locale }) {
   if (!t) return null;
 
   const [globalIsB, setGlobalIsB] = useState(false);
-  const [videoIndex, setVideoIndex] = useState(0); // 新增的影片輪播 State
+  const [videoIndex, setVideoIndex] = useState(0);
   const dingingRef = useRef(null);
   useScroll({ target: dingingRef, offset: ["start 80%", "end 25%"] });
 
   useEffect(() => {
-    // 既有的 globalIsB 計時器
     const timer = setInterval(() => setGlobalIsB((prev) => !prev), 7000);
-
-    // 影片 10 秒輪播計時器
     const videoTimer = setInterval(() => {
       setVideoIndex((prev) => (prev + 1) % PROMO_VIDEOS.length);
     }, 10000);
@@ -435,7 +428,6 @@ export default function Home({ t, locale }) {
       title: t.beer.craft.title,
       description: t.beer.craft.description,
     },
-    // 重複 slides（如要無限輪播）
     {
       image: "/images/beer/台啤-蜂蜜.webp",
       title: t.beer.honey.title,
@@ -458,21 +450,20 @@ export default function Home({ t, locale }) {
     },
   ];
 
-  // canonical
+  // canonical & hreflang
   const canonical = `${SITE_URL}${isEn ? "/en" : ""}`;
-
-  // hreflang
   const hrefLangZh = `${SITE_URL}/`;
   const hrefLangEn = `${SITE_URL}/en`;
-
-  // ✅ og image 絕對路徑
   const ogImageAbs = `${SITE_URL}${OG_IMAGE_PATH}`;
 
-  /* ========== Structured Data ========== */
+  /* =================================================================
+     ⭐ SEO 與結構化資料 (Structured Data) - 針對 Sitelinks 最佳化
+     ================================================================= */
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
+    alternateName: ["Memory Corner", "有香餐飲集團"],
     url: SITE_URL,
     inLanguage: isEn ? "en" : "zh-Hant",
     potentialAction: {
@@ -488,6 +479,7 @@ export default function Home({ t, locale }) {
     name: BRAND_NAME,
     url: SITE_URL,
     logo: `${SITE_URL}/images/index/about/有香集團-logo.png`,
+    description: t.meta.description,
     sameAs: [
       "https://www.facebook.com/MemoryCorner8",
       "https://www.instagram.com/memorycorner8",
@@ -504,19 +496,6 @@ export default function Home({ t, locale }) {
     url: SITE_URL,
   };
 
-  const webPageSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: t.meta.title,
-    description: t.meta.description,
-    url: canonical,
-    inLanguage: isEn ? "en" : "zh-Hant",
-    primaryImageOfPage: {
-      "@type": "ImageObject",
-      url: ogImageAbs,
-    },
-  };
-
   const videoSchema = {
     "@context": "https://schema.org",
     "@type": "VideoObject",
@@ -525,8 +504,55 @@ export default function Home({ t, locale }) {
       "Enjoy authentic Taiwanese cuisine and beer with friends at Memory Corner.",
     thumbnailUrl: `${SITE_URL}/images/index/video/b4c86b1e81f93dc869c7923db929e811.jpg`,
     contentUrl: `${SITE_URL}/video/A. Memory Corner | 有香影片-朋友歡聚暢飲.mp4`,
+    uploadDate: "2024-01-01T08:00:00+08:00",
     embedUrl: canonical,
   };
+
+  // 🌟 這是最重要的 SiteNavigationElement，明確告訴 Google 這些是你的核心導覽頁面，幫助生成 Sitelinks
+  const siteNavigationSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: [
+      {
+        "@type": "SiteNavigationElement",
+        position: 1,
+        name: isEn ? "Brand Story" : "品牌門店 / 品牌故事",
+        url: `${SITE_URL}${isEn ? "/en" : ""}/brand-story`,
+      },
+      {
+        "@type": "SiteNavigationElement",
+        position: 2,
+        name: isEn ? "Menus" : "品牌菜單",
+        url: `${SITE_URL}${isEn ? "/en" : ""}/menu`,
+      },
+      {
+        "@type": "SiteNavigationElement",
+        position: 3,
+        name: isEn ? "Group Buy" : "台味便利店 (團購商城)",
+        url: `${SITE_URL}${isEn ? "/en" : ""}/groupBuy`,
+      },
+      {
+        "@type": "SiteNavigationElement",
+        position: 4,
+        name: isEn ? "Contact Us" : "聯絡我們",
+        url: `${SITE_URL}${isEn ? "/en" : ""}/contact`,
+      },
+      {
+        "@type": "SiteNavigationElement",
+        position: 5,
+        name: isEn ? "Craft Beer" : "特色精釀啤酒",
+        url: `${SITE_URL}${isEn ? "/en" : ""}/beer`,
+      },
+    ],
+  };
+
+  const jsonLdList = [
+    websiteSchema,
+    organizationSchema,
+    restaurantSchema,
+    videoSchema,
+    siteNavigationSchema,
+  ];
 
   return (
     <Layout>
@@ -549,7 +575,7 @@ export default function Home({ t, locale }) {
         <meta property="og:description" content={t.meta.description} />
         <meta property="og:image" content={ogImageAbs} />
         <meta property="og:site_name" content={SITE_NAME} />
-        <meta property="og:locale" content={isEn ? "en_US" : "zh_TW"} />
+        <meta property="og:locale" content={isEn ? "en_CA" : "zh_TW"} />
         <meta property="og:url" content={canonical} />
 
         {/* Twitter */}
@@ -558,28 +584,10 @@ export default function Home({ t, locale }) {
         <meta name="twitter:description" content={t.meta.description} />
         <meta name="twitter:image" content={ogImageAbs} />
 
-        {/* JSON-LD */}
+        {/* JSON-LD 全部整合在一起渲染 */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdList) }}
         />
       </Head>
 
@@ -671,11 +679,8 @@ export default function Home({ t, locale }) {
                 playsInline
                 aria-label="Video of Taiwanese grocery shop"
               >
-                {/* 優先提供給 Safari 讀取的透明背景格式 */}
                 <source src="/video/灶腳.mov" type="video/quicktime" />
-                {/* 提供給 Chrome / Firefox 讀取的透明背景格式 */}
                 <source src="/video/灶腳.webm" type="video/webm" />
-                {/* 可選：加入備用文字，當瀏覽器完全不支援時顯示 */}
                 您的瀏覽器不支援此影片格式。
               </video>
             </div>
