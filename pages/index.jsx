@@ -17,7 +17,7 @@ import Carousel from "../components/EmblaCarouselBeer/index";
 
 // 網址設定
 const SITE_URL_RAW =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://memory-ozgp.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.memorycorner8.com";
 const SITE_URL = ensureURL(SITE_URL_RAW);
 
 const SITE_NAME = "Memory Corner";
