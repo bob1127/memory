@@ -9,6 +9,14 @@ import Layout from "./Layout";
 import { motion, AnimatePresence } from "framer-motion";
 import Marquee from "react-marquee-slider";
 import { cartStore } from "@/lib/cartStore";
+import {
+  ChevronRight,
+  ChevronDown,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Globe,
+} from "lucide-react";
 
 // 🟢 設定正式上線網址 (解決 Google Search Console 收錄問題)
 const SITE_URL_RAW =
@@ -116,6 +124,8 @@ export default function BeerOrderPage({
   const [dynamicStock, setDynamicStock] = useState({});
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // 🌟 手機版選單狀態
+
   const listTopRef = useRef(null);
   const toastTimerRef = useRef(null);
 
@@ -232,7 +242,15 @@ export default function BeerOrderPage({
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     setCurrentPage(1);
+    setIsMobileMenuOpen(false); // 點擊後收起手機版選單
   };
+
+  // 取得目前作用中的分類名稱
+  const activeTabName = useMemo(() => {
+    if (activeTab === "all") return t.tab_all;
+    const found = categoryTabs.find((tab) => tab.id === activeTab);
+    return found ? found.name : t.tab_all;
+  }, [activeTab, categoryTabs, t.tab_all]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -469,7 +487,7 @@ export default function BeerOrderPage({
         </AnimatePresence>
 
         {/* Hero Section */}
-        <section className="relative h-screen overflow-hidden">
+        <section className="relative h-[80vh] sm:h-screen overflow-hidden">
           <motion.div
             className="absolute right-10 top-20 md:right-20 md:top-20 z-20"
             animate={{ opacity: 1 }}
@@ -505,7 +523,7 @@ export default function BeerOrderPage({
 
         {/* Product List Section */}
         <section
-          className="bg-white min-h-screen py-24 relative z-10"
+          className="bg-white min-h-screen py-8 sm:py-24 relative z-10"
           ref={listTopRef}
         >
           <div className="flex flex-col justify-center items-center pb-8 pt-4">
@@ -513,37 +531,108 @@ export default function BeerOrderPage({
               {t.title}
             </h2>
 
-            {/* 分類 Tabs */}
+            {/* 分類 Tabs (Desktop & Mobile) */}
             {categoryTabs.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-4 px-4 max-w-4xl w-full">
-                <button
-                  onClick={() => handleTabChange("all")}
-                  className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
-                    activeTab === "all"
-                      ? "bg-[#e7a042] text-white shadow-md scale-105"
-                      : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-800"
-                  }`}
-                >
-                  {t.tab_all}
-                </button>
-                {categoryTabs.map((tab) => (
+              <>
+                {/* 🌟 手機版：客製化下拉選單 (小於 md 顯示) */}
+                <div className="block md:hidden w-full px-4 max-w-[320px] mx-auto mb-4 relative z-50">
                   <button
-                    key={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="w-full bg-white border border-gray-200 text-gray-800 py-3.5 px-6 rounded-full shadow-sm flex items-center justify-between font-bold text-base transition-all active:scale-95"
+                  >
+                    <span className="truncate flex-1 text-center pl-6">
+                      {activeTabName}
+                    </span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isMobileMenuOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {isMobileMenuOpen && (
+                      <>
+                        {/* 背景遮罩，點擊選單外自動收起 */}
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        />
+
+                        {/* 懸浮選單 */}
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50"
+                        >
+                          <ul className="flex flex-col max-h-[60vh] overflow-y-auto divide-y divide-gray-50">
+                            <li>
+                              <button
+                                onClick={() => handleTabChange("all")}
+                                className={`w-full text-center px-6 py-4 text-base font-bold transition-colors ${
+                                  activeTab === "all"
+                                    ? "bg-[#e7a042]/10 text-[#e7a042]"
+                                    : "text-gray-700 hover:bg-gray-50"
+                                }`}
+                              >
+                                {t.tab_all}
+                              </button>
+                            </li>
+                            {categoryTabs.map((tab) => (
+                              <li key={tab.id}>
+                                <button
+                                  onClick={() => handleTabChange(tab.id)}
+                                  className={`w-full text-center px-6 py-4 text-base font-bold transition-colors ${
+                                    activeTab === tab.id
+                                      ? "bg-[#e7a042]/10 text-[#e7a042]"
+                                      : "text-gray-700 hover:bg-gray-50"
+                                  }`}
+                                >
+                                  {tab.name}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* 💻 電腦版：按鈕列表 (大於等於 md 顯示) */}
+                <div className="hidden md:flex flex-wrap justify-center gap-2 sm:gap-4 px-4 max-w-4xl w-full">
+                  <button
+                    onClick={() => handleTabChange("all")}
                     className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
-                      activeTab === tab.id
+                      activeTab === "all"
                         ? "bg-[#e7a042] text-white shadow-md scale-105"
                         : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-800"
                     }`}
                   >
-                    {tab.name}
+                    {t.tab_all}
                   </button>
-                ))}
-              </div>
+                  {categoryTabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabChange(tab.id)}
+                      className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+                        activeTab === tab.id
+                          ? "bg-[#e7a042] text-white shadow-md scale-105"
+                          : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-800"
+                      }`}
+                    >
+                      {tab.name}
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
-          <div className="max-w-[1600px] mx-auto w-[90%] md:w-[86%]">
+          <div className="max-w-[1600px] mx-auto w-[90%] md:w-[86%] relative z-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={`${activeTab}-${currentPage}`}
@@ -575,7 +664,7 @@ export default function BeerOrderPage({
                           >
                             <Link
                               href={`/beer/${p.slug}`}
-                              className="relative w-full aspect-square bg-gray-50 rounded-xl overflow-hidden"
+                              className="relative w-full aspect-square   rounded-xl overflow-hidden"
                             >
                               <Image
                                 src={p.img}
@@ -637,7 +726,7 @@ export default function BeerOrderPage({
                                     onChange={(e) =>
                                       handleQtyChange(p, e.target.value)
                                     }
-                                    className="w-10 text-center text-sm rounded-lg py-1.5 focus:outline-none text-gray-600 font-medium"
+                                    className="w-10 text-center text-sm rounded-lg !border-none py-1.5 focus:outline-none text-gray-600 font-medium"
                                   />
                                   <button
                                     onClick={() => handleQtyChange(p, q + 1)}
@@ -767,6 +856,7 @@ export async function getStaticProps({ locale }) {
   const cs = process.env.WC_CS;
   const wpLang = locale === "en" ? "en" : "zh_TW";
 
+  // 依照語言設定尋找對應的父分類 Slug
   const targetSlugs =
     wpLang === "en"
       ? ["beer-series", "beer-en", "beer"]
@@ -807,6 +897,7 @@ export async function getStaticProps({ locale }) {
         categoryTabs.push({ id: c.id, name: c.name });
       });
 
+      // 🌟 [新增多語系完整同步抓取邏輯]：先抓取當前語系商品
       const storeUrl = new URL(`${ensureURL(base)}/wp-json/wc/v3/products`);
       storeUrl.searchParams.set("per_page", "100");
       storeUrl.searchParams.set("category", categoryId.toString());
@@ -822,6 +913,7 @@ export async function getStaticProps({ locale }) {
 
       const rawList = await res.json();
 
+      // 🌟 為了庫存同步，我們需要批量把「另一個語系」的商品也抓回來做雷達比對
       const missingIds = new Set();
       (Array.isArray(rawList) ? rawList : []).forEach((p) => {
         const trans = p.translations || {};
@@ -858,6 +950,7 @@ export async function getStaticProps({ locale }) {
       const list = Array.isArray(rawList) ? rawList : [];
 
       initialItems = list.map((p) => {
+        // 尋找對應語系的物件
         const trans = p.translations || {};
         const otherLangId =
           wpLang === "en" ? trans.zh || trans.zh_TW || trans.zh_Hant : trans.en;
@@ -866,7 +959,10 @@ export async function getStaticProps({ locale }) {
         const zhObj = wpLang === "zh_TW" ? p : otherObj;
         const enObj = wpLang === "en" ? p : otherObj;
 
+        // 🌟 強制價格同步 (優先抓英文版)
         const priceSource = enObj || zhObj || p;
+
+        // 🌟 智慧庫存雷達防呆
         const stockSource =
           [zhObj, enObj, p].find((obj) => obj && obj.manage_stock) ||
           priceSource;
@@ -883,6 +979,7 @@ export async function getStaticProps({ locale }) {
           img: imgSrc || "/images/placeholder.png",
           linkedChineseId: p.id,
 
+          // 替換為雷達抓到的統一價格與庫存
           regular_price: priceSource.regular_price || "",
           sale_price: priceSource.sale_price || "",
           price: priceSource.price || "",

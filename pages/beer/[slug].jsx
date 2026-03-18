@@ -35,33 +35,6 @@ const SITE_URL = ensureURL(SITE_URL_RAW);
 const SITE_NAME = "Memory Corner";
 
 const stripHtml = (html) => (!html ? "" : html.replace(/<[^>]*>?/gm, ""));
-const formatTimeDisplay = (isoString) => {
-  if (!isoString) return "TBA";
-  try {
-    return new Date(isoString).toLocaleString("en-CA", {
-      timeZone: "America/Vancouver",
-      hour12: false,
-    });
-  } catch {
-    return isoString;
-  }
-};
-
-function getActivePeriod(periods = []) {
-  const now = Date.now();
-  return periods.find(
-    (p) =>
-      now >= new Date(p.start).getTime() && now <= new Date(p.end).getTime(),
-  );
-}
-function getNextPeriod(periods = []) {
-  const now = Date.now();
-  return (
-    periods
-      .filter((p) => new Date(p.start).getTime() > now)
-      .sort((a, b) => new Date(a.start) - new Date(b.start))[0] || null
-  );
-}
 
 const PAGE_TRANSLATIONS = {
   "zh-TW": {
@@ -99,88 +72,11 @@ const PAGE_TRANSLATIONS = {
 };
 
 /* =========================================================
-   2. MODAL & INNER COMPONENT
+   2. MAIN COMPONENT
    ========================================================= */
-function GroupNoticeModal({ open, onClose, nextPeriod }) {
-  const info = nextPeriod || {
-    start: null,
-    end: null,
-    delivery_zh: "待定 (TBA)",
-    delivery_en: "To be announced",
-  };
-  const timeRange =
-    info.start && info.end
-      ? `${formatTimeDisplay(info.start)} — ${formatTimeDisplay(info.end)}`
-      : "Coming Soon";
-  return (
-    <AnimatePresence>
-      {open ? (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center px-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ scale: 0.95 }}
-            animate={{ scale: 1 }}
-            className="relative w-full max-w-[500px] bg-white rounded-2xl shadow-2xl overflow-hidden"
-          >
-            <div className="border-b px-6 py-4 flex items-center gap-3">
-              <div className="bg-amber-100 text-amber-600 rounded-full h-10 w-10 grid place-items-center">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-bold">
-                  目前無法下單 (Group-Buy Closed)
-                </h3>
-                <p className="text-xs text-gray-500">請等待下一次開團</p>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              <p className="text-gray-800 font-medium">
-                很抱歉，本商品僅在
-                <span className="font-bold mx-1">「開團期間」</span>開放下單。
-              </p>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <div className="font-bold text-sm text-gray-900">
-                  📅 下一次開團時間
-                </div>
-                <div className="font-mono text-sm text-gray-800">
-                  {timeRange}
-                </div>
-              </div>
-            </div>
-            <div className="border-t px-6 py-4 flex justify-center bg-gray-50">
-              <button
-                onClick={onClose}
-                className="border border-gray-300 bg-white px-6 py-2 rounded-full hover:bg-gray-100 text-sm font-medium"
-              >
-                知道了 / Got it
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      ) : null}
-    </AnimatePresence>
-  );
-}
-
 export default function ProductInner({
   product,
-  periods = [],
-  relatedProducts = [], // 🌟 確保接收 relatedProducts
+  relatedProducts = [],
   redirectDestination,
   zhSlug,
   enSlug,
@@ -189,9 +85,6 @@ export default function ProductInner({
   const { locale, asPath, replace, isReady } = router;
   const isEn = locale === "en";
   const t = isEn ? PAGE_TRANSLATIONS.en : PAGE_TRANSLATIONS["zh-TW"];
-  const [activePeriod, setActivePeriod] = useState(null);
-  const [nextPeriod, setNextPeriod] = useState(null);
-  const [showModal, setShowModal] = useState(false);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [toast, setToast] = useState(false);
   const carouselRef = useRef(null);
@@ -217,16 +110,6 @@ export default function ProductInner({
   }, [product]);
 
   useEffect(() => {
-    const check = () => {
-      setActivePeriod(getActivePeriod(periods));
-      setNextPeriod(getNextPeriod(periods));
-    };
-    check();
-    const id = setInterval(check, 30000);
-    return () => clearInterval(id);
-  }, [periods]);
-
-  useEffect(() => {
     if (!isReady) return;
     if (redirectDestination) {
       replace(redirectDestination);
@@ -238,8 +121,8 @@ export default function ProductInner({
   const targetLocalePrefix = isEn ? "/en" : "";
   const customSwitchHref =
     enSlug && zhSlug
-      ? `${isEn ? "" : "/en"}/product/${isEn ? zhSlug : enSlug}`
-      : `${isEn ? "" : "/en"}/groupBuy`;
+      ? `${targetLocalePrefix}/product/${isEn ? zhSlug : enSlug}`
+      : `${targetLocalePrefix}/groupBuy`;
 
   // 完美同步庫存公式 (主商品)
   const cartItem = cart.find(
@@ -374,13 +257,9 @@ export default function ProductInner({
     })),
   };
 
-  // 加入購物車 (主商品 - 團購)
+  // 加入購物車 (主商品 - 啤酒)
   const addToCart = () => {
-    if (!activePeriod) {
-      setShowModal(true);
-      return;
-    }
-
+    // 💡 移除所有團購時間判斷，讓啤酒隨時可以下單
     const cartId = product.sku && product.sku !== "" ? product.sku : product.id;
     const safeQty = Math.max(1, Number(qty) || 1);
 
@@ -393,7 +272,7 @@ export default function ProductInner({
         name_en: product.name_en || displayName,
         img: mainImage,
         price: Number(finalPrice.toFixed(2)),
-        store_type: "group_buy",
+        store_type: "beer", // 確保標記為啤酒類型
         sku: product.sku,
         manage_stock: product.manage_stock,
         stock_quantity: product.stock_quantity,
@@ -435,12 +314,12 @@ export default function ProductInner({
         id: cartId,
         productId: relatedItem.id,
         name: relatedItem.name,
-        name_zh: relatedItem.name, // 簡化處理
+        name_zh: relatedItem.name,
         name_en: relatedItem.name,
         img: relatedItem.img,
         price: Number(relatedItem.price),
         sku: relatedItem.sku,
-        store_type: "beer", // 🌟 確保加入的是啤酒類型
+        store_type: "beer",
         manage_stock: relatedItem.manage_stock,
         stock_quantity: relatedItem.stock_quantity,
       },
@@ -540,13 +419,15 @@ export default function ProductInner({
             <span className="mx-2">/</span>
             <span className="text-black font-medium">{displayName}</span>
           </div>
-        </nav>
 
-        <GroupNoticeModal
-          open={showModal}
-          onClose={() => setShowModal(false)}
-          nextPeriod={nextPeriod}
-        />
+          <Link
+            href={customSwitchHref}
+            className="flex items-center gap-1 text-[#e7a042] hover:text-[#c5853d] font-medium transition-colors whitespace-nowrap"
+          >
+            <Globe size={16} />
+            {t.switch_lang}
+          </Link>
+        </nav>
 
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div>
@@ -868,6 +749,7 @@ export async function getStaticProps({ params, locale }) {
 
     if (!p || !p.id) return { notFound: true, revalidate: 10 };
 
+    // 檢查語言正確性 (Redirect)
     const productLang =
       p.lang || p.meta_data?.find((m) => m.key === "lang")?.value;
     const targetPrefix = locale === "en" ? "en" : "zh";
@@ -908,6 +790,7 @@ export async function getStaticProps({ params, locale }) {
       }
     }
 
+    // 🟢 抓取翻譯語言的「完整資料」(為了同步庫存與價格)
     const translations = p.translations || {};
     const otherLangId =
       locale === "en"
@@ -926,14 +809,18 @@ export async function getStaticProps({ params, locale }) {
       } catch (e) {}
     }
 
+    // 🌟 [核心同步雷達] 定義中文與英文物件
     const isZhLocale = locale === "zh-TW";
     const zhObj = isZhLocale ? p : otherP;
     const enObj = isZhLocale ? otherP : p;
 
+    // 確保價格與列表頁統一 (優先抓英文版)
     const priceSource = enObj || zhObj || p;
+    // 確保庫存永遠抓取「有開管理庫存」的那一方 (通常是中文版)
     const stockSource =
       [zhObj, enObj, p].find((obj) => obj && obj.manage_stock) || priceSource;
 
+    // 整合名稱
     const zhId =
       translations.zh ||
       translations.zh_TW ||
@@ -943,6 +830,7 @@ export async function getStaticProps({ params, locale }) {
     const finalNameZh = zhObj ? zhObj.name : currentName;
     const finalNameEn = enObj ? enObj.name : currentName;
 
+    // 封裝最終傳給前端的資料
     const productData = {
       id: p.id,
       linkedChineseId: linkedChineseId || p.id,
@@ -950,6 +838,7 @@ export async function getStaticProps({ params, locale }) {
       name_zh: finalNameZh,
       name_en: finalNameEn,
       description: p.description || "",
+      // 套用同步鎖的資料
       price: priceSource.price || priceSource.regular_price || "0",
       regular_price: priceSource.regular_price || null,
       sale_price: priceSource.sale_price || null,
@@ -959,65 +848,81 @@ export async function getStaticProps({ params, locale }) {
           ? Number(stockSource.stock_quantity)
           : null,
       stock_status: stockSource.stock_status || "instock",
+
       images: p.images?.map((i) => i.src) || [],
       sku: p.sku || "",
       categories: p.categories || [],
       lang: p.lang,
     };
 
-    let periods = [];
-    try {
-      const timeRes = await fetch(`${base}/wp-json/custom/v1/group-buy`);
-      if (timeRes.ok) periods = await timeRes.json();
-    } catch (err) {}
-
-    // 🌟🌟 這裡負責抓取「啤酒類別」的商品，送到下方的 Carousel 🌟🌟
+    // 🌟 這裡負責抓取「啤酒類別」的商品，送到下方的 Carousel
     let relatedProducts = [];
     try {
       const wpLang = locale === "zh-TW" ? "zh" : locale;
-      // 強制指定只抓 beer 分類
+      // 雙重保險：先試著抓 beer 分類，如果分類抓錯，再用名稱嚴密過濾
       const beerCatSlug = locale === "en" ? "beer-en" : "beer";
 
       const catRes = await fetch(
         `${base}/wp-json/wc/store/products/categories?slug=${beerCatSlug}`,
       );
+      let fetchUrl = `${base}/wp-json/wc/store/products?per_page=100&lang=${wpLang}`; // 預設抓最新 100 筆
+
       if (catRes.ok) {
         const cats = await catRes.json();
         const beerCatId = cats?.[0]?.id;
-
         if (beerCatId) {
-          const relRes = await fetch(
-            `${base}/wp-json/wc/store/products?category=${beerCatId}&per_page=20&lang=${wpLang}`,
-          );
-          if (relRes.ok) {
-            const relData = await relRes.json();
-            if (Array.isArray(relData)) {
-              // 過濾掉主商品 (避免主商品剛好也是啤酒而重複顯示)
-              const filtered = relData.filter((item) => item.id !== p.id);
+          fetchUrl = `${base}/wp-json/wc/store/products?category=${beerCatId}&per_page=50&lang=${wpLang}`;
+        }
+      }
 
-              // 隨機打亂陣列
-              for (let i = filtered.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-              }
+      const relRes = await fetch(fetchUrl);
+      if (relRes.ok) {
+        const relData = await relRes.json();
+        if (Array.isArray(relData)) {
+          // 🌟 終極防呆：嚴格檢查名稱是否包含啤酒關鍵字
+          const checkIsBeer = (nameStr) => {
+            const n = String(nameStr || "").toLowerCase();
+            return (
+              n.includes("beer") ||
+              n.includes("啤酒") ||
+              n.includes("台啤") ||
+              n.includes("生啤") ||
+              n.includes("draft") ||
+              n.includes("金牌") ||
+              n.includes("heineken") ||
+              n.includes("kirin")
+            );
+          };
 
-              // 取前 8 筆
-              relatedProducts = filtered.slice(0, 8).map((item) => ({
-                id: item.id,
-                name: item.name,
-                slug: item.slug,
-                img: item.images?.[0]?.src || "/images/placeholder.png",
-                price: item.prices?.price ? Number(item.prices.price) / 100 : 0,
-                sku: item.sku || "",
-                manage_stock: item.add_to_cart?.manage_stock || false,
-                stock_quantity:
-                  item.add_to_cart?.maximum !== undefined
-                    ? Number(item.add_to_cart.maximum)
-                    : null,
-                stock_status: item.is_in_stock ? "instock" : "outofstock",
-              }));
-            }
+          const filteredBeers = relData.filter((item) => {
+            if (item.id === p.id) return false; // 排除當前商品
+            return checkIsBeer(item.name); // 強制檢查名字
+          });
+
+          // 隨機打亂陣列
+          for (let i = filteredBeers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [filteredBeers[i], filteredBeers[j]] = [
+              filteredBeers[j],
+              filteredBeers[i],
+            ];
           }
+
+          // 取前 8 筆
+          relatedProducts = filteredBeers.slice(0, 8).map((item) => ({
+            id: item.id,
+            name: item.name,
+            slug: item.slug,
+            img: item.images?.[0]?.src || "/images/placeholder.png",
+            price: item.prices?.price ? Number(item.prices.price) / 100 : 0,
+            sku: item.sku || "",
+            manage_stock: item.add_to_cart?.manage_stock || false,
+            stock_quantity:
+              item.add_to_cart?.maximum !== undefined
+                ? Number(item.add_to_cart.maximum)
+                : null,
+            stock_status: item.is_in_stock ? "instock" : "outofstock",
+          }));
         }
       }
     } catch (err) {
@@ -1027,8 +932,7 @@ export async function getStaticProps({ params, locale }) {
     return {
       props: {
         product: productData,
-        periods,
-        relatedProducts, // 🌟 將啤酒資料傳給組件
+        relatedProducts, // 🌟 傳送嚴格過濾後的啤酒資料給組件
         zhSlug: p.slug,
         enSlug: p.slug,
         redirectDestination: null,

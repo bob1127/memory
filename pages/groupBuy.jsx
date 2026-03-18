@@ -731,7 +731,7 @@ export default function GroupBuyPage({
                           >
                             <Link
                               href={`/product/${p.slug}?from=groupBuy`}
-                              className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden"
+                              className="relative w-full aspect-square  rounded-lg overflow-hidden"
                             >
                               <Image
                                 src={p.img || "/images/placeholder.png"}
