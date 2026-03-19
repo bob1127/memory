@@ -357,10 +357,7 @@ export default function GroupBuyPage({
   };
 
   const addToCart = (product) => {
-    if (!activePeriod) {
-      setShowGroupModal(true);
-      return;
-    }
+    // 🌟 已經移除 activePeriod 的時間阻擋判斷，隨時可加入購物車
     const safeQty = Math.max(1, qtyMap[product.id] ?? 0);
     if (safeQty <= 0) return;
 
@@ -731,7 +728,7 @@ export default function GroupBuyPage({
                           >
                             <Link
                               href={`/product/${p.slug}?from=groupBuy`}
-                              className="relative w-full aspect-square  rounded-lg overflow-hidden"
+                              className="relative w-full aspect-square bg-gray-50 rounded-lg overflow-hidden"
                             >
                               <Image
                                 src={p.img || "/images/placeholder.png"}

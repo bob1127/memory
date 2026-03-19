@@ -382,11 +382,7 @@ export default function ProductInner({
 
   // 🟢 加入購物車邏輯
   const addToCart = () => {
-    if (!activePeriod) {
-      setShowModal(true);
-      return;
-    }
-
+    // 💡 已移除團購時間判斷，隨時可加入購物車
     const cartId = product.sku && product.sku !== "" ? product.sku : product.id;
     const safeQty = Math.max(1, Number(qty) || 1);
 
